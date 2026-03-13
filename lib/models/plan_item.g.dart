@@ -1,33 +1,33 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'expense.dart';
+part of 'plan_item.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ExpenseAdapter extends TypeAdapter<Expense> {
+class PlanItemAdapter extends TypeAdapter<PlanItem> {
   @override
-  final int typeId = 0;
+  final int typeId = 1;
 
   @override
-  Expense read(BinaryReader reader) {
+  PlanItem read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Expense(
+    return PlanItem(
       id: fields[0] as String,
       title: fields[1] as String,
-      amount: fields[2] as double,
-      date: fields[3] as DateTime,
-      category: fields[4] as String,
-      type: fields[5] == null ? 'expense' : fields[5] as String,
+      targetAmount: fields[2] as double,
+      currentAmount: fields[3] as double,
+      colorValue: fields[4] as int,
+      iconCodePoint: fields[5] as int,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Expense obj) {
+  void write(BinaryWriter writer, PlanItem obj) {
     writer
       ..writeByte(6)
       ..writeByte(0)
@@ -35,13 +35,13 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..writeByte(1)
       ..write(obj.title)
       ..writeByte(2)
-      ..write(obj.amount)
+      ..write(obj.targetAmount)
       ..writeByte(3)
-      ..write(obj.date)
+      ..write(obj.currentAmount)
       ..writeByte(4)
-      ..write(obj.category)
+      ..write(obj.colorValue)
       ..writeByte(5)
-      ..write(obj.type);
+      ..write(obj.iconCodePoint);
   }
 
   @override
@@ -50,7 +50,7 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ExpenseAdapter &&
+      other is PlanItemAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

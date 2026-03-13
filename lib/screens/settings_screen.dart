@@ -28,15 +28,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F7FA),
         elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.black87,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Pengaturan',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),

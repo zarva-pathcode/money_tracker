@@ -32,8 +32,8 @@ class Formatters {
     // Konversi ke angka
     int number = int.tryParse(digitsOnly) ?? 0;
 
-    // Format dengan thousand separator
-    return NumberFormat('#,###').format(number);
+    // Format dengan thousand separator, ensure 0 is shown
+    return NumberFormat('#,##0', 'id_ID').format(number);
   }
 
   // Parse string formatted ke double

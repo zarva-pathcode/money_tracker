@@ -39,6 +39,22 @@ class Constants {
           'icon': Icons.more_horiz_rounded,
           'color': const Color(0xFF78909C), // Blue Grey
         };
+      // Kategori Pemasukan
+      case 'Gaji':
+        return {
+          'icon': Icons.attach_money_rounded,
+          'color': const Color(0xFF43A047), // Green
+        };
+      case 'Bonus':
+        return {
+          'icon': Icons.card_giftcard_rounded,
+          'color': const Color(0xFF81C784), // Light Green
+        };
+      case 'Investasi':
+        return {
+          'icon': Icons.trending_up_rounded,
+          'color': const Color(0xFF00897B), // Teal
+        };
       default:
         return {
           'icon': Icons.category_rounded,
@@ -47,8 +63,7 @@ class Constants {
     }
   }
 
-  static const List<String> categories = [
-    'Semua Kategori',
+  static const List<String> expenseCategories = [
     'Makanan',
     'Transportasi',
     'Belanja',
@@ -56,6 +71,19 @@ class Constants {
     'Tagihan',
     'Kesehatan',
     'Lainnya',
+  ];
+
+  static const List<String> incomeCategories = [
+    'Gaji',
+    'Bonus',
+    'Investasi',
+    'Lainnya',
+  ];
+
+  static const List<String> categories = [
+    'Semua Kategori',
+    ...expenseCategories,
+    ...incomeCategories,
   ];
 
   static const List<String> months = [

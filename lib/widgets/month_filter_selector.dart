@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:money_tracker/providers/expense_provider.dart';
 import 'package:money_tracker/utils/constants.dart';
+import 'animated_tap.dart';
 
 class MonthFilterSelector extends StatefulWidget {
   final ExpenseProvider provider;
@@ -98,12 +99,11 @@ class _MonthFilterSelectorState extends State<MonthFilterSelector> {
 
         return Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: InkWell(
+          child: AnimatedTap(
             onTap: () {
               widget.provider.setMonthFilter(month);
               // _scrollToSelected akan dipanggil otomatis oleh didUpdateWidget
             },
-            borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

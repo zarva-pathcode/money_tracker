@@ -10,8 +10,13 @@ import '../widgets/numeric_keyboard.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final String? preSelectedCategory;
+  final String? initialTransactionType; // 'expense' or 'income'
 
-  const AddExpenseScreen({super.key, this.preSelectedCategory});
+  const AddExpenseScreen({
+    super.key, 
+    this.preSelectedCategory,
+    this.initialTransactionType,
+  });
 
   @override
   _AddExpenseScreenState createState() => _AddExpenseScreenState();
@@ -24,6 +29,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   String _selectedCategory = 'Makanan';
   DateTime _selectedDate = DateTime.now();
+  String _transactionType = 'expense'; // 'expense' or 'income'
 
   // Focus Nodes untuk mengatur perpindahan kursor
   final FocusNode _titleFocusNode = FocusNode();
@@ -38,6 +44,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     super.initState();
     if (widget.preSelectedCategory != null) {
       _selectedCategory = widget.preSelectedCategory!;
+    }
+    
+    if (widget.initialTransactionType != null) {
+      _transactionType = widget.initialTransactionType!;
+      // Default category if switching types
+      if (_transactionType == 'income') {
+        _selectedCategory = Constants.incomeCategories.first;
+      }
     }
 
     // Listener: Jika Title (System Keyboard) aktif, sembunyikan Custom Keyboard
@@ -109,37 +123,53 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _handleKeyPress(String key) {
-    final currentText = _amountController.text.replaceAll('.', '');
-    final currentCursor = _cursorPosition < 0 ? 0 : _cursorPosition;
+    final String formattedText = _amountController.text;
+    final String currentText = formattedText.replaceAll('.', '');
+    
+    int unformattedCursor = 0;
+    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
+      unformattedCursor = formattedText.substring(0, _cursorPosition).replaceAll('.', '').length;
+    } else {
+      unformattedCursor = currentText.length;
+    }
+
     String newText = "";
     int nextCursor = 0;
 
     if (key == '.000') {
       if (currentText.length + 3 > 15) return;
       newText =
-          currentText.substring(0, currentCursor) +
+          currentText.substring(0, unformattedCursor) +
           '000' +
-          currentText.substring(currentCursor);
-      nextCursor = currentCursor + 3;
+          currentText.substring(unformattedCursor);
+      nextCursor = unformattedCursor + 3;
     } else {
       if (currentText.length + 1 > 15) return;
       newText =
-          currentText.substring(0, currentCursor) +
+          currentText.substring(0, unformattedCursor) +
           key +
-          currentText.substring(currentCursor);
-      nextCursor = currentCursor + 1;
+          currentText.substring(unformattedCursor);
+      nextCursor = unformattedCursor + 1;
     }
     _updateTextField(newText, nextCursor);
   }
 
   void _handleBackspace() {
-    final currentText = _amountController.text.replaceAll('.', '');
-    final currentCursor = _cursorPosition;
-    if (currentCursor > 0) {
+    final String formattedText = _amountController.text;
+    final String currentText = formattedText.replaceAll('.', '');
+    
+    int unformattedCursor = 0;
+    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
+      unformattedCursor = formattedText.substring(0, _cursorPosition).replaceAll('.', '').length;
+    } else {
+      unformattedCursor = currentText.length;
+    }
+
+    if (unformattedCursor > 0) {
       final newText =
-          currentText.substring(0, currentCursor - 1) +
-          currentText.substring(currentCursor);
-      _updateTextField(newText, currentCursor - 1);
+          currentText.substring(0, unformattedCursor - 1) +
+          currentText.substring(unformattedCursor);
+      _updateTextField(newText, unformattedCursor - 1);
     }
   }
 
@@ -154,6 +184,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     _amountController.selection = TextSelection.collapsed(
       offset: adjustedCursor,
     );
+    _cursorPosition = adjustedCursor;
   }
 
   int _calculateAdjustedCursor(
@@ -182,11 +213,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           icon: const Icon(Icons.close, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Tambah Pengeluaran',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+        title: Text(
+          _transactionType == 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan',
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
-        centerTitle: true,
       ),
 
       // Menggunakan Column untuk membagi area Scroll dan Area Bawah (Sticky)
@@ -201,6 +231,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
+                    
+                    // Toggle Transaction Type
+                    _buildTypeToggle(),
+
+                    const SizedBox(height: 30),
 
                     // Input Nominal (Hero)
                     const Text(
@@ -322,11 +357,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       spacing: 20,
                       runSpacing: 20,
                       alignment: WrapAlignment.center,
-                      children:
-                          Constants.categories
-                              .where((c) => c != 'Semua Kategori')
-                              .map((category) => _buildCategoryItem(category))
-                              .toList(),
+                      children: (_transactionType == 'expense'
+                              ? Constants.expenseCategories
+                              : Constants.incomeCategories)
+                          .map((category) => _buildCategoryItem(category))
+                          .toList(),
                     ),
 
                     const SizedBox(height: 20),
@@ -371,9 +406,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                "Simpan Pengeluaran",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text(
+                _transactionType == 'expense' ? "Simpan Pengeluaran" : "Simpan Pemasukan",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -466,6 +501,80 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  Widget _buildTypeToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _transactionType = 'expense';
+                  if (!Constants.expenseCategories.contains(_selectedCategory)) {
+                    _selectedCategory = Constants.expenseCategories.first;
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _transactionType == 'expense' ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: _transactionType == 'expense'
+                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  "Pengeluaran",
+                  style: TextStyle(
+                    fontWeight: _transactionType == 'expense' ? FontWeight.bold : FontWeight.w500,
+                    color: _transactionType == 'expense' ? Colors.black87 : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _transactionType = 'income';
+                  if (!Constants.incomeCategories.contains(_selectedCategory)) {
+                    _selectedCategory = Constants.incomeCategories.first;
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _transactionType == 'income' ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: _transactionType == 'income'
+                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  "Pemasukan",
+                  style: TextStyle(
+                    fontWeight: _transactionType == 'income' ? FontWeight.bold : FontWeight.w500,
+                    color: _transactionType == 'income' ? Colors.green[700] : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -503,6 +612,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       amount: amount,
       date: _selectedDate,
       category: _selectedCategory,
+      type: _transactionType,
     );
 
     Provider.of<ExpenseProvider>(

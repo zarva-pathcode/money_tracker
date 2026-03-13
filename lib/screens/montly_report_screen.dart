@@ -5,6 +5,8 @@ import 'package:money_tracker/utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../providers/expense_provider.dart';
+import '../providers/budget_provider.dart';
+import '../providers/plan_provider.dart';
 import 'monthly_report_detail_screen.dart';
 
 class MonthlyReportScreen extends StatelessWidget {
@@ -13,6 +15,8 @@ class MonthlyReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
+    final budgetProvider = Provider.of<BudgetProvider>(context);
+    final planProvider = Provider.of<PlanProvider>(context);
 
     // 1. OLAHKAN DATA (Group by Month 1-12)
     final expenses = expenseProvider.allExpenses;
@@ -65,15 +69,7 @@ class MonthlyReportScreen extends StatelessWidget {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         backgroundColor: const Color(0xFFF5F7FA),
         elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.black87,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false, // Hide back arrow
         title: Text(
           "Statistik $currentYear",
           style: const TextStyle(
@@ -97,7 +93,17 @@ class MonthlyReportScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // 3. LIST BULANAN (Trend List)
+            // 3. STATUS ANGGARAN BULAN INI
+            _buildBudgetsSummary(context, budgetProvider, expenseProvider),
+
+            const SizedBox(height: 24),
+
+            // 4. PROGRES TABUNGAN
+            _buildGoalsSummary(context, planProvider),
+
+            const SizedBox(height: 24),
+
+            // 5. LIST BULANAN (Trend List)
             const Text(
               "Riwayat Bulanan",
               style: TextStyle(
@@ -416,6 +422,160 @@ class MonthlyReportScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBudgetsSummary(BuildContext context, BudgetProvider budgetProvider, ExpenseProvider expenseProvider) {
+    final budgets = budgetProvider.budgets;
+    if (budgets.isEmpty) return const SizedBox();
+
+    final currentMonth = DateTime.now().month;
+    final currentYear = DateTime.now().year;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Status Anggaran Bulan Ini",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        const SizedBox(height: 12),
+        ...budgets.map((budget) {
+          double spentAmount = 0;
+          for (var expense in expenseProvider.allExpenses) {
+            if (expense.category == budget.category && 
+                expense.date.month == currentMonth && 
+                expense.date.year == currentYear &&
+                expense.type == 'expense') { 
+              spentAmount += expense.amount;
+            }
+          }
+
+          double progress = spentAmount / budget.limitAmount;
+          if (progress > 1.0) progress = 1.0;
+
+          Color progressColor = Colors.green;
+          if (progress >= 0.85) progressColor = Colors.red;
+          else if (progress >= 0.5) progressColor = Colors.orange;
+
+          final categoryName = Constants.expenseCategories.firstWhere(
+            (c) => c == budget.category,
+            orElse: () => budget.category,
+          );
+          final categoryData = Constants.getCategoryStyle(categoryName);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(categoryData['icon'] as IconData, color: categoryData['color'] as Color, size: 20),
+                        const SizedBox(width: 8),
+                         Text(budget.category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ],
+                    ),
+                    Text('${(progress * 100).toStringAsFixed(0)}%', style: TextStyle(fontWeight: FontWeight.bold, color: progressColor)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Colors.grey[200],
+                    color: progressColor,
+                    minHeight: 6,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildGoalsSummary(BuildContext context, PlanProvider planProvider) {
+    final plans = planProvider.plans;
+    if (plans.isEmpty) return const SizedBox();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Progres Tabungan",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: plans.length,
+            itemBuilder: (context, index) {
+              final plan = plans[index];
+              return Container(
+                width: 200,
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(plan.icon, color: plan.color, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(plan.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis)),
+                      ],
+                    ),
+                    const Spacer(),
+                    Text('${(plan.progressPercentage * 100).toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.bold, color: plan.color, fontSize: 16)),
+                    const SizedBox(height: 8),
+                     ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: plan.progressPercentage,
+                          backgroundColor: Colors.grey[200],
+                          color: plan.color,
+                          minHeight: 6,
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

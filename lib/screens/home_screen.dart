@@ -4,19 +4,15 @@ import 'package:intl/intl.dart';
 import 'package:money_tracker/models/chart_data.dart';
 import 'package:money_tracker/models/expense.dart';
 import 'package:money_tracker/screens/edit_expense_screen.dart';
-import 'package:money_tracker/screens/settings_screen.dart';
 import 'package:money_tracker/utils/constants.dart';
 import 'package:money_tracker/widgets/category_breakdown.dart';
 import 'package:money_tracker/widgets/expense_chart.dart';
 import 'package:money_tracker/widgets/filter_bottom_sheet.dart';
 import 'package:money_tracker/widgets/month_filter_selector.dart';
 import 'package:money_tracker/widgets/month_picker_button.dart';
-import 'package:money_tracker/widgets/simple_fab.dart';
 import 'package:provider/provider.dart';
 import '../providers/expense_provider.dart';
-import '../widgets/expense_tile.dart';
-import '../widgets/filter_bar.dart';
-import 'add_expense_screen.dart';
+import '../widgets/animated_tap.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     floating: false,
                     pinned: true,
                     elevation: 0,
+                    centerTitle: false,
                     flexibleSpace: FlexibleSpaceBar(
                       titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
                       title: Text(
@@ -79,15 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       //       tooltip: 'Reset Filter',
                       //     ),
                       //   ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.settings_outlined,
-                          color: Colors.black54,
-                        ),
-                        onPressed: () => _showSettings(context),
-                        tooltip: 'Pengaturan',
-                      ),
-                      const SizedBox(width: 8),
+                      // // Reset Filter ditiadakan sementara
+                      // const SizedBox(width: 8),
                     ],
                   ),
 
@@ -181,13 +171,6 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-          Positioned.fill(
-            child: SimpleFab(
-              onCategorySelected: (category) {
-                _showAddExpense(context, category: category);
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -196,14 +179,40 @@ class _HomeScreenState extends State<HomeScreen> {
   // WIDGET: Kartu Utama (Gradient Blue)
   // WIDGET: Kartu Insight (Pengganti Total Biasa)
   Widget _buildHeroCard(ExpenseProvider provider) {
-    // Hitung selisih dengan bulan lalu
-    final currentTotal = provider.totalExpenses;
-    final lastMonthTotal = provider.getPreviousMonthTotal();
-    final difference = currentTotal - lastMonthTotal;
-    final isSaving =
-        difference <
-        0; // Hemat jika selisih negatif (lebih kecil dari bulan lalu)
-    final dailyAvg = provider.getDailyAverage();
+    // Hitung saldo, pemasukan, dan pengeluaran
+    final balance = provider.balance;
+    final totalIncome = provider.totalIncome;
+    final totalExpense = provider.totalExpenses;
+
+    // Hitung perbandingan bulan lalu (hanya berlaku jika filter di "Bulan Ini" atau "Semua" tapi defaultnya kita cek dari data asli)
+    final now = DateTime.now();
+    int prevMonth = now.month - 1;
+    int prevYear = now.year;
+    if (prevMonth == 0) {
+      prevMonth = 12;
+      prevYear--;
+    }
+
+    double prevMonthExpense = 0;
+    for (var expense in provider.allExpenses) {
+      if (expense.type == 'expense' && 
+          expense.date.month == prevMonth && 
+          expense.date.year == prevYear) {
+        prevMonthExpense += expense.amount;
+      }
+    }
+
+    double diffPercentage = 0;
+    bool isHemat = true;
+    if (prevMonthExpense > 0) {
+      if (totalExpense <= prevMonthExpense) {
+        isHemat = true;
+        diffPercentage = ((prevMonthExpense - totalExpense) / prevMonthExpense) * 100;
+      } else {
+        isHemat = false;
+        diffPercentage = ((totalExpense - prevMonthExpense) / prevMonthExpense) * 100;
+      }
+    }
 
     // Formatter
     final currencyFormat = NumberFormat.currency(
@@ -219,11 +228,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     String heroTitle;
     if (provider.selectedMonthFilter == MonthFilter.all) {
-      heroTitle = "Pengeluaran Tahun Ini"; // Atau "Total Pengeluaran"
+      heroTitle = "Saldo Saat Ini";
     } else {
-      // Opsional: Bisa juga pakai nama bulan (misal: "Pengeluaran November")
-      // Tapi sesuai request kamu, kita pakai "Pengeluaran Bulan Ini"
-      heroTitle = "Pengeluaran Bulan Ini";
+      heroTitle = "Saldo Bulan Ini";
     }
 
     return Container(
@@ -267,9 +274,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Total Besar
+                  // Total Besar (Saldo)
                   Text(
-                    currencyFormat.format(currentTotal),
+                    currencyFormat.format(balance),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 30,
@@ -277,6 +284,36 @@ class _HomeScreenState extends State<HomeScreen> {
                       letterSpacing: -0.5,
                     ),
                   ),
+                  if (prevMonthExpense > 0 && provider.selectedMonthFilter != MonthFilter.all) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isHemat ? Colors.greenAccent.withOpacity(0.2) : Colors.redAccent.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isHemat ? Colors.greenAccent.withOpacity(0.5) : Colors.redAccent.withOpacity(0.5)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isHemat ? Icons.trending_down : Icons.trending_up,
+                            color: isHemat ? Colors.greenAccent : Colors.redAccent,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${diffPercentage.toStringAsFixed(1)}% ${isHemat ? 'Lebih Hemat' : 'Lebih Boros'}',
+                            style: TextStyle(
+                              color: isHemat ? Colors.greenAccent : Colors.redAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
               // Icon Dekorasi
@@ -299,38 +336,31 @@ class _HomeScreenState extends State<HomeScreen> {
           Divider(color: Colors.white.withOpacity(0.2), height: 1),
           const SizedBox(height: 16),
 
-          // Baris Bawah: INSIGHT (Perbandingan & Rata-rata)
+          // Baris Bawah: INSIGHT (Pemasukan & Pengeluaran)
           Row(
             children: [
-              // 1. Info Perbandingan Bulan Lalu
+              // 1. Info Pemasukan
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Vs Bulan Lalu",
+                      "Pemasukan",
                       style: TextStyle(color: Colors.blue[200], fontSize: 12),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
-                          isSaving
-                              ? Icons.arrow_downward_rounded
-                              : Icons.arrow_upward_rounded,
-                          color:
-                              isSaving ? Colors.greenAccent : Colors.redAccent,
+                        const Icon(
+                          Icons.arrow_downward_rounded,
+                          color: Colors.greenAccent,
                           size: 16,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          "${compactFormat.format(difference.abs())} ${isSaving ? 'Hemat' : 'Naik'}",
-                          style: TextStyle(
-                            color:
-                                isSaving
-                                    ? Colors.greenAccent
-                                    : Colors
-                                        .redAccent, // Hijau kalau hemat, Merah kalau boros
+                          compactFormat.format(totalIncome),
+                          style: const TextStyle(
+                            color: Colors.greenAccent,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -349,23 +379,33 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 16),
 
-              // 2. Info Rata-rata Harian
+              // 2. Info Pengeluaran
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Rata-rata Harian",
+                      "Pengeluaran",
                       style: TextStyle(color: Colors.blue[200], fontSize: 12),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "${compactFormat.format(dailyAvg)} /hari",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.arrow_upward_rounded,
+                          color: Colors.redAccent,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          compactFormat.format(totalExpense),
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -533,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final date = DateTime.parse(dateKey);
           final dailyTotal = expenses.fold(
             0.0,
-            (sum, item) => sum + item.amount,
+            (sum, item) => item.type == 'income' ? sum + item.amount : sum - item.amount,
           );
 
           return Column(
@@ -599,15 +639,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: Border.all(color: Colors.grey.shade200),
                       ),
                       child: Text(
-                        NumberFormat.currency(
+                        (dailyTotal >= 0 ? '+' : '-') + NumberFormat.currency(
                           locale: 'id_ID',
                           symbol: 'Rp ',
                           decimalDigits: 0,
-                        ).format(dailyTotal),
+                        ).format(dailyTotal.abs()),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: Colors.grey[700],
+                          color: dailyTotal >= 0 ? Colors.green[700] : Colors.grey[700],
                         ),
                       ),
                     ),
@@ -704,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: InkWell(
+        child: AnimatedTap(
           onTap: () => _showExpenseOptions(context, expense), // Buka menu opsi
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -758,15 +798,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // 3. Nominal
                 Text(
-                  NumberFormat.currency(
+                  (expense.type == 'income' ? '+ ' : '- ') + NumberFormat.currency(
                     locale: 'id_ID',
                     symbol: 'Rp ',
                     decimalDigits: 0,
                   ).format(expense.amount),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Colors.black87, // Warna hitam tegas
+                    color: expense.type == 'income' ? Colors.green[700] : Colors.redAccent,
                   ),
                 ),
               ],
@@ -795,15 +835,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return chartData;
   }
 
-  void _showAddExpense(BuildContext context, {String? category}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddExpenseScreen(preSelectedCategory: category),
-      ),
-    );
-  }
-
   void _showEditExpense(BuildContext context, Expense expense) {
     final expenseProvider = Provider.of<ExpenseProvider>(
       context,
@@ -820,13 +851,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       expenseProvider.editExpense(updatedExpense),
             ),
       ),
-    );
-  }
-
-  void _showSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SettingsScreen()),
     );
   }
 

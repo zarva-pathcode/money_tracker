@@ -34,7 +34,19 @@ class ExpenseProvider with ChangeNotifier {
   double? get maxAmount => _maxAmount;
 
   double get totalExpenses {
-    return _filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
+    return _filteredExpenses
+        .where((e) => e.type == 'expense')
+        .fold(0, (sum, expense) => sum + expense.amount);
+  }
+
+  double get totalIncome {
+    return _filteredExpenses
+        .where((e) => e.type == 'income')
+        .fold(0, (sum, expense) => sum + expense.amount);
+  }
+
+  double get balance {
+    return totalIncome - totalExpenses;
   }
 
   ExpenseProvider() {
@@ -234,7 +246,7 @@ class ExpenseProvider with ChangeNotifier {
         include = true;
       }
 
-      if (include) {
+      if (include && expense.type == 'expense') {
         final week = ((expense.date.day - 1) ~/ 7) + 1;
         final weekKey = 'Minggu ${week.clamp(1, 4)}';
         monthData[weekKey] = (monthData[weekKey] ?? 0) + expense.amount;
@@ -284,6 +296,8 @@ class ExpenseProvider with ChangeNotifier {
     final categoryData = <String, double>{};
 
     for (var expense in _filteredExpenses) {
+      if (expense.type != 'expense') continue;
+      
       if (categoryData.containsKey(expense.category)) {
         categoryData[expense.category] =
             categoryData[expense.category]! + expense.amount;
@@ -299,6 +313,8 @@ class ExpenseProvider with ChangeNotifier {
     Map<String, double> categoryTotals = {};
 
     for (var expense in _filteredExpenses) {
+      if (expense.type != 'expense') continue;
+      
       if (categoryTotals.containsKey(expense.category)) {
         categoryTotals[expense.category] =
             categoryTotals[expense.category]! + expense.amount;
@@ -320,6 +336,7 @@ class ExpenseProvider with ChangeNotifier {
     // Filter manual khusus untuk bulan lalu
     final lastMonthExpenses = _expenses.where(
       (e) =>
+          e.type == 'expense' &&
           e.date.year == lastMonthDate.year &&
           e.date.month == lastMonthDate.month,
     );

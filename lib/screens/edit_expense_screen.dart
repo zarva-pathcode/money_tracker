@@ -30,6 +30,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
 
   late String _selectedCategory;
   late DateTime _selectedDate;
+  late String _transactionType;
 
   bool _showCustomKeyboard = false;
   int _cursorPosition = 0;
@@ -45,6 +46,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     );
     _selectedCategory = widget.expense.category;
     _selectedDate = widget.expense.date;
+    _transactionType = widget.expense.type;
 
     _titleFocusNode.addListener(() {
       if (_titleFocusNode.hasFocus) setState(() => _showCustomKeyboard = false);
@@ -163,9 +165,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
           icon: const Icon(Icons.close, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Edit Pengeluaran',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+        title: Text(
+          _transactionType == 'expense' ? 'Edit Pengeluaran' : 'Edit Pemasukan',
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
@@ -179,6 +181,12 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
+                    
+                    // Toggle Transaction Type
+                    _buildTypeToggle(),
+
+                    const SizedBox(height: 30),
+                    
                     const Text(
                       "Jumlah Pengeluaran",
                       style: TextStyle(color: Colors.grey),
@@ -289,11 +297,11 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                       spacing: 20,
                       runSpacing: 20,
                       alignment: WrapAlignment.center,
-                      children:
-                          Constants.categories
-                              .where((c) => c != 'Semua Kategori')
-                              .map((category) => _buildCategoryItem(category))
-                              .toList(),
+                      children: (_transactionType == 'expense'
+                              ? Constants.expenseCategories
+                              : Constants.incomeCategories)
+                          .map((category) => _buildCategoryItem(category))
+                          .toList(),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -334,9 +342,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                "Update Pengeluaran",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text(
+                _transactionType == 'expense' ? "Update Pengeluaran" : "Update Pemasukan",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -426,6 +434,80 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     );
   }
 
+  Widget _buildTypeToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _transactionType = 'expense';
+                  if (!Constants.expenseCategories.contains(_selectedCategory)) {
+                    _selectedCategory = Constants.expenseCategories.first;
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _transactionType == 'expense' ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: _transactionType == 'expense'
+                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  "Pengeluaran",
+                  style: TextStyle(
+                    fontWeight: _transactionType == 'expense' ? FontWeight.bold : FontWeight.w500,
+                    color: _transactionType == 'expense' ? Colors.black87 : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _transactionType = 'income';
+                  if (!Constants.incomeCategories.contains(_selectedCategory)) {
+                    _selectedCategory = Constants.incomeCategories.first;
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _transactionType == 'income' ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: _transactionType == 'income'
+                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  "Pemasukan",
+                  style: TextStyle(
+                    fontWeight: _transactionType == 'income' ? FontWeight.bold : FontWeight.w500,
+                    color: _transactionType == 'income' ? Colors.green[700] : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -462,6 +544,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       amount: amount,
       date: _selectedDate,
       category: _selectedCategory,
+      type: _transactionType,
     );
     widget.onSave(updatedExpense);
     Navigator.pop(context);

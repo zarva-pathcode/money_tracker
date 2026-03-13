@@ -19,12 +19,16 @@ class Expense {
   @HiveField(4)
   final String category;
 
+  @HiveField(5, defaultValue: 'expense')
+  final String type;
+
   Expense({
     required this.id,
     required this.title,
     required this.amount,
     required this.date,
     required this.category,
+    this.type = 'expense',
   });
 
   Map<String, dynamic> toMap() {
@@ -34,6 +38,7 @@ class Expense {
       'amount': amount,
       'date': date.toIso8601String(),
       'category': category,
+      'type': type,
     };
   }
 
@@ -44,6 +49,7 @@ class Expense {
       amount: map['amount'],
       date: DateTime.parse(map['date']),
       category: map['category'],
+      type: map['type'] ?? 'expense',
     );
   }
 }
