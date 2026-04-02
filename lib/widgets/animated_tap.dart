@@ -31,14 +31,13 @@ class _AnimatedTapState extends State<AnimatedTap>
       duration: widget.duration,
       reverseDuration: widget.duration,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: widget.scaleDown,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOutCubic,
-      reverseCurve: Curves.easeOutCubic,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleDown).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOutCubic,
+        reverseCurve: Curves.easeOutCubic,
+      ),
+    );
   }
 
   @override

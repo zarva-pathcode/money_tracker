@@ -4,6 +4,7 @@ import 'package:money_tracker/screens/montly_report_screen.dart';
 import 'package:money_tracker/screens/plan_screen.dart';
 import 'package:money_tracker/screens/settings_screen.dart';
 import 'package:money_tracker/screens/add_expense_screen.dart';
+import 'package:money_tracker/screens/scan_receipt_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -158,6 +159,21 @@ class _MainScreenState extends State<MainScreen> {
                           builder: (_) => const AddExpenseScreen(
                             initialTransactionType: 'income',
                           ),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildTransactionOption(
+                    context: context,
+                    icon: Icons.document_scanner_rounded,
+                    label: 'Scan Struk',
+                    color: Colors.blueAccent[700]!,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ScanReceiptScreen(),
                         ),
                       );
                     },
