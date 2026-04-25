@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +20,7 @@ class ScanReceiptScreen extends StatefulWidget {
 class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
   File? _image;
   bool _isProcessing = false;
+  String _processingMessage = "";
   String _ocrTextForDebug = ""; // can be used to show raw OCR text if needed
 
   final TextEditingController _amountController = TextEditingController();
@@ -27,67 +28,92 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
   String _selectedCategory = Constants.expenseCategories.first; // Default
   DateTime _selectedDate = DateTime.now();
 
-  final ImagePicker _picker = ImagePicker();
+  late DocumentScanner _documentScanner;
   final TextRecognizer _textRecognizer = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _documentScanner = DocumentScanner(
+      options: DocumentScannerOptions(
+        documentFormats: {DocumentFormat.jpeg},
+        mode: ScannerMode.filter, // Mengizinkan user edit/crop
+        pageLimit: 1,
+        isGalleryImport: true,
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _amountController.dispose();
     _titleController.dispose();
     _textRecognizer.close();
+    _documentScanner.close();
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _startScanSequence() async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        setState(() {
-          _image = File(pickedFile.path);
-          _isProcessing = true;
-          _ocrTextForDebug = "";
-        });
-        await _processImage(_image!);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error mengambil gambar: $e')));
-      setState(() => _isProcessing = false);
-    }
-  }
-
-  Future<void> _processImage(File imagePath) async {
-    try {
-      // 1. Terapkan OpenCV Pipeline (menjernihkan struk)
-      String processedPath = await ImagePreprocessor.processReceiptImage(imagePath.path);
-
-      // (Opsional) Update foto di UI agar user bisa melihat gambar hasil filter B&W yang tajam
+      // Step 1: Scan Document (Auto-crop & Edge Detection)
       setState(() {
-        _image = File(processedPath);
+        _isProcessing = true;
+        _processingMessage = "Mendeteksi tepi struk...";
       });
 
-      // 2. Daftarkan gambar yang sudah bersih ke ML Kit
+      final DocumentScanningResult response = await _documentScanner.scanDocument();
+      final List<String> images = response.images ?? [];
+
+      if (images.isEmpty) {
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      final String scannedPath = images.first;
+      setState(() {
+        _image = File(scannedPath);
+        _processingMessage = "Menjernihkan struk...";
+      });
+
+      // Step 2: OpenCV Preprocessing (ImagePreprocessor)
+      final String processedPath = await ImagePreprocessor.processReceiptImage(scannedPath);
+      setState(() {
+        _image = File(processedPath);
+        _processingMessage = "Membaca teks struk...";
+      });
+
+      // Step 3: Text Recognition (ML Kit)
       final inputImage = InputImage.fromFilePath(processedPath);
       final RecognizedText recognizedText = await _textRecognizer.processImage(
         inputImage,
       );
 
+      // Step 4: Smart Parsing (ReceiptParser)
       setState(() {
-        _ocrTextForDebug = recognizedText.text;
+        _processingMessage = "Menganalisis total belanja...";
       });
 
       double extractedTotal = _parseTotalFromReceipt(recognizedText);
 
-      if (extractedTotal > 0) {
-        _amountController.text = extractedTotal.toInt().toString();
-      }
+      setState(() {
+        if (extractedTotal > 0) {
+          _amountController.text = extractedTotal.toInt().toString();
+        }
+        _ocrTextForDebug = recognizedText.text;
+        _isProcessing = false;
+        _processingMessage = "";
+      });
     } catch (e) {
-      debugPrint("OCR Error: $e");
-    } finally {
-      setState(() => _isProcessing = false);
+      debugPrint("Scan Sequence Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memproses struk: $e')),
+      );
+      setState(() {
+        _isProcessing = false;
+        _processingMessage = "";
+      });
     }
   }
 
@@ -148,33 +174,9 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
   }
 
   void _showImageSourceActionSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Kamera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Galeri'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    // Fungsi ini tidak lagi diperlukan karena DocumentScanner memiliki UI lengkap
+    // namun kita biarkan kosong atau hapus panggilannya di UI.
+    _startScanSequence();
   }
 
   @override
@@ -223,7 +225,13 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                             children: [
                               const CircularProgressIndicator(),
                               const SizedBox(height: 16),
-                              Text("Sedang menjernihkan struk...", style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.w600)),
+                              Text(
+                                _processingMessage,
+                                style: TextStyle(
+                                  color: Colors.blue[600],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           )
                         : _image != null

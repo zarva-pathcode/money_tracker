@@ -13,6 +13,7 @@ import 'package:money_tracker/widgets/month_picker_button.dart';
 import 'package:provider/provider.dart';
 import '../providers/expense_provider.dart';
 import '../widgets/animated_tap.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Minta izin notifikasi saat pertama kali ke Home
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.requestPermissions();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

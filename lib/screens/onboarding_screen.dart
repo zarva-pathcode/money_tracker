@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:money_tracker/screens/home_screen.dart';
+import 'package:money_tracker/screens/main_screen.dart';
 import '../services/hive_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -362,7 +362,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     }
   }

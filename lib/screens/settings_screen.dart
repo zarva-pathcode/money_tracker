@@ -3,6 +3,10 @@ import 'package:money_tracker/screens/montly_report_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/expense_provider.dart';
+import '../providers/settings_provider.dart';
+import 'reminder_settings_screen.dart';
+import '../providers/widget_provider.dart';
+import '../utils/constants.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
 
@@ -22,6 +26,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
+    final settingsProvider = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -37,21 +42,20 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // 1. Section Laporan
-          _buildSectionHeader("Analisis & Laporan"),
+          // 1. Section Preferensi
+          _buildSectionHeader("Preferensi"),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.insights_rounded,
-              iconColor: Colors.orange,
-              title: 'Statistik & Tren',
-              subtitle: 'Analisis pengeluaran tahunan',
+              icon: Icons.notifications_active_rounded,
+              iconColor: Colors.blue,
+              title: 'Pengingat Harian',
+              subtitle: 'Atur jadwal notifikasi harian',
               onTap: () {
-                // HAPUS SnackBar, GANTI dengan Navigasi ini:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const MonthlyReportScreen(),
+                    builder: (context) => const ReminderSettingsScreen(),
                   ),
                 );
               },
@@ -60,7 +64,22 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // 2. Section Data (DIPERBAIKI: TANPA GARIS PEMBATAS)
+          // 2. Section Widget
+          _buildSectionHeader("Kustomisasi Widget"),
+          _buildSettingsContainer([
+            _buildSettingTile(
+              context,
+              icon: Icons.widgets_rounded,
+              iconColor: Colors.indigo,
+              title: 'Widget Home Screen',
+              subtitle: 'Atur 3 kategori favorit di widget',
+              onTap: () => _showWidgetSettings(context),
+            ),
+          ]),
+
+          const SizedBox(height: 24),
+
+          // 3. Section Data
           _buildSectionHeader("Manajemen Data"),
           _buildSettingsContainer([
             _buildSettingTile(
@@ -71,11 +90,7 @@ class SettingsScreen extends StatelessWidget {
               subtitle: 'Backup ke JSON atau CSV',
               onTap: () => _showExportOptions(context, expenseProvider),
             ),
-
-            // HAPUS DIVIDER DISINI, Ganti dengan sedikit jarak kosong saja jika perlu
-            // Atau biarkan kosong agar rapat. Di sini saya beri jarak kecil.
             const SizedBox(height: 4),
-
             _buildSettingTile(
               context,
               icon: Icons.download_rounded,
@@ -96,7 +111,7 @@ class SettingsScreen extends StatelessWidget {
               iconColor: Colors.blueGrey,
               title: 'Kebijakan Privasi',
               subtitle: 'Ketentuan penggunaan data',
-              onTap: () => _launchPrivacyPolicy(), // Panggil method baru
+              onTap: () => _launchPrivacyPolicy(),
             ),
           ]),
 
@@ -785,6 +800,142 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showWidgetSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Consumer<WidgetProvider>(
+        builder: (context, provider, child) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const Text(
+                  "Kustomisasi Widget",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Pilih 3 kategori favorit untuk akses cepat",
+                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+                ...List.generate(3, (index) {
+                  final category = provider.favoriteCategories[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey[200]!),
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: Constants.getCategoryStyle(category)['color'].withOpacity(0.1),
+                        child: Icon(
+                          Constants.getCategoryStyle(category)['icon'],
+                          color: Constants.getCategoryStyle(category)['color'],
+                          size: 20,
+                        ),
+                      ),
+                      title: Text("Slot ${index + 1}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      subtitle: Text(category, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                      trailing: const Icon(Icons.edit_rounded, size: 20),
+                      onTap: () => _showCategoryPicker(context, index, provider),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text("Selesai", style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showCategoryPicker(BuildContext context, int slotIndex, WidgetProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.6,
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            const Text("Pilih Kategori", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 20),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: Constants.expenseCategories.length,
+                itemBuilder: (ctx, index) {
+                  final cat = Constants.expenseCategories[index];
+                  final style = Constants.getCategoryStyle(cat);
+                  return InkWell(
+                    onTap: () {
+                      provider.updateFavorite(slotIndex, cat);
+                      Navigator.pop(ctx);
+                    },
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 25,
+                          backgroundColor: style['color'].withOpacity(0.1),
+                          child: Icon(style['icon'], color: style['color']),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(cat, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

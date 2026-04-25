@@ -49,5 +49,16 @@
 	<string>Aplikasi membutuhkan akses kamera untuk memindai struk belanja (OCR).</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Aplikasi membutuhkan akses galeri untuk memilih foto struk belanja yang akan di-scan.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>expenseTracker</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
