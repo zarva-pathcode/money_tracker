@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:ui';
 import '../utils/constants.dart';
 
@@ -154,7 +155,7 @@ class _SimpleFabState extends State<SimpleFab>
   ) {
     final style = Constants.getCategoryStyle(categoryName);
     final color = style['color'] as Color;
-    final icon = style['icon'] as IconData;
+    final icon = style['icon'];
 
     return ScaleTransition(
       scale: animation,
@@ -198,7 +199,7 @@ class _SimpleFabState extends State<SimpleFab>
                   backgroundColor: color,
                   elevation: 0,
                   shape: const CircleBorder(),
-                  child: Icon(icon, color: Colors.white, size: 20),
+                  child: FaIcon(icon, color: Colors.white, size: 20),
                 ),
               ),
             ],

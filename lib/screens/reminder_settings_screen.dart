@@ -73,6 +73,39 @@ class ReminderSettingsScreen extends StatelessWidget {
   }
 
   Widget _buildReminderTile(BuildContext context, SettingsProvider provider, ReminderSetting rem) {
+    return _ReminderTileItem(rem: rem, provider: provider);
+  }
+}
+
+class _ReminderTileItem extends StatefulWidget {
+  final ReminderSetting rem;
+  final SettingsProvider provider;
+
+  const _ReminderTileItem({required this.rem, required this.provider});
+
+  @override
+  State<_ReminderTileItem> createState() => _ReminderTileItemState();
+}
+
+class _ReminderTileItemState extends State<_ReminderTileItem> {
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    _isActive = widget.rem.isActive;
+  }
+
+  @override
+  void didUpdateWidget(_ReminderTileItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rem.isActive != widget.rem.isActive) {
+      _isActive = widget.rem.isActive;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading: Container(
@@ -83,23 +116,26 @@ class ReminderSettingsScreen extends StatelessWidget {
         ),
         child: const Icon(Icons.alarm_rounded, color: Colors.blue, size: 22),
       ),
-      title: Text(rem.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+      title: Text(widget.rem.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       subtitle: Text(
-        rem.time.format(context),
+        widget.rem.time.format(context),
         style: TextStyle(
-          color: rem.isActive ? Colors.blue : Colors.grey[500],
-          fontWeight: rem.isActive ? FontWeight.bold : FontWeight.normal,
+          color: _isActive ? Colors.blue : Colors.grey[500],
+          fontWeight: _isActive ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      trailing: Switch(
-        value: rem.isActive,
-        onChanged: (val) => provider.updateReminder(rem.id, val, rem.time),
+      trailing: Switch.adaptive(
+        value: _isActive,
+        onChanged: (val) {
+          setState(() => _isActive = val);
+          widget.provider.updateReminder(widget.rem.id, val, widget.rem.time);
+        },
         activeColor: Colors.blue,
       ),
-      onTap: rem.isActive ? () async {
+      onTap: _isActive ? () async {
         final TimeOfDay? picked = await showTimePicker(
           context: context,
-          initialTime: rem.time,
+          initialTime: widget.rem.time,
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
@@ -110,7 +146,7 @@ class ReminderSettingsScreen extends StatelessWidget {
           },
         );
         if (picked != null) {
-          provider.updateReminder(rem.id, true, picked);
+          widget.provider.updateReminder(widget.rem.id, true, picked);
         }
       } : null,
     );

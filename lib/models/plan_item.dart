@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../utils/constants.dart';
 
 part 'plan_item.g.dart';
 
@@ -39,5 +40,5 @@ class PlanItem extends HiveObject {
   }
   
   Color get color => Color(colorValue);
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  dynamic get icon => Constants.getPlanIcon(iconCodePoint);
 }

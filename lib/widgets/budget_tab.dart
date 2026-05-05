@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/budget_item.dart';
@@ -222,7 +223,7 @@ class BudgetTab extends StatelessWidget {
                   color: (categoryData['color'] as Color).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(categoryData['icon'] as IconData, color: categoryData['color'] as Color, size: 28),
+                child: FaIcon(categoryData['icon'], color: categoryData['color'] as Color, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(

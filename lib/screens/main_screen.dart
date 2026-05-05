@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/screens/home_screen.dart';
 import 'package:money_tracker/screens/montly_report_screen.dart';
 import 'package:money_tracker/screens/plan_screen.dart';
 import 'package:money_tracker/screens/settings_screen.dart';
 import 'package:money_tracker/screens/add_expense_screen.dart';
 import 'package:money_tracker/screens/scan_receipt_screen.dart';
+import '../main.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,6 +17,28 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (pendingWidgetUri != null) {
+        final uri = pendingWidgetUri!;
+        pendingWidgetUri = null;
+        
+        final category = uri.queryParameters['category'];
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddExpenseScreen(
+              preSelectedCategory: category == 'empty' ? null : category,
+            ),
+          ),
+        );
+      }
+    });
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -35,10 +59,10 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButton: FloatingActionButton(
         heroTag: 'main_add_fab',
         onPressed: () => _showAddTransactionBottomSheet(context),
-        backgroundColor: Colors.blue[600], // Adjust color to match user's purple/blue preference later
+        backgroundColor: Theme.of(context).primaryColor,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        child: const Icon(Icons.add, size: 32, color: Colors.white),
+        child: const FaIcon(FontAwesomeIcons.plus, size: 24, color: Colors.white),
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -50,11 +74,11 @@ class _MainScreenState extends State<MainScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home_filled, 'Home', 0),
-              _buildNavItem(Icons.bar_chart_rounded, 'Report', 1),
+              _buildNavItem(FontAwesomeIcons.house, 'Home', 0),
+              _buildNavItem(FontAwesomeIcons.chartPie, 'Report', 1),
               const SizedBox(width: 48), // Space for FAB
-              _buildNavItem(Icons.savings_rounded, 'Plan', 2),
-              _buildNavItem(Icons.settings_rounded, 'Settings', 3),
+              _buildNavItem(FontAwesomeIcons.piggyBank, 'Plan', 2),
+              _buildNavItem(FontAwesomeIcons.gears, 'Settings', 3),
             ],
           ),
         ),
@@ -62,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(dynamic icon, String label, int index) {
     final isSelected = _currentIndex == index;
     final color = isSelected ? Colors.black87 : Colors.grey[400];
 
@@ -76,8 +100,8 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 24),
-              const SizedBox(height: 2),
+              FaIcon(icon, color: color, size: 20),
+              const SizedBox(height: 4),
               Expanded(
                 child: Text(
                   label,
@@ -131,7 +155,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _buildTransactionOption(
                     context: context,
-                    icon: Icons.arrow_upward_rounded,
+                    icon: FontAwesomeIcons.arrowUp,
                     label: 'Pengeluaran',
                     color: Colors.redAccent,
                     onTap: () {
@@ -148,7 +172,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   _buildTransactionOption(
                     context: context,
-                    icon: Icons.arrow_downward_rounded,
+                    icon: FontAwesomeIcons.arrowDown,
                     label: 'Pemasukan',
                     color: Colors.greenAccent[700]!,
                     onTap: () {
@@ -165,7 +189,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   _buildTransactionOption(
                     context: context,
-                    icon: Icons.document_scanner_rounded,
+                    icon: FontAwesomeIcons.receipt,
                     label: 'Scan Struk',
                     color: Colors.blueAccent[700]!,
                     onTap: () {
@@ -190,7 +214,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildTransactionOption({
     required BuildContext context,
-    required IconData icon,
+    required dynamic icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
@@ -206,7 +230,7 @@ class _MainScreenState extends State<MainScreen> {
               color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 32),
+            child: FaIcon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 12),
           Text(

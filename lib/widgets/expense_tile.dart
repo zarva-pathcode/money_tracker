@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/utils/constants.dart';
 import 'package:money_tracker/utils/formartters.dart';
 import '../models/expense.dart';
@@ -22,11 +23,11 @@ class ExpenseTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: categoryStyle['color'],
-        child: Icon(categoryStyle['icon'], color: Colors.white, size: 20),
+        child: FaIcon(categoryStyle['icon'], color: Colors.white, size: 16),
       ),
       title: Text(
         expense.title,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style: const TextStyle(fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
         expense.category,
@@ -58,23 +59,36 @@ class ExpenseTile extends StatelessWidget {
   void _showOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit Pengeluaran'),
+                leading: const FaIcon(FontAwesomeIcons.penToSquare, size: 18),
+                title: const Text('Edit Transaksi'),
                 onTap: () {
                   Navigator.pop(context);
                   onEdit();
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: const FaIcon(FontAwesomeIcons.trashCan, size: 18, color: Colors.red),
                 title: const Text(
-                  'Hapus Pengeluaran',
+                  'Hapus Transaksi',
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {
@@ -82,6 +96,7 @@ class ExpenseTile extends StatelessWidget {
                   _confirmDelete(context);
                 },
               ),
+              const SizedBox(height: 16),
             ],
           ),
         );
@@ -94,7 +109,8 @@ class ExpenseTile extends StatelessWidget {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Hapus Pengeluaran?'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Hapus Transaksi?'),
             content: Text('Yakin ingin menghapus "${expense.title}"?'),
             actions: [
               TextButton(
@@ -106,7 +122,7 @@ class ExpenseTile extends StatelessWidget {
                   Navigator.pop(context);
                   onDelete();
                 },
-                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

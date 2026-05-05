@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -7,6 +8,7 @@ import '../providers/budget_provider.dart';
 import '../utils/constants.dart';
 import '../utils/formartters.dart';
 import 'numeric_keyboard.dart';
+import 'modern_input_field.dart';
 
 class AddBudgetBottomSheet extends StatefulWidget {
   final BudgetItem? budgetToEdit;
@@ -23,7 +25,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   
   String? _selectedCategory;
   int _cursorPosition = 0;
-  bool _showCustomKeyboard = false;
+  bool _showCustomKeyboard = true;
 
   final List<String> _expenseCategories = Constants.expenseCategories;
 
@@ -61,11 +63,6 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   }
 
   void _onKeyPressed(String value) {
-    if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih kategori terlebih dahulu')));
-      return;
-    }
-
     final String formattedText = _amountController.text;
     final String currentText = formattedText.replaceAll('.', '');
     
@@ -187,31 +184,33 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(height: 12),
           Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
+          
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   widget.budgetToEdit != null ? 'Edit Anggaran' : 'Tambah Anggaran',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.grey),
+                  icon: const Icon(Icons.close, color: Colors.black87, size: 20),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -219,72 +218,95 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
               ],
             ),
           ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Pilih Kategori', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  hint: const Text('Pilih kategori...'),
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          
+          const Divider(height: 1, thickness: 0.5),
+
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Kategori Anggaran', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 14,
+                      color: Colors.grey[800]
+                    )
                   ),
-                  items: _expenseCategories.map((String cName) {
-                    final cStyle = Constants.getCategoryStyle(cName);
-                    return DropdownMenuItem<String>(
-                      value: cName,
-                      child: Row(
-                        children: [
-                          Icon(cStyle['icon'] as IconData, color: cStyle['color'] as Color, size: 20),
-                          const SizedBox(width: 8),
-                          Text(cName),
-                        ],
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    hint: const Text('Pilih kategori...'),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16), 
+                        borderSide: BorderSide(color: Colors.grey[200]!)
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCategory = val;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text('Limit Bulanan', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _amountController,
-                  focusNode: _amountFocusNode,
-                  readOnly: true,
-                  showCursor: true,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                  decoration: InputDecoration(
-                    prefixText: 'Rp ',
-                    prefixStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.blue[300]!, width: 2),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16), 
+                        borderSide: BorderSide(color: Colors.grey[200]!)
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.blue, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.blue[50]?.withOpacity(0.5),
+                    items: _expenseCategories.map((String cName) {
+                      final cStyle = Constants.getCategoryStyle(cName);
+                      return DropdownMenuItem<String>(
+                        value: cName,
+                        child: Row(
+                          children: [
+                            FaIcon(cStyle['icon'], color: cStyle['color'] as Color, size: 20),
+                            const SizedBox(width: 12),
+                            Text(cName, style: const TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedCategory = val;
+                      });
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  Text(
+                    'Limit Bulanan', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 14,
+                      color: Colors.grey[800]
+                    )
+                  ),
+                  const SizedBox(height: 12),
+                  ModernInputField(
+                    controller: _amountController,
+                    focusNode: _amountFocusNode,
+                    hintText: "0",
+                    icon: Icons.account_balance_wallet_rounded,
+                    readOnly: true,
+                    prefixText: "Rp ",
+                    onTap: () {
+                      setState(() {
+                        _showCustomKeyboard = true;
+                        _cursorPosition = _amountController.selection.baseOffset;
+                        if (_cursorPosition < 0) _cursorPosition = _amountController.text.length;
+                      });
+                      SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-          if (_showCustomKeyboard)
-            SizedBox(
-              height: 300,
+          
+          if (_showCustomKeyboard) ...[
+            const Divider(height: 1, thickness: 0.5),
+            Container(
+              height: 280,
+              color: Colors.white,
               child: NumericKeyboard(
                 onKeyPressed: _onKeyPressed,
                 onBackspace: _onBackspace,
@@ -293,6 +315,8 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                 onCursorRight: _cursorRight,
               ),
             ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+          ],
         ],
       ),
     );

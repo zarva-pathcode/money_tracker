@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../models/expense.dart';
@@ -250,7 +251,7 @@ class MonthlyReportDetailScreen extends StatelessWidget {
                     color: (style['color'] as Color).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(style['icon'], color: style['color'], size: 20),
+                  child: FaIcon(style['icon'], color: style['color'], size: 16),
                 ),
                 title: Text(
                   e.title.isNotEmpty ? e.title : e.category,
@@ -360,7 +361,7 @@ class MonthlyReportDetailScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(style['icon'], color: style['color'], size: 20),
+                      FaIcon(style['icon'], color: style['color'], size: 16),
                       const SizedBox(width: 12),
                       Text(
                         e.key,

@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:money_tracker/screens/main_screen.dart';
+import 'package:money_tracker/screens/add_expense_screen.dart';
 import '../services/hive_service.dart';
+import '../main.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -364,6 +366,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
+
+      // If there was a pending widget click during onboarding, handle it now
+      if (pendingWidgetUri != null) {
+        final uri = pendingWidgetUri!;
+        pendingWidgetUri = null;
+        
+        final category = uri.queryParameters['category'];
+        
+        // Use a slight delay to ensure MainScreen is mounted
+        Future.delayed(const Duration(milliseconds: 100), () {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (context) => AddExpenseScreen(
+                preSelectedCategory: category == 'empty' ? null : category,
+              ),
+            ),
+          );
+        });
+      }
     }
   }
 }

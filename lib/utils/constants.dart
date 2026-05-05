@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class Constants {
   // Menggunakan 'static' agar bisa dipanggil langsung tanpa membuat instance kelas
@@ -6,58 +7,58 @@ class Constants {
     switch (category) {
       case 'Makanan':
         return {
-          'icon': Icons.fastfood_rounded, // Icon rounded lebih modern
+          'icon': FontAwesomeIcons.utensils, 
           'color': const Color(0xFFFF8A65), // Coral Orange
         };
       case 'Transportasi':
         return {
-          'icon': Icons.directions_car_rounded,
+          'icon': FontAwesomeIcons.car,
           'color': const Color(0xFF42A5F5), // Soft Blue
         };
       case 'Belanja':
         return {
-          'icon': Icons.shopping_bag_rounded,
+          'icon': FontAwesomeIcons.bagShopping,
           'color': const Color(0xFFAB47BC), // Lilac Purple
         };
       case 'Hiburan':
         return {
-          'icon': Icons.movie_rounded,
+          'icon': FontAwesomeIcons.film,
           'color': const Color(0xFFEC407A), // Raspberry Pink
         };
       case 'Tagihan':
         return {
-          'icon': Icons.receipt_long_rounded,
+          'icon': FontAwesomeIcons.fileInvoiceDollar,
           'color': const Color(0xFF26A69A), // Teal Green
         };
       case 'Kesehatan':
         return {
-          'icon': Icons.medical_services_rounded,
+          'icon': FontAwesomeIcons.stethoscope,
           'color': const Color(0xFFEF5350), // Soft Red
         };
       case 'Lainnya':
         return {
-          'icon': Icons.more_horiz_rounded,
+          'icon': FontAwesomeIcons.ellipsis,
           'color': const Color(0xFF78909C), // Blue Grey
         };
       // Kategori Pemasukan
       case 'Gaji':
         return {
-          'icon': Icons.attach_money_rounded,
+          'icon': FontAwesomeIcons.moneyBillWave,
           'color': const Color(0xFF43A047), // Green
         };
       case 'Bonus':
         return {
-          'icon': Icons.card_giftcard_rounded,
+          'icon': FontAwesomeIcons.gift,
           'color': const Color(0xFF81C784), // Light Green
         };
       case 'Investasi':
         return {
-          'icon': Icons.trending_up_rounded,
+          'icon': FontAwesomeIcons.chartLine,
           'color': const Color(0xFF00897B), // Teal
         };
       default:
         return {
-          'icon': Icons.category_rounded,
+          'icon': FontAwesomeIcons.layerGroup,
           'color': const Color(0xFFBDBDBD), // Grey
         };
     }
@@ -107,9 +108,32 @@ class Constants {
     'Terbesar',
     'Terkecil',
   ];
+
+  static const List<dynamic> planIcons = [
+    FontAwesomeIcons.house,
+    FontAwesomeIcons.car,
+    FontAwesomeIcons.laptop,
+    FontAwesomeIcons.plane,
+    FontAwesomeIcons.graduationCap,
+    FontAwesomeIcons.heart,
+    FontAwesomeIcons.mobileScreen,
+    FontAwesomeIcons.motorcycle,
+    FontAwesomeIcons.piggyBank,
+    FontAwesomeIcons.cartShopping,
+    FontAwesomeIcons.bowlFood,
+    FontAwesomeIcons.film,
+  ];
+
+  static dynamic getPlanIcon(int codePoint) {
+    try {
+      return planIcons.firstWhere((icon) => icon.codePoint == codePoint);
+    } catch (e) {
+      return FontAwesomeIcons.circleQuestion;
+    }
+  }
 }
 
-// --- ENUMS (Tetap sama) ---
+// --- ENUMS ---
 enum TimeFilter {
   today,
   last7Days,

@@ -4,6 +4,7 @@ import '../models/plan_item.dart';
 import '../providers/plan_provider.dart';
 import '../utils/formartters.dart';
 import 'numeric_keyboard.dart';
+import 'modern_input_field.dart';
 
 class AddFundBottomSheet extends StatefulWidget {
   final PlanItem plan;
@@ -126,14 +127,14 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
+          const SizedBox(height: 12),
           Container(
-            margin: const EdgeInsets.only(top: 16),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -143,40 +144,34 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
           ),
           
           Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
             child: Column(
               children: [
                 Text(
-                  'Menabung untuk ${widget.plan.title}',
-                  style: const TextStyle(
-                    fontSize: 18,
+                  'Tambah Tabungan',
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Colors.grey[800],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 4),
+                Text(
+                  widget.plan.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.blue[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 32),
                 
-                TextField(
+                ModernInputField(
                   controller: _amountController,
-                  showCursor: true,
-                  readOnly: true, // Prevent system keyboard
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  decoration: const InputDecoration(
-                    prefixText: "Rp ",
-                    prefixStyle: TextStyle(
-                      fontSize: 40,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    border: InputBorder.none,
-                    hintText: "0",
-                    hintStyle: TextStyle(color: Colors.black12),
-                  ),
+                  hintText: "0",
+                  icon: Icons.account_balance_wallet_rounded,
+                  readOnly: true,
+                  prefixText: "Rp ",
                   onTap: () {
                      _cursorPosition = _amountController.selection.baseOffset;
                      if (_cursorPosition < 0) _cursorPosition = _amountController.text.length;
@@ -186,11 +181,13 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
             ),
           ),
           
-          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 24),
+          const Divider(height: 1, thickness: 0.5),
           
           // Numeric Keyboard
-          SizedBox(
-            height: 300,
+          Container(
+            height: 280,
+            color: Colors.white,
             child: NumericKeyboard(
               onKeyPressed: _onKeyPressed,
               onBackspace: _onBackspace,
@@ -199,7 +196,7 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
               onCursorRight: _cursorRight,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
       ),
     );

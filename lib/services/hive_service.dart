@@ -122,5 +122,17 @@ class HiveService {
     final box = getBudgetBox();
     await box.delete(id);
   }
+
+  // --- THEME MANAGEMENT ---
+
+  static String getThemeMode() {
+    final box = Hive.box(settingsBoxName);
+    return box.get('themeMode', defaultValue: 'system');
+  }
+
+  static Future<void> setThemeMode(String mode) async {
+    final box = Hive.box(settingsBoxName);
+    await box.put('themeMode', mode);
+  }
 }
 

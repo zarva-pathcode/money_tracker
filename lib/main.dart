@@ -11,10 +11,12 @@ import 'services/hive_service.dart';
 import 'services/notification_service.dart';
 import 'providers/settings_provider.dart';
 import 'providers/widget_provider.dart';
+import 'providers/theme_provider.dart';
 import 'package:home_widget/home_widget.dart';
 import 'screens/add_expense_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+Uri? pendingWidgetUri;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +52,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleWidgetClick(Uri? uri) {
-    if (uri != null && uri.scheme == 'expenseTracker' && uri.host == 'add') {
+    if (uri != null && uri.scheme == 'expensetracker' && uri.host == 'add') {
+      if (navigatorKey.currentState == null) {
+        pendingWidgetUri = uri;
+        return;
+      }
+
       final category = uri.queryParameters['category'];
       
       // Navigate to AddExpenseScreen
@@ -73,23 +80,30 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => WidgetProvider()..initialSync()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'Expense Tracker',
-        theme: AppTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        home: Builder(
-          builder: (context) {
-            return MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.noScaling),
-              child:
-                  widget.isFirstTime ? const OnboardingScreen() : const MainScreen(),
-            );
-          },
-        ),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'Expense Tracker',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            debugShowCheckedModeBanner: false,
+            home: Builder(
+              builder: (context) {
+                return MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.noScaling),
+                  child:
+                      widget.isFirstTime ? const OnboardingScreen() : const MainScreen(),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

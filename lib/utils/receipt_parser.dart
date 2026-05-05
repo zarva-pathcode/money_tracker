@@ -8,6 +8,17 @@ class ReceiptParser {
     // TAHAP 1: Universal Normalization (Pembersihan Ekstrem)
     List<String> normalizedLines = rawLines.map((line) => _normalizeLine(line)).toList();
 
+    return _processNormalizedLines(normalizedLines);
+  }
+
+  /// Helper untuk memproses teks mentah (raw text) langsung dari ML Kit
+  static double? parseFromRawText(String text) {
+    if (text.isEmpty) return null;
+    final lines = text.split('\n');
+    return extractTotal(lines);
+  }
+
+  static double? _processNormalizedLines(List<String> normalizedLines) {
     // TAHAP 4: Weighted Anchor Search (Pencarian Baris Cerdas)
     // List array berbobot dari prioritas paling tinggi ke rendah
     final List<List<String>> keywordPriorities = [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:money_tracker/utils/constants.dart';
@@ -222,7 +223,7 @@ class MonthlyReportScreen extends StatelessWidget {
   Widget _buildStatCard(
     String title,
     double value,
-    IconData icon,
+    dynamic icon,
     Color color, {
     String? subtitle,
   }) {
@@ -425,7 +426,11 @@ class MonthlyReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBudgetsSummary(BuildContext context, BudgetProvider budgetProvider, ExpenseProvider expenseProvider) {
+  Widget _buildBudgetsSummary(
+    BuildContext context,
+    BudgetProvider budgetProvider,
+    ExpenseProvider expenseProvider,
+  ) {
     final budgets = budgetProvider.budgets;
     if (budgets.isEmpty) return const SizedBox();
 
@@ -437,16 +442,20 @@ class MonthlyReportScreen extends StatelessWidget {
       children: [
         const Text(
           "Status Anggaran Bulan Ini",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         const SizedBox(height: 12),
         ...budgets.map((budget) {
           double spentAmount = 0;
           for (var expense in expenseProvider.allExpenses) {
-            if (expense.category == budget.category && 
-                expense.date.month == currentMonth && 
+            if (expense.category == budget.category &&
+                expense.date.month == currentMonth &&
                 expense.date.year == currentYear &&
-                expense.type == 'expense') { 
+                expense.type == 'expense') {
               spentAmount += expense.amount;
             }
           }
@@ -455,8 +464,10 @@ class MonthlyReportScreen extends StatelessWidget {
           if (progress > 1.0) progress = 1.0;
 
           Color progressColor = Colors.green;
-          if (progress >= 0.85) progressColor = Colors.red;
-          else if (progress >= 0.5) progressColor = Colors.orange;
+          if (progress >= 0.85)
+            progressColor = Colors.red;
+          else if (progress >= 0.5)
+            progressColor = Colors.orange;
 
           final categoryName = Constants.expenseCategories.firstWhere(
             (c) => c == budget.category,
@@ -486,12 +497,28 @@ class MonthlyReportScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(categoryData['icon'] as IconData, color: categoryData['color'] as Color, size: 20),
+                        FaIcon(
+                          categoryData['icon'],
+                          color: categoryData['color'] as Color,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                         Text(budget.category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text(
+                          budget.category,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                       ],
                     ),
-                    Text('${(progress * 100).toStringAsFixed(0)}%', style: TextStyle(fontWeight: FontWeight.bold, color: progressColor)),
+                    Text(
+                      '${(progress * 100).toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: progressColor,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -521,7 +548,11 @@ class MonthlyReportScreen extends StatelessWidget {
       children: [
         const Text(
           "Progres Tabungan",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -552,23 +583,39 @@ class MonthlyReportScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(plan.icon, color: plan.color, size: 20),
+                        FaIcon(plan.icon, color: plan.color, size: 20),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(plan.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                          child: Text(
+                            plan.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                     const Spacer(),
-                    Text('${(plan.progressPercentage * 100).toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.bold, color: plan.color, fontSize: 16)),
-                    const SizedBox(height: 8),
-                     ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: plan.progressPercentage,
-                          backgroundColor: Colors.grey[200],
-                          color: plan.color,
-                          minHeight: 6,
-                        ),
+                    Text(
+                      '${(plan.progressPercentage * 100).toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: plan.color,
+                        fontSize: 16,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: plan.progressPercentage,
+                        backgroundColor: Colors.grey[200],
+                        color: plan.color,
+                        minHeight: 6,
+                      ),
+                    ),
                   ],
                 ),
               );

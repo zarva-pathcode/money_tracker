@@ -15,3 +15,14 @@
 # Google Play Core (Flutter Deferred Components)
 -dontwarn com.google.android.play.core.**
 
+# Flutter Local Notifications
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
+-dontwarn com.dexterous.flutterlocalnotifications.**
+
+# Home Widget
+-keep class es.antonborri.home_widget.** { *; }
+
+# Timezone
+-keep class com.jakewharton.threetenabp.** { *; }
+-dontwarn com.jakewharton.threetenabp.**
+

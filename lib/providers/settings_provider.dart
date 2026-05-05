@@ -50,26 +50,37 @@ class SettingsProvider with ChangeNotifier {
     final index = reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
 
+    // OPTIMISTIC UI: Update state immediately for responsiveness
+    final oldIsActive = reminders[index].isActive;
+    final oldTime = reminders[index].time;
+    
     reminders[index].isActive = isActive;
     reminders[index].time = newTime;
-
-    // Save to Hive
-    await _box.put('rem_${id}_active', isActive);
-    await _box.put('rem_${id}_hour', newTime.hour);
-    await _box.put('rem_${id}_minute', newTime.minute);
-
-    // Update Notification
-    if (isActive) {
-      await NotificationService.scheduleDaily(
-        id: id,
-        title: 'Ingat Catat Pengeluaran!',
-        body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
-        time: newTime,
-      );
-    } else {
-      await NotificationService.cancel(id);
-    }
-
     notifyListeners();
+
+    try {
+      // Save to Hive
+      await _box.put('rem_${id}_active', isActive);
+      await _box.put('rem_${id}_hour', newTime.hour);
+      await _box.put('rem_${id}_minute', newTime.minute);
+
+      // Update Notification in background
+      if (isActive) {
+        await NotificationService.scheduleDaily(
+          id: id,
+          title: 'Ingat Catat Pengeluaran!',
+          body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
+          time: newTime,
+        );
+      } else {
+        await NotificationService.cancel(id);
+      }
+    } catch (e) {
+      debugPrint("Error updating reminder: $e");
+      // Rollback on error
+      reminders[index].isActive = oldIsActive;
+      reminders[index].time = oldTime;
+      notifyListeners();
+    }
   }
 }

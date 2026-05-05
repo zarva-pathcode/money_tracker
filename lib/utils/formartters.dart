@@ -36,9 +36,12 @@ class Formatters {
     return NumberFormat('#,##0', 'id_ID').format(number);
   }
 
-  // Parse string formatted ke double
   static double parseFormattedNumber(String formatted) {
     String digitsOnly = formatted.replaceAll(RegExp(r'[^\d]'), '');
     return double.tryParse(digitsOnly) ?? 0;
+  }
+
+  static String formatNumber(int number) {
+    return NumberFormat('#,##0', 'id_ID').format(number);
   }
 }

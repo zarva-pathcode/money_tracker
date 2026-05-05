@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/plan_item.dart';
@@ -37,7 +38,7 @@ class PlanScreen extends StatelessWidget {
                         color: Colors.blue[50], // Very light blue background
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add_rounded, size: 24, color: Colors.blue), // Vibrant blue icon
+                      child: const FaIcon(FontAwesomeIcons.plus, size: 18, color: Colors.blue), // Vibrant blue icon
                     ),
                     onPressed: () {
                       final tabIndex = DefaultTabController.of(context).index;
@@ -77,7 +78,7 @@ class PlanScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.savings_outlined, size: 80, color: Colors.grey[300]),
+                            FaIcon(FontAwesomeIcons.piggyBank, size: 60, color: Colors.grey[300]),
                             const SizedBox(height: 16),
                             Text(
                               'Belum ada target tabungan.',
@@ -250,7 +251,9 @@ class PlanScreen extends StatelessWidget {
                   color: plan.color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(plan.icon, color: plan.color, size: 28),
+                child: Center(
+                  child: FaIcon(plan.icon, color: plan.color, size: 22),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -278,7 +281,7 @@ class PlanScreen extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle, color: Colors.black54),
+                icon: const FaIcon(FontAwesomeIcons.circlePlus, color: Colors.black54),
                 onPressed: () => _showAddFundDialog(context, plan),
                 tooltip: 'Tambah Saldo',
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class NumericKeyboard extends StatelessWidget {
   final Function(String) onKeyPressed;
@@ -23,7 +24,6 @@ class NumericKeyboard extends StatelessWidget {
       child: Column(
         children: [
           // 1. BARIS KONTROL (Cursor & Submit)
-          // Dipisah agar angka di bawah lebih lega
           Container(
             height: 48,
             color: Colors.grey[50],
@@ -35,12 +35,12 @@ class NumericKeyboard extends StatelessWidget {
                   children: [
                     if (onCursorLeft != null)
                       _buildControlBtn(
-                        Icons.arrow_back_ios_rounded,
+                        FontAwesomeIcons.chevronLeft,
                         onCursorLeft!,
                       ),
                     if (onCursorRight != null)
                       _buildControlBtn(
-                        Icons.arrow_forward_ios_rounded,
+                        FontAwesomeIcons.chevronRight,
                         onCursorRight!,
                       ),
                   ],
@@ -48,9 +48,10 @@ class NumericKeyboard extends StatelessWidget {
                 // Tombol Selesai / Tutup Keyboard
                 TextButton.icon(
                   onPressed: onSubmit,
-                  icon: const Icon(
-                    Icons.keyboard_hide_rounded,
+                  icon: const FaIcon(
+                    FontAwesomeIcons.keyboard,
                     color: Colors.blue,
+                    size: 16,
                   ),
                   label: const Text(
                     "Selesai",
@@ -68,11 +69,11 @@ class NumericKeyboard extends StatelessWidget {
           ),
           const Divider(height: 1, thickness: 0.5),
 
-          // 2. GRID ANGKA (Menggunakan Expanded agar responsive)
+          // 2. GRID ANGKA
           Expanded(
             child: Row(
               children: [
-                // Kolom Kiri (1, 4, 7, .000)
+                // Kolom Kiri
                 Expanded(
                   child: Column(
                     children: [
@@ -87,7 +88,7 @@ class NumericKeyboard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Kolom Tengah (2, 5, 8, 0)
+                // Kolom Tengah
                 Expanded(
                   child: Column(
                     children: [
@@ -98,7 +99,7 @@ class NumericKeyboard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Kolom Kanan (3, 6, 9, Backspace)
+                // Kolom Kanan
                 Expanded(
                   child: Column(
                     children: [
@@ -117,7 +118,6 @@ class NumericKeyboard extends StatelessWidget {
     );
   }
 
-  // Widget Tombol Angka Biasa
   Widget _buildNumberBtn(String label) {
     return Expanded(
       child: Material(
@@ -130,8 +130,7 @@ class NumericKeyboard extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontSize: 28,
-                fontWeight:
-                    FontWeight.w400, // Font tipis tapi besar (Modern Style)
+                fontWeight: FontWeight.w400,
                 color: Colors.black87,
               ),
             ),
@@ -141,7 +140,6 @@ class NumericKeyboard extends StatelessWidget {
     );
   }
 
-  // Widget Tombol Khusus (.000)
   Widget _buildCustomBtn(String label, {Color? color, Color? textColor}) {
     return Expanded(
       child: Material(
@@ -163,7 +161,6 @@ class NumericKeyboard extends StatelessWidget {
     );
   }
 
-  // Widget Tombol Backspace
   Widget _buildBackspaceBtn() {
     return Expanded(
       child: Material(
@@ -171,20 +168,19 @@ class NumericKeyboard extends StatelessWidget {
         child: InkWell(
           onTap: onBackspace,
           onLongPress: () {
-            // Opsional: Hapus banyak jika ditekan lama (logic bisa ditambah nanti)
             onBackspace();
           },
           child: Center(
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red[50], // Merah sangat muda
+                color: Colors.red[50],
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.backspace_rounded,
+              child: const FaIcon(
+                FontAwesomeIcons.deleteLeft,
                 color: Colors.red,
-                size: 24,
+                size: 18,
               ),
             ),
           ),
@@ -193,11 +189,10 @@ class NumericKeyboard extends StatelessWidget {
     );
   }
 
-  // Widget Tombol Kontrol Kecil (Arrow)
-  Widget _buildControlBtn(IconData icon, VoidCallback onTap) {
+  Widget _buildControlBtn(dynamic icon, VoidCallback onTap) {
     return IconButton(
       onPressed: onTap,
-      icon: Icon(icon, size: 18, color: Colors.grey[600]),
+      icon: FaIcon(icon, size: 14, color: Colors.grey[600]),
       splashRadius: 20,
       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
     );

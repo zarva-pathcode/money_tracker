@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:money_tracker/models/chart_data.dart';
 import 'package:money_tracker/models/expense.dart';
@@ -129,9 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 border: Border.all(color: Colors.grey.shade300),
                               ),
                               child: IconButton(
-                                icon: const Icon(
-                                  Icons.tune_rounded,
-                                  size: 20,
+                                icon: const FaIcon(
+                                  FontAwesomeIcons.sliders,
+                                  size: 18,
                                   color: Colors.black87,
                                 ),
                                 constraints: const BoxConstraints(
@@ -305,10 +306,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            isHemat ? Icons.trending_down : Icons.trending_up,
+                          FaIcon(
+                            isHemat ? FontAwesomeIcons.arrowTrendDown : FontAwesomeIcons.arrowTrendUp,
                             color: isHemat ? Colors.greenAccent : Colors.redAccent,
-                            size: 14,
+                            size: 12,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -332,10 +333,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.wallet_rounded,
+                child: const FaIcon(
+                  FontAwesomeIcons.wallet,
                   color: Colors.white,
-                  size: 24,
+                  size: 20,
                 ),
               ),
             ],
@@ -360,10 +361,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.arrow_downward_rounded,
+                        const FaIcon(
+                          FontAwesomeIcons.arrowDown,
                           color: Colors.greenAccent,
-                          size: 16,
+                          size: 14,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -400,10 +401,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.arrow_upward_rounded,
+                        const FaIcon(
+                          FontAwesomeIcons.arrowUp,
                           color: Colors.redAccent,
-                          size: 16,
+                          size: 14,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -532,9 +533,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.receipt_long_rounded,
-                  size: 48,
+                child: FaIcon(
+                  FontAwesomeIcons.fileInvoiceDollar,
+                  size: 40,
                   color: Colors.blue[300],
                 ),
               ),
@@ -580,10 +581,12 @@ class _HomeScreenState extends State<HomeScreen> {
           final dateKey = sortedKeys[index];
           final expenses = groupedExpenses[dateKey]!;
           final date = DateTime.parse(dateKey);
-          final dailyTotal = expenses.fold(
-            0.0,
-            (sum, item) => item.type == 'income' ? sum + item.amount : sum - item.amount,
-          );
+          final dailyIncome = expenses
+              .where((e) => e.type == 'income')
+              .fold(0.0, (sum, e) => sum + e.amount);
+          final dailyExpense = expenses
+              .where((e) => e.type == 'expense')
+              .fold(0.0, (sum, e) => sum + e.amount);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,29 +639,46 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    // Total Harian
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Text(
-                        (dailyTotal >= 0 ? '+' : '-') + NumberFormat.currency(
-                          locale: 'id_ID',
-                          symbol: 'Rp ',
-                          decimalDigits: 0,
-                        ).format(dailyTotal.abs()),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: dailyTotal >= 0 ? Colors.green[700] : Colors.grey[700],
-                        ),
-                      ),
+                    // Ringkasan Harian (Income & Expense)
+                    Row(
+                      children: [
+                        if (dailyIncome > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            margin: const EdgeInsets.only(left: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green[100]!),
+                            ),
+                            child: Text(
+                              '+${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(dailyIncome)}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ),
+                        if (dailyExpense > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            margin: const EdgeInsets.only(left: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red[100]!),
+                            ),
+                            child: Text(
+                              '-${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(dailyExpense)}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -736,7 +756,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     final style = Constants.getCategoryStyle(expense.category);
     final color = style['color'] as Color;
-    final icon = style['icon'] as IconData;
+    final icon = style['icon'];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12), // Jarak antar kartu
@@ -761,13 +781,15 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // 1. Ikon Kategori (Kotak Rounded)
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1), // Warna pastel transparan
-                    borderRadius: BorderRadius.circular(14),
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(icon, color: color, size: 22),
+                  child: Center(
+                    child: FaIcon(icon, color: color, size: 20),
+                  ),
                 ),
 
                 const SizedBox(width: 16),
@@ -815,7 +837,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: expense.type == 'income' ? Colors.green[700] : Colors.redAccent,
+                    color: expense.type == 'income' ? Colors.green[700] : Colors.red[700],
                   ),
                 ),
               ],
@@ -879,7 +901,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final style = Constants.getCategoryStyle(expense.category);
     final color = style['color'] as Color;
-    final icon = style['icon'] as IconData;
+    final icon = style['icon'];
 
     showModalBottomSheet(
       context: context,
@@ -918,7 +940,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: color.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(icon, color: color, size: 28),
+                      child: Center(
+                        child: FaIcon(icon, color: color, size: 24),
+                      ),
                     ),
                     const SizedBox(width: 16),
 

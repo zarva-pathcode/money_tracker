@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/screens/montly_report_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +10,7 @@ import '../providers/widget_provider.dart';
 import '../utils/constants.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -27,6 +29,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -47,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.notifications_active_rounded,
+              icon: FontAwesomeIcons.bell,
               iconColor: Colors.blue,
               title: 'Pengingat Harian',
               subtitle: 'Atur jadwal notifikasi harian',
@@ -60,6 +63,19 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
+            const Divider(height: 1, indent: 60),
+            _buildSettingTile(
+              context,
+              icon: themeProvider.themeMode == ThemeMode.light
+                  ? FontAwesomeIcons.sun
+                  : themeProvider.themeMode == ThemeMode.dark
+                      ? FontAwesomeIcons.moon
+                      : FontAwesomeIcons.circleHalfStroke,
+              iconColor: Colors.orange,
+              title: 'Tema Aplikasi',
+              subtitle: _getThemeModeLabel(themeProvider.themeMode),
+              onTap: () => _showThemePicker(context, themeProvider),
+            ),
           ]),
 
           const SizedBox(height: 24),
@@ -69,7 +85,7 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.widgets_rounded,
+              icon: FontAwesomeIcons.shapes,
               iconColor: Colors.indigo,
               title: 'Widget Home Screen',
               subtitle: 'Atur 3 kategori favorit di widget',
@@ -84,7 +100,7 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.upload_file_rounded,
+              icon: FontAwesomeIcons.fileExport,
               iconColor: Colors.green,
               title: 'Ekspor Data',
               subtitle: 'Backup ke JSON atau CSV',
@@ -93,7 +109,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 4),
             _buildSettingTile(
               context,
-              icon: Icons.download_rounded,
+              icon: FontAwesomeIcons.fileImport,
               iconColor: Colors.blue,
               title: 'Impor Data',
               subtitle: 'Restore dari file backup',
@@ -107,7 +123,7 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.privacy_tip_rounded,
+              icon: FontAwesomeIcons.shieldHalved,
               iconColor: Colors.blueGrey,
               title: 'Kebijakan Privasi',
               subtitle: 'Ketentuan penggunaan data',
@@ -122,7 +138,7 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsContainer([
             _buildSettingTile(
               context,
-              icon: Icons.delete_forever_rounded,
+              icon: FontAwesomeIcons.triangleExclamation,
               iconColor: Colors.red,
               title: 'Hapus Semua Data',
               subtitle: 'Tindakan ini permanen',
@@ -136,9 +152,9 @@ class SettingsScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Text(
+                const Text(
                   "Money Tracker v1.0.0",
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -153,8 +169,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET BUILDERS (Tetap Sama) ---
-
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 10),
@@ -162,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
         title.toUpperCase(),
         style: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.bold,
           color: Colors.grey[600],
           letterSpacing: 1.2,
         ),
@@ -183,7 +197,6 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      // Tambahkan padding vertical agar item paling atas dan bawah tidak nempel ke pinggir container
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(children: children),
     );
@@ -191,7 +204,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildSettingTile(
     BuildContext context, {
-    required IconData icon,
+    required dynamic icon,
     required Color iconColor,
     required String title,
     String? subtitle,
@@ -202,12 +215,11 @@ class SettingsScreen extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        // Hapus border radius di sini agar inkwell memenuhi lebar container
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 12,
-          ), // Padding disesuaikan
+          ),
           child: Row(
             children: [
               Container(
@@ -217,7 +229,7 @@ class SettingsScreen extends StatelessWidget {
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Center(child: FaIcon(icon, color: iconColor, size: 18)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -228,7 +240,7 @@ class SettingsScreen extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
                     ),
@@ -242,16 +254,13 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey[300]),
+              FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey[300], size: 14),
             ],
           ),
         ),
       ),
     );
   }
-
-  // ... (Bagian Logic _showExportOptions, _showImportOptions, dll TETAP SAMA seperti kode sebelumnya) ...
-  // Silakan copy-paste method logic dari jawaban sebelumnya ke sini agar file lengkap.
 
   void _showExportOptions(BuildContext context, ExpenseProvider provider) {
     showModalBottomSheet(
@@ -284,7 +293,7 @@ class SettingsScreen extends StatelessWidget {
                 _buildActionBtn(
                   ctx,
                   "Format JSON (Backup)",
-                  Icons.data_object,
+                  FontAwesomeIcons.code,
                   Colors.orange,
                   () {
                     Navigator.pop(ctx);
@@ -295,7 +304,7 @@ class SettingsScreen extends StatelessWidget {
                 _buildActionBtn(
                   ctx,
                   "Format CSV (Excel)",
-                  Icons.table_chart,
+                  FontAwesomeIcons.fileExcel,
                   Colors.green,
                   () {
                     Navigator.pop(ctx);
@@ -341,7 +350,7 @@ class SettingsScreen extends StatelessWidget {
                 _buildActionBtn(
                   ctx,
                   "Dari File JSON",
-                  Icons.upload_file,
+                  FontAwesomeIcons.fileCode,
                   Colors.blue,
                   () {
                     Navigator.pop(ctx);
@@ -352,7 +361,7 @@ class SettingsScreen extends StatelessWidget {
                 _buildActionBtn(
                   ctx,
                   "Dari File CSV",
-                  Icons.grid_on,
+                  FontAwesomeIcons.fileCsv,
                   Colors.teal,
                   () {
                     Navigator.pop(ctx);
@@ -370,7 +379,7 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildActionBtn(
     BuildContext context,
     String label,
-    IconData icon,
+    dynamic icon,
     Color color,
     VoidCallback onTap,
   ) {
@@ -378,24 +387,21 @@ class SettingsScreen extends StatelessWidget {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: onTap,
-        icon: Icon(icon, color: color),
+        icon: FaIcon(icon, color: color, size: 18),
         label: Text(
           label,
           style: const TextStyle(
             color: Colors.black87,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
         style: OutlinedButton.styleFrom(
-          // PERBAIKAN DISINI: Tambahkan horizontal: 20
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           side: BorderSide(color: Colors.grey.shade300),
-          alignment:
-              Alignment
-                  .centerLeft, // Ikon tetap rata kiri, tapi ada jarak 20px dari pinggir
+          alignment: Alignment.centerLeft,
         ),
       ),
     );
@@ -411,7 +417,7 @@ class SettingsScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 20, color: Colors.blue),
+          const FaIcon(FontAwesomeIcons.circleInfo, size: 18, color: Colors.blue),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -512,25 +518,21 @@ class SettingsScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Agar dialog fit dengan konten
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 1. Ikon Peringatan Besar
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.warning_amber_rounded,
-                      size: 40,
+                    child: const FaIcon(
+                      FontAwesomeIcons.triangleExclamation,
+                      size: 32,
                       color: Colors.red,
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // 2. Judul & Pesan
                   const Text(
                     "Hapus Semua Data?",
                     textAlign: TextAlign.center,
@@ -547,16 +549,12 @@ class SettingsScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
-                      height: 1.5, // Spasi antar baris teks agar enak dibaca
+                      height: 1.5,
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // 3. Tombol Aksi
                   Row(
                     children: [
-                      // Tombol Batal
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(ctx),
@@ -571,21 +569,17 @@ class SettingsScreen extends StatelessWidget {
                             "Batal",
                             style: TextStyle(
                               color: Colors.black87,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
-
-                      const SizedBox(width: 16), // Jarak antar tombol
-                      // Tombol Hapus (Merah)
+                      const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            Navigator.pop(ctx); // Tutup dialog dulu
-                            await provider.clearAllExpenses(); // Proses hapus
-
-                            // Tampilkan notifikasi sukses (opsional jika mau pakai dialog sukses yang ada)
+                            Navigator.pop(ctx);
+                            await provider.clearAllExpenses();
                             if (context.mounted) {
                               _showSuccessDialog(
                                 context,
@@ -627,8 +621,8 @@ class SettingsScreen extends StatelessWidget {
           (ctx) => AlertDialog(
             title: Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.green),
-                const SizedBox(width: 10),
+                const FaIcon(FontAwesomeIcons.circleCheck, color: Colors.green, size: 22),
+                const SizedBox(width: 12),
                 Text(title),
               ],
             ),
@@ -653,8 +647,8 @@ class SettingsScreen extends StatelessWidget {
           (ctx) => AlertDialog(
             title: Row(
               children: [
-                const Icon(Icons.error, color: Colors.red),
-                const SizedBox(width: 10),
+                const FaIcon(FontAwesomeIcons.circleXmark, color: Colors.red, size: 22),
+                const SizedBox(width: 12),
                 Text(title),
               ],
             ),
@@ -669,138 +663,6 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
-    );
-  }
-
-  void _showPrivacyPolicy(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Agar bisa full height jika perlu
-      backgroundColor: Colors.transparent,
-      builder:
-          (ctx) => Container(
-            height:
-                MediaQuery.of(context).size.height * 0.75, // Tinggi 75% layar
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-
-                const Text(
-                  "Kebijakan Privasi",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Terakhir diperbarui: November 2025", // Sesuaikan tanggal
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-
-                // Konten Scrollable
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildPolicyItem(
-                          "1. Pengumpulan Data",
-                          "Aplikasi Money Tracker menghormati privasi Anda. Kami tidak mengumpulkan, menyimpan, atau mengirimkan data pribadi atau finansial Anda ke server eksternal manapun.",
-                        ),
-                        _buildPolicyItem(
-                          "2. Penyimpanan Lokal",
-                          "Seluruh data transaksi, kategori, dan pengaturan disimpan secara lokal (offline) di dalam memori internal perangkat Anda menggunakan teknologi enkripsi standar database Hive.",
-                        ),
-                        _buildPolicyItem(
-                          "3. Akses Internet",
-                          "Aplikasi ini tidak memerlukan koneksi internet untuk fungsi utamanya (mencatat dan melihat laporan).",
-                        ),
-                        _buildPolicyItem(
-                          "4. Keamanan Data",
-                          "Karena data tersimpan di perangkat Anda, keamanan data bergantung pada keamanan fisik perangkat Anda (PIN, Pola, Sidik Jari). Kami menyarankan Anda untuk mengamankan HP Anda.",
-                        ),
-                        _buildPolicyItem(
-                          "5. Izin Perangkat",
-                          "Aplikasi mungkin meminta izin akses penyimpanan (Storage) HANYA ketika Anda melakukan fitur Ekspor/Impor data (CSV/JSON).",
-                        ),
-                        _buildPolicyItem(
-                          "6. Penghapusan Data",
-                          "Anda memiliki kendali penuh. Anda dapat menghapus seluruh data secara permanen melalui menu 'Hapus Semua Data' di halaman Pengaturan.",
-                        ),
-
-                        const SizedBox(height: 20),
-                        // Tombol Tutup
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[800],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Text(
-                              "Tutup",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
-  Widget _buildPolicyItem(String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            content,
-            style: TextStyle(
-              color: Colors.grey[700],
-              height: 1.5,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -841,6 +703,7 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 ...List.generate(3, (index) {
                   final category = provider.favoriteCategories[index];
+                  final style = Constants.getCategoryStyle(category);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
@@ -850,16 +713,16 @@ class SettingsScreen extends StatelessWidget {
                         side: BorderSide(color: Colors.grey[200]!),
                       ),
                       leading: CircleAvatar(
-                        backgroundColor: Constants.getCategoryStyle(category)['color'].withOpacity(0.1),
-                        child: Icon(
-                          Constants.getCategoryStyle(category)['icon'],
-                          color: Constants.getCategoryStyle(category)['color'],
-                          size: 20,
+                        backgroundColor: style['color'].withOpacity(0.1),
+                        child: FaIcon(
+                          style['icon'],
+                          color: style['color'],
+                          size: 16,
                         ),
                       ),
                       title: Text("Slot ${index + 1}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                       subtitle: Text(category, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                      trailing: const Icon(Icons.edit_rounded, size: 20),
+                      trailing: const FaIcon(FontAwesomeIcons.pen, size: 14),
                       onTap: () => _showCategoryPicker(context, index, provider),
                     ),
                   );
@@ -924,7 +787,7 @@ class SettingsScreen extends StatelessWidget {
                         CircleAvatar(
                           radius: 25,
                           backgroundColor: style['color'].withOpacity(0.1),
-                          child: Icon(style['icon'], color: style['color']),
+                          child: FaIcon(style['icon'], color: style['color'], size: 20),
                         ),
                         const SizedBox(height: 8),
                         Text(cat, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
@@ -938,5 +801,119 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+  void _showThemePicker(BuildContext context, ThemeProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const Text(
+                  "Pilih Tema",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 24),
+                _buildThemeOption(
+                  ctx,
+                  provider,
+                  ThemeMode.system,
+                  "Default Sistem",
+                  FontAwesomeIcons.circleHalfStroke,
+                ),
+                const SizedBox(height: 12),
+                _buildThemeOption(
+                  ctx,
+                  provider,
+                  ThemeMode.light,
+                  "Mode Terang",
+                  FontAwesomeIcons.sun,
+                ),
+                const SizedBox(height: 12),
+                _buildThemeOption(
+                  ctx,
+                  provider,
+                  ThemeMode.dark,
+                  "Mode Gelap",
+                  FontAwesomeIcons.moon,
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    ThemeProvider provider,
+    ThemeMode mode,
+    String label,
+    dynamic icon,
+  ) {
+    final isSelected = provider.themeMode == mode;
+    return InkWell(
+      onTap: () {
+        provider.setThemeMode(mode);
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            FaIcon(
+              icon,
+              size: 20,
+              color: isSelected ? Colors.blue : Colors.grey,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.blue : Colors.black87,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              const FaIcon(FontAwesomeIcons.check, size: 16, color: Colors.blue),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getThemeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return "Mode Terang";
+      case ThemeMode.dark:
+        return "Mode Gelap";
+      case ThemeMode.system:
+        return "Ikuti Sistem";
+    }
   }
 }

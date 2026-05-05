@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import '../providers/expense_provider.dart';
+import 'package:money_tracker/utils/constants.dart';
 
 class CategoryBreakdown extends StatelessWidget {
   final Map<String, double> categoryTotals;
@@ -26,9 +26,6 @@ class CategoryBreakdown extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-
-    // 3. Ambil Provider untuk akses warna kategori
-    final provider = Provider.of<ExpenseProvider>(context, listen: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +54,9 @@ class CategoryBreakdown extends StatelessWidget {
           final categoryName = entry.key;
           final amount = entry.value;
           final percentage = totalAmount == 0 ? 0.0 : (amount / totalAmount);
-          final color = provider.getCategoryColor(categoryName);
+          final style = Constants.getCategoryStyle(categoryName);
+          final color = style['color'] as Color;
+          final icon = style['icon'];
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
@@ -69,16 +68,10 @@ class CategoryBreakdown extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(
-                      0.1,
-                    ), // Background transparan sesuai warna kategori
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    _getIconForCategory(categoryName),
-                    color: color,
-                    size: 24,
-                  ),
+                  child: Center(child: FaIcon(icon, color: color, size: 18)),
                 ),
 
                 const SizedBox(width: 16),
@@ -100,7 +93,7 @@ class CategoryBreakdown extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            "${(percentage * 100).toStringAsFixed(1)}%", // Menampilkan Persentase
+                            "${(percentage * 100).toStringAsFixed(1)}%",
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -141,27 +134,5 @@ class CategoryBreakdown extends StatelessWidget {
         }).toList(),
       ],
     );
-  }
-
-  // Helper Icon (Agar sesuai dengan icon di halaman Add Expense)
-  IconData _getIconForCategory(String category) {
-    switch (category) {
-      case 'Makanan':
-        return Icons.fastfood_rounded;
-      case 'Transportasi':
-        return Icons.directions_car_rounded;
-      case 'Belanja':
-        return Icons.shopping_bag_rounded;
-      case 'Hiburan':
-        return Icons.movie_rounded;
-      case 'Tagihan':
-        return Icons.receipt_long_rounded;
-      case 'Kesehatan':
-        return Icons.medical_services_rounded;
-      case 'Lainnya':
-        return Icons.more_horiz_rounded;
-      default:
-        return Icons.category_rounded;
-    }
   }
 }

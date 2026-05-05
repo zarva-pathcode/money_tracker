@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:money_tracker/utils/formartters.dart';
 import '../models/expense.dart';
 import '../utils/constants.dart';
 import '../widgets/numeric_keyboard.dart';
+import '../widgets/modern_input_field.dart';
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
@@ -62,33 +64,6 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _amountController.addListener(_updateCursorPosition);
   }
 
-  // --- LOGIC NAVIGATION ---
-  void _handleKeyboardSubmit() {
-    final amount = Formatters.parseFormattedNumber(_amountController.text);
-    if (amount > 0) {
-      setState(() => _showCustomKeyboard = false);
-      FocusScope.of(context).requestFocus(_titleFocusNode);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Isi nominal pengeluaran dulu")),
-      );
-    }
-  }
-
-  void _onTitleSubmitted(String value) {
-    final amount = Formatters.parseFormattedNumber(_amountController.text);
-    if (amount <= 0) {
-      FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 100), () {
-        FocusScope.of(context).requestFocus(_amountFocusNode);
-        setState(() => _showCustomKeyboard = true);
-      });
-    } else {
-      _saveExpense();
-    }
-  }
-
-  // --- HELPER KEYBOARD ---
   void _updateCursorPosition() {
     _cursorPosition = _amountController.selection.baseOffset;
   }
@@ -153,7 +128,18 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     return formattedBeforeCursor.length;
   }
 
-  // --- UI ---
+  void _handleKeyboardSubmit() {
+    final amount = Formatters.parseFormattedNumber(_amountController.text);
+    if (amount > 0) {
+      setState(() => _showCustomKeyboard = false);
+      FocusScope.of(context).requestFocus(_titleFocusNode);
+    }
+  }
+
+  void _onTitleSubmitted(String value) {
+    _saveExpense();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,93 +147,76 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black87),
+          icon: const Icon(Icons.close, color: Colors.black87, size: 22),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _transactionType == 'expense' ? 'Edit Pengeluaran' : 'Edit Pemasukan',
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 20),
-                    
-                    // Toggle Transaction Type
+                    const SizedBox(height: 12),
                     _buildTypeToggle(),
+                    const SizedBox(height: 32),
 
-                    const SizedBox(height: 30),
-                    
-                    const Text(
-                      "Jumlah Pengeluaran",
-                      style: TextStyle(color: Colors.grey),
+                    // Input Nominal Modern
+                    ModernInputField(
+                      controller: _amountController,
+                      focusNode: _amountFocusNode,
+                      hintText: "0",
+                      icon: Icons.account_balance_wallet_rounded,
+                      readOnly: true,
+                      prefixText: "Rp ",
+                      onTap: () {
+                        setState(() => _showCustomKeyboard = true);
+                        FocusScope.of(context).requestFocus(_amountFocusNode);
+                      },
                     ),
-                    IntrinsicWidth(
-                      child: TextFormField(
-                        controller: _amountController,
-                        focusNode: _amountFocusNode,
-                        showCursor: true,
-                        readOnly: true,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                        decoration: const InputDecoration(
-                          prefixText: "Rp ",
-                          prefixStyle: TextStyle(
-                            fontSize: 40,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          border: InputBorder.none,
-                          hintText: "0",
-                          hintStyle: TextStyle(color: Colors.black12),
-                        ),
-                        onTap: () {
-                          setState(() => _showCustomKeyboard = true);
-                          FocusScope.of(context).requestFocus(_amountFocusNode);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 30),
+
+                    const SizedBox(height: 16),
+
+                    // Row for Date and Note
                     Row(
                       children: [
+                        // Date Picker (Modern Compact)
                         InkWell(
                           onTap: _pickDate,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
+                            height: 56,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
                               color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.blue[100]!),
                             ),
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons.calendar_today_rounded,
-                                  size: 18,
-                                  color: Colors.blue[800],
+                                  Icons.calendar_month_rounded,
+                                  size: 20,
+                                  color: Colors.blue[700],
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   DateFormat('dd MMM').format(_selectedDate),
                                   style: TextStyle(
-                                    color: Colors.blue[800],
+                                    color: Colors.blue[700],
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -256,101 +225,96 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
+                        // Note Input Modern
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: TextFormField(
-                              controller: _titleController,
-                              focusNode: _titleFocusNode,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: _onTitleSubmitted,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                hintText: "Catatan...",
-                                icon: Icon(
-                                  Icons.edit_note_rounded,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
+                          child: ModernInputField(
+                            controller: _titleController,
+                            focusNode: _titleFocusNode,
+                            hintText: "Catatan...",
+                            icon: Icons.edit_note_rounded,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: _onTitleSubmitted,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
+
+                    const SizedBox(height: 32),
+
+                    // Category Selection Header
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Ubah Kategori",
+                        "Kategori",
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
+
+                    // Category Grid
                     Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      alignment: WrapAlignment.center,
-                      children: (_transactionType == 'expense'
-                              ? Constants.expenseCategories
-                              : Constants.incomeCategories)
-                          .map((category) => _buildCategoryItem(category))
-                          .toList(),
+                      spacing: 16,
+                      runSpacing: 16,
+                      alignment: WrapAlignment.start,
+                      children:
+                          (_transactionType == 'expense'
+                                  ? Constants.expenseCategories
+                                  : Constants.incomeCategories)
+                              .map((category) => _buildCategoryItem(category))
+                              .toList(),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
           ),
+
+          // Action Button
           Container(
             width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              _showCustomKeyboard
+                  ? 12
+                  : (12 + MediaQuery.of(context).padding.bottom),
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.03),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
               ],
             ),
-            // PERBAIKAN DISINI: Padding Bawah Dinamis
-            padding: EdgeInsets.fromLTRB(
-              24,
-              12,
-              24,
-              // Logika safe area
-              _showCustomKeyboard
-                  ? 12
-                  : (12 + MediaQuery.of(context).padding.bottom),
-            ),
             child: ElevatedButton(
               onPressed: _saveExpense,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[800],
-                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
-              child: Text(
-                _transactionType == 'expense' ? "Update Pengeluaran" : "Update Pemasukan",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: const Text(
+                "Update Transaksi",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
+
+          // Custom Keyboard
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            // PERBAIKAN 1: Tambah tinggi safe area
             height:
                 _showCustomKeyboard
                     ? (280 + MediaQuery.of(context).padding.bottom)
@@ -361,8 +325,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                       color: Colors.white,
                       child: Column(
                         children: [
-                          const Divider(height: 1, thickness: 1),
-
+                          const Divider(height: 1, thickness: 0.5),
                           Expanded(
                             child: NumericKeyboard(
                               onKeyPressed: _handleKeyPress,
@@ -370,8 +333,6 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                               onSubmit: _handleKeyboardSubmit,
                             ),
                           ),
-
-                          // PERBAIKAN 2: Spacer aman
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom,
                           ),
@@ -385,11 +346,82 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     );
   }
 
+  Widget _buildTypeToggle() {
+    return Container(
+      width: 220,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(25),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _buildToggleItem("Pengeluaran", 'expense'),
+          _buildToggleItem("Pemasukan", 'income'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleItem(String label, String type) {
+    final isSelected = _transactionType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _transactionType = type;
+            if (_transactionType == 'income') {
+              if (!Constants.incomeCategories.contains(_selectedCategory)) {
+                _selectedCategory = Constants.incomeCategories.first;
+              }
+            } else {
+              if (!Constants.expenseCategories.contains(_selectedCategory)) {
+                _selectedCategory = Constants.expenseCategories.first;
+              }
+            }
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow:
+                isSelected
+                    ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : [],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color:
+                  isSelected
+                      ? (type == 'expense'
+                          ? Colors.red[700]
+                          : Colors.green[700])
+                      : Colors.grey[600],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryItem(String category) {
     final isSelected = _selectedCategory == category;
     final style = Constants.getCategoryStyle(category);
     final color = style['color'] as Color;
-    final icon = style['icon'] as IconData;
+    final icon = style['icon'];
 
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = category),
@@ -398,109 +430,41 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: isSelected ? color : Colors.grey[100],
+              color: isSelected ? color : Colors.grey[50],
               shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.transparent : Colors.grey[200]!,
+                width: 1,
+              ),
               boxShadow:
                   isSelected
                       ? [
                         BoxShadow(
-                          color: color.withOpacity(0.4),
+                          color: color.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
                       ]
                       : [],
             ),
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.grey[500],
-              size: 26,
+            child: Center(
+              child: FaIcon(
+                icon,
+                color: isSelected ? Colors.white : Colors.grey[500],
+                size: 22,
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             category,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected ? Colors.black87 : Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeToggle() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _transactionType = 'expense';
-                  if (!Constants.expenseCategories.contains(_selectedCategory)) {
-                    _selectedCategory = Constants.expenseCategories.first;
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _transactionType == 'expense' ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: _transactionType == 'expense'
-                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Pengeluaran",
-                  style: TextStyle(
-                    fontWeight: _transactionType == 'expense' ? FontWeight.bold : FontWeight.w500,
-                    color: _transactionType == 'expense' ? Colors.black87 : Colors.grey[600],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _transactionType = 'income';
-                  if (!Constants.incomeCategories.contains(_selectedCategory)) {
-                    _selectedCategory = Constants.incomeCategories.first;
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _transactionType == 'income' ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: _transactionType == 'income'
-                      ? [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Pemasukan",
-                  style: TextStyle(
-                    fontWeight: _transactionType == 'income' ? FontWeight.bold : FontWeight.w500,
-                    color: _transactionType == 'income' ? Colors.green[700] : Colors.grey[600],
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -512,21 +476,34 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null)
-      setState(
-        () =>
-            _selectedDate = DateTime(
-              picked.year,
-              picked.month,
-              picked.day,
-              _selectedDate.hour,
-              _selectedDate.minute,
-              _selectedDate.second,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue[800]!,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
             ),
-      );
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        final now = DateTime.now();
+        _selectedDate = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          now.hour,
+          now.minute,
+          now.second,
+        );
+      });
+    }
   }
 
   void _saveExpense() {
