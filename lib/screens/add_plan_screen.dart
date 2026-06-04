@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:money_tracker/utils/formatters.dart';
+import 'package:money_tracker/utils/numeric_input_controller.dart';
+import 'package:uuid/uuid.dart';
+import 'package:provider/provider.dart';
 import '../models/plan_item.dart';
 import '../providers/plan_provider.dart';
-import '../utils/formartters.dart'; // Note: using the existing misspelled file name for consistency
-import '../widgets/numeric_keyboard.dart';
 import '../utils/constants.dart';
+import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
 
 class AddPlanScreen extends StatefulWidget {
@@ -23,14 +24,15 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
   final _titleController = TextEditingController();
   final _targetAmountController = TextEditingController();
   final _initialAmountController = TextEditingController();
+  late final NumericInputController _targetNumeric;
+  late final NumericInputController _initialNumeric;
 
   final _titleFocusNode = FocusNode();
   final _targetAmountFocusNode = FocusNode();
   final _initialAmountFocusNode = FocusNode();
 
   bool _showCustomKeyboard = false;
-  TextEditingController? _activeNumericController;
-  int _cursorPosition = 0;
+  NumericInputController? _activeNumeric;
 
   Color _selectedColor = Colors.blue;
   dynamic _selectedIcon = FontAwesomeIcons.house;
@@ -48,9 +50,14 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
 
   final List<dynamic> _iconOptions = Constants.planIcons;
 
+  NumericInputController get _effectiveNumeric =>
+      _activeNumeric ?? _targetNumeric;
+
   @override
   void initState() {
     super.initState();
+    _targetNumeric = NumericInputController(controller: _targetAmountController);
+    _initialNumeric = NumericInputController(controller: _initialAmountController);
 
     if (widget.planToEdit != null) {
       _titleController.text = widget.planToEdit!.title;
@@ -66,10 +73,11 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
       if (_targetAmountFocusNode.hasFocus) {
         setState(() {
           _showCustomKeyboard = true;
-          _activeNumericController = _targetAmountController;
-          _cursorPosition = _targetAmountController.selection.baseOffset;
-          if (_cursorPosition < 0)
-            _cursorPosition = _targetAmountController.text.length;
+          _activeNumeric = _targetNumeric;
+          _targetNumeric.cursorPosition =
+              _targetAmountController.selection.baseOffset;
+          if (_targetNumeric.cursorPosition < 0)
+            _targetNumeric.cursorPosition = _targetAmountController.text.length;
         });
         SystemChannels.textInput.invokeMethod('TextInput.hide');
       }
@@ -79,10 +87,11 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
       if (_initialAmountFocusNode.hasFocus) {
         setState(() {
           _showCustomKeyboard = true;
-          _activeNumericController = _initialAmountController;
-          _cursorPosition = _initialAmountController.selection.baseOffset;
-          if (_cursorPosition < 0)
-            _cursorPosition = _initialAmountController.text.length;
+          _activeNumeric = _initialNumeric;
+          _initialNumeric.cursorPosition =
+              _initialAmountController.selection.baseOffset;
+          if (_initialNumeric.cursorPosition < 0)
+            _initialNumeric.cursorPosition = _initialAmountController.text.length;
         });
         SystemChannels.textInput.invokeMethod('TextInput.hide');
       }
@@ -95,14 +104,14 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
     });
 
     _targetAmountController.addListener(() {
-      if (_activeNumericController == _targetAmountController) {
-        _updateCursorPosition();
+      if (_activeNumeric == _targetNumeric) {
+        _targetNumeric.updateCursorPosition();
       }
     });
 
     _initialAmountController.addListener(() {
-      if (_activeNumericController == _initialAmountController) {
-        _updateCursorPosition();
+      if (_activeNumeric == _initialNumeric) {
+        _initialNumeric.updateCursorPosition();
       }
     });
 
@@ -111,147 +120,60 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
     });
   }
 
-  void _updateCursorPosition() {
-    if (_activeNumericController != null &&
-        _activeNumericController!.selection.baseOffset >= 0) {
-      _cursorPosition = _activeNumericController!.selection.baseOffset;
-    }
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
     _targetAmountController.dispose();
     _initialAmountController.dispose();
+    _targetNumeric.dispose();
+    _initialNumeric.dispose();
     _titleFocusNode.dispose();
     _targetAmountFocusNode.dispose();
     _initialAmountFocusNode.dispose();
     super.dispose();
   }
 
-  // --- Keyboard Logic ---
   void _onKeyPressed(String value) {
-    if (_activeNumericController == null) return;
-
-    final String formattedText = _activeNumericController!.text;
-    final String currentText = formattedText.replaceAll('.', '');
-
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor =
-          formattedText
-              .substring(0, _cursorPosition)
-              .replaceAll('.', '')
-              .length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    if (value == '.000') {
-      if (currentText.isEmpty) {
-        _updateTextField('000', 3);
-      } else {
-        if (currentText.length + 3 > 15) return;
-        final newText =
-            currentText.substring(0, unformattedCursor) +
-            '000' +
-            currentText.substring(unformattedCursor);
-        _updateTextField(newText, unformattedCursor + 3);
-      }
-    } else {
-      if (currentText.length + 1 > 15) return;
-      final newText =
-          currentText.substring(0, unformattedCursor) +
-          value +
-          currentText.substring(unformattedCursor);
-      _updateTextField(newText, unformattedCursor + 1);
-    }
+    _effectiveNumeric.handleKeyPress(value);
   }
 
   void _onBackspace() {
-    if (_activeNumericController == null) return;
-
-    final String formattedText = _activeNumericController!.text;
-    final String currentText = formattedText.replaceAll('.', '');
-
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor =
-          formattedText
-              .substring(0, _cursorPosition)
-              .replaceAll('.', '')
-              .length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    if (unformattedCursor > 0) {
-      final newText =
-          currentText.substring(0, unformattedCursor - 1) +
-          currentText.substring(unformattedCursor);
-      _updateTextField(newText, unformattedCursor - 1);
-    }
-  }
-
-  void _updateTextField(String newText, int newCursorPosition) {
-    if (_activeNumericController == null) return;
-
-    final formattedText = Formatters.formatNumberInput(newText);
-    final textBeforeCursor = newText.substring(0, newCursorPosition);
-    final formattedBeforeCursor = Formatters.formatNumberInput(
-      textBeforeCursor,
-    );
-    final adjustedCursor = formattedBeforeCursor.length;
-
-    _activeNumericController!.text = formattedText;
-    _activeNumericController!.selection = TextSelection.collapsed(
-      offset: adjustedCursor,
-    );
-    setState(() {
-      _cursorPosition = adjustedCursor;
-    });
+    _effectiveNumeric.handleBackspace();
   }
 
   void _handleKeyboardSubmit() {
-    if (_activeNumericController == _targetAmountController) {
+    if (_activeNumeric == _targetNumeric) {
       FocusScope.of(context).requestFocus(_initialAmountFocusNode);
-    } else if (_activeNumericController == _initialAmountController) {
+    } else if (_activeNumeric == _initialNumeric) {
       setState(() => _showCustomKeyboard = false);
       FocusScope.of(context).unfocus();
     }
   }
 
   void _cursorLeft() {
-    if (_cursorPosition > 0 && _activeNumericController != null) {
-      int newPos = _cursorPosition - 1;
-      final text = _activeNumericController!.text;
-      if (newPos > 0 && newPos < text.length && text[newPos] == '.') {
-        newPos--;
-      }
-      setState(() {
-        _activeNumericController!.selection = TextSelection.collapsed(
-          offset: newPos,
-        );
-        _cursorPosition = newPos;
-      });
+    final nc = _activeNumeric;
+    if (nc == null || nc.cursorPosition <= 0) return;
+    int newPos = nc.cursorPosition - 1;
+    final text = nc.controller.text;
+    if (newPos > 0 && newPos < text.length && text[newPos] == '.') {
+      newPos--;
     }
+    nc.controller.selection = TextSelection.collapsed(offset: newPos);
+    nc.cursorPosition = newPos;
+    setState(() {});
   }
 
   void _cursorRight() {
-    if (_activeNumericController != null &&
-        _cursorPosition < _activeNumericController!.text.length) {
-      int newPos = _cursorPosition + 1;
-      final text = _activeNumericController!.text;
-      if (newPos < text.length && text[newPos] == '.') {
-        newPos++;
-      }
-      setState(() {
-        _activeNumericController!.selection = TextSelection.collapsed(
-          offset: newPos,
-        );
-        _cursorPosition = newPos;
-      });
+    final nc = _activeNumeric;
+    if (nc == null || nc.cursorPosition >= nc.controller.text.length) return;
+    int newPos = nc.cursorPosition + 1;
+    final text = nc.controller.text;
+    if (newPos < text.length && text[newPos] == '.') {
+      newPos++;
     }
+    nc.controller.selection = TextSelection.collapsed(offset: newPos);
+    nc.cursorPosition = newPos;
+    setState(() {});
   }
 
   void _savePlan() {
@@ -378,7 +300,7 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
                     onTap: () {
                       setState(() {
                         _showCustomKeyboard = true;
-                        _activeNumericController = _targetAmountController;
+                        _activeNumeric = _targetNumeric;
                       });
                     },
                   ),
@@ -395,7 +317,7 @@ class _AddPlanScreenState extends State<AddPlanScreen> {
                       onTap: () {
                         setState(() {
                           _showCustomKeyboard = true;
-                          _activeNumericController = _initialAmountController;
+                          _activeNumeric = _initialNumeric;
                         });
                       },
                     ),

@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:money_tracker/utils/formartters.dart';
+import 'package:provider/provider.dart';
+import 'package:money_tracker/utils/formatters.dart';
 import '../models/expense.dart';
+import '../providers/expense_provider.dart';
+import '../providers/plan_provider.dart';
+import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
+import '../utils/numeric_input_controller.dart';
+import '../services/overspend_service.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
+import '../widgets/transaction_type_toggle.dart';
+import '../widgets/category_picker.dart';
+import '../widgets/overspend_bottom_sheet.dart';
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
@@ -26,6 +34,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _amountController;
+  late final NumericInputController _numericInput;
 
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _amountFocusNode = FocusNode();
@@ -35,7 +44,6 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   late String _transactionType;
 
   bool _showCustomKeyboard = false;
-  int _cursorPosition = 0;
 
   @override
   void initState() {
@@ -46,6 +54,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
         widget.expense.amount.toStringAsFixed(0),
       ),
     );
+    _numericInput = NumericInputController(controller: _amountController);
     _selectedCategory = widget.expense.category;
     _selectedDate = widget.expense.date;
     _transactionType = widget.expense.type;
@@ -61,71 +70,15 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       }
     });
 
-    _amountController.addListener(_updateCursorPosition);
-  }
-
-  void _updateCursorPosition() {
-    _cursorPosition = _amountController.selection.baseOffset;
+    _amountController.addListener(_numericInput.updateCursorPosition);
   }
 
   void _handleKeyPress(String key) {
-    final currentText = _amountController.text.replaceAll('.', '');
-    final currentCursor = _cursorPosition < 0 ? 0 : _cursorPosition;
-    String newText = "";
-    int nextCursor = 0;
-
-    if (key == '.000') {
-      if (currentText.length + 3 > 15) return;
-      newText =
-          currentText.substring(0, currentCursor) +
-          '000' +
-          currentText.substring(currentCursor);
-      nextCursor = currentCursor + 3;
-    } else {
-      if (currentText.length + 1 > 15) return;
-      newText =
-          currentText.substring(0, currentCursor) +
-          key +
-          currentText.substring(currentCursor);
-      nextCursor = currentCursor + 1;
-    }
-    _updateTextField(newText, nextCursor);
+    _numericInput.handleKeyPress(key);
   }
 
   void _handleBackspace() {
-    final currentText = _amountController.text.replaceAll('.', '');
-    final currentCursor = _cursorPosition;
-    if (currentCursor > 0) {
-      final newText =
-          currentText.substring(0, currentCursor - 1) +
-          currentText.substring(currentCursor);
-      _updateTextField(newText, currentCursor - 1);
-    }
-  }
-
-  void _updateTextField(String newText, int newCursorPosition) {
-    final formattedText = Formatters.formatNumberInput(newText);
-    final adjustedCursor = _calculateAdjustedCursor(
-      newText,
-      formattedText,
-      newCursorPosition,
-    );
-    _amountController.text = formattedText;
-    _amountController.selection = TextSelection.collapsed(
-      offset: adjustedCursor,
-    );
-  }
-
-  int _calculateAdjustedCursor(
-    String originalText,
-    String formattedText,
-    int originalCursor,
-  ) {
-    final textBeforeCursor = originalText.substring(0, originalCursor);
-    final formattedBeforeCursor = Formatters.formatNumberInput(
-      textBeforeCursor,
-    );
-    return formattedBeforeCursor.length;
+    _numericInput.handleBackspace();
   }
 
   void _handleKeyboardSubmit() {
@@ -144,6 +97,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -165,13 +119,30 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
+              physics: const BouncingScrollPhysics(),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
                     const SizedBox(height: 12),
-                    _buildTypeToggle(),
+                    TransactionTypeToggle(
+                      currentType: _transactionType,
+                      onTypeChanged: (type) {
+                        setState(() {
+                          _transactionType = type;
+                          if (_transactionType == 'income') {
+                            if (!Constants.incomeCategories.contains(_selectedCategory)) {
+                              _selectedCategory = Constants.incomeCategories.first;
+                            }
+                          } else {
+                            if (!Constants.expenseCategories.contains(_selectedCategory)) {
+                              _selectedCategory = Constants.expenseCategories.first;
+                            }
+                          }
+                        });
+                      },
+                    ),
                     const SizedBox(height: 32),
 
                     // Input Nominal Modern
@@ -186,6 +157,11 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         setState(() => _showCustomKeyboard = true);
                         FocusScope.of(context).requestFocus(_amountFocusNode);
                       },
+                      textStyle: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
 
                     const SizedBox(height: 16),
@@ -201,22 +177,22 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                             height: 56,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.blue[50],
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.blue[100]!),
+                              border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.calendar_month_rounded,
                                   size: 20,
-                                  color: Colors.blue[700],
+                                  color: Theme.of(context).primaryColor,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   DateFormat('dd MMM').format(_selectedDate),
                                   style: TextStyle(
-                                    color: Colors.blue[700],
+                                    color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -240,32 +216,10 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                     ),
 
                     const SizedBox(height: 32),
-
-                    // Category Selection Header
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Kategori",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Category Grid
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.start,
-                      children:
-                          (_transactionType == 'expense'
-                                  ? Constants.expenseCategories
-                                  : Constants.incomeCategories)
-                              .map((category) => _buildCategoryItem(category))
-                              .toList(),
+                    CategoryPicker(
+                      selectedCategory: _selectedCategory,
+                      transactionType: _transactionType,
+                      onCategoryChanged: (cat) => setState(() => _selectedCategory = cat),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -296,9 +250,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: _saveExpense,
+              onPressed: () => _saveExpense(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[800],
+                backgroundColor: Theme.of(context).primaryColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -346,132 +300,6 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     );
   }
 
-  Widget _buildTypeToggle() {
-    return Container(
-      width: 220,
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(25),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          _buildToggleItem("Pengeluaran", 'expense'),
-          _buildToggleItem("Pemasukan", 'income'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleItem(String label, String type) {
-    final isSelected = _transactionType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _transactionType = type;
-            if (_transactionType == 'income') {
-              if (!Constants.incomeCategories.contains(_selectedCategory)) {
-                _selectedCategory = Constants.incomeCategories.first;
-              }
-            } else {
-              if (!Constants.expenseCategories.contains(_selectedCategory)) {
-                _selectedCategory = Constants.expenseCategories.first;
-              }
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : [],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color:
-                  isSelected
-                      ? (type == 'expense'
-                          ? Colors.red[700]
-                          : Colors.green[700])
-                      : Colors.grey[600],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryItem(String category) {
-    final isSelected = _selectedCategory == category;
-    final style = Constants.getCategoryStyle(category);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = category),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isSelected ? color : Colors.grey[50],
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? Colors.transparent : Colors.grey[200]!,
-                width: 1,
-              ),
-              boxShadow:
-                  isSelected
-                      ? [
-                        BoxShadow(
-                          color: color.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                      : [],
-            ),
-            child: Center(
-              child: FaIcon(
-                icon,
-                color: isSelected ? Colors.white : Colors.grey[500],
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            category,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.black87 : Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -482,7 +310,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.blue[800]!,
+              primary: Theme.of(context).primaryColor,
               onPrimary: Colors.white,
               onSurface: Colors.black87,
             ),
@@ -506,13 +334,51 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     }
   }
 
-  void _saveExpense() {
+  Future<void> _saveExpense() async {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Jumlah harus lebih dari 0")),
       );
       return;
+    }
+
+    // Check overspend only if editing an expense with higher amount
+    if (_transactionType == 'expense' && amount > widget.expense.amount) {
+      final delta = amount - widget.expense.amount;
+      final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+      final planProvider = Provider.of<PlanProvider>(context, listen: false);
+      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      final shortfall = expenseProvider.checkShortfall(delta, payDay: settingsProvider.periodStartDay);
+      if (shortfall > 0) {
+        final plans =
+            planProvider.plans.where((p) => p.currentAmount > 0).toList();
+        if (plans.isNotEmpty) {
+          final totalPlansBalance =
+              plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
+
+          final allocations =
+              await showModalBottomSheet<Map<String, double>>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => OverspendBottomSheet(
+              shortfall: shortfall,
+              plans: plans,
+              totalPlansBalance: totalPlansBalance,
+            ),
+          );
+
+          if (allocations == null) return;
+
+          await OverspendService.executeAllocations(
+            allocations: allocations,
+            plans: planProvider.plans,
+            expenseProvider: expenseProvider,
+            planProvider: planProvider,
+          );
+        }
+      }
     }
 
     final updatedExpense = Expense(
@@ -524,7 +390,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       type: _transactionType,
     );
     widget.onSave(updatedExpense);
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -533,6 +399,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _titleFocusNode.dispose();
     _titleController.dispose();
     _amountController.dispose();
+    _numericInput.dispose();
     super.dispose();
   }
 }

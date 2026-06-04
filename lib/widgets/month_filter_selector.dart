@@ -108,18 +108,18 @@ class _MonthFilterSelectorState extends State<MonthFilterSelector> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.blue[800] : Colors.white,
+                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? Colors.blue[800]! : Colors.grey.shade300,
+                  color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade300,
                 ),
                 boxShadow:
                     isSelected
                         ? [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            color: Theme.of(context).primaryColor.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ]
                         : [],

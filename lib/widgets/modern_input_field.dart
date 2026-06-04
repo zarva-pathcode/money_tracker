@@ -36,21 +36,23 @@ class ModernInputField extends StatelessWidget {
       onTap: onTap,
       onFieldSubmitted: onSubmitted,
       textInputAction: textInputAction,
-      style: textStyle ?? const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: Colors.black87,
-      ),
+      style:
+          textStyle ??
+          const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
-          color: Colors.grey[400], 
+          color: Colors.grey[400],
           fontWeight: FontWeight.normal,
           fontSize: 15,
         ),
         prefixIcon: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(icon, color: Colors.blue[600], size: 20),
+          child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 40),
         prefixText: prefixText,
@@ -60,8 +62,11 @@ class ModernInputField extends StatelessWidget {
           color: Colors.black87,
         ),
         filled: true,
-        fillColor: Colors.grey[100],
-        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -72,7 +77,7 @@ class ModernInputField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.blue[600]!, width: 1.5),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/utils/constants.dart';
-import 'package:money_tracker/utils/formartters.dart';
+import 'package:money_tracker/utils/formatters.dart';
 import '../models/expense.dart';
 
 class ExpenseTile extends StatelessWidget {

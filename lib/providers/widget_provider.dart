@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:home_widget/home_widget.dart';
+import '../services/hive_service.dart';
+import '../utils/constants.dart';
 
 class WidgetProvider with ChangeNotifier {
-  final Box _box = Hive.box('settings');
+  final HiveService _hiveService;
   
   late List<String> favoriteCategories;
 
-  WidgetProvider() {
+  WidgetProvider({required HiveService hiveService})
+      : _hiveService = hiveService {
     _loadFavorites();
   }
 
   void _loadFavorites() {
     favoriteCategories = [
-      _box.get('fav_cat_1', defaultValue: 'Makanan'),
-      _box.get('fav_cat_2', defaultValue: 'Transportasi'),
-      _box.get('fav_cat_3', defaultValue: 'Belanja'),
+      _hiveService.getSetting('fav_cat_1', 'Makanan'),
+      _hiveService.getSetting('fav_cat_2', 'Transportasi'),
+      _hiveService.getSetting('fav_cat_3', 'Belanja'),
     ];
   }
 
   Future<void> updateFavorite(int index, String category) async {
     favoriteCategories[index] = category;
-    await _box.put('fav_cat_${index + 1}', category);
+    await _hiveService.setSetting('fav_cat_${index + 1}', category);
     
-    // Sync to Home Screen Widget
     await _syncToWidget();
     
     notifyListeners();
@@ -31,13 +32,20 @@ class WidgetProvider with ChangeNotifier {
 
   Future<void> _syncToWidget() async {
     try {
-      await HomeWidget.saveWidgetData('fav_cat_1', favoriteCategories[0]);
-      await HomeWidget.saveWidgetData('fav_cat_2', favoriteCategories[1]);
-      await HomeWidget.saveWidgetData('fav_cat_3', favoriteCategories[2]);
+      for (int i = 0; i < 3; i++) {
+        final cat = favoriteCategories[i];
+        final style = Constants.getCategoryStyle(cat);
+        final color = style['color'] as Color;
+        final suffix = (i + 1).toString();
+
+        await HomeWidget.saveWidgetData('fav_cat_$suffix', cat);
+        await HomeWidget.saveWidgetData('fav_cat_${suffix}_icon', Constants.getCategoryEmoji(cat));
+        await HomeWidget.saveWidgetData('fav_cat_${suffix}_color',
+            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}');
+      }
       
-      // Request update for both Android and iOS
       await HomeWidget.updateWidget(
-        name: 'QuickActionWidget', // Nama class di Android
+        name: 'QuickActionWidget',
         androidName: 'QuickActionWidget',
         iOSName: 'QuickActionWidget',
       );
@@ -46,7 +54,6 @@ class WidgetProvider with ChangeNotifier {
     }
   }
 
-  // Initial sync when app starts
   Future<void> initialSync() async {
     await _syncToWidget();
   }

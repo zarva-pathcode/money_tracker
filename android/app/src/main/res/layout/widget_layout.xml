@@ -26,17 +26,16 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
+            <TextView
                 android:id="@+id/widget_icon_1"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@android:drawable/ic_menu_edit"
-                android:tint="#1A237E" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp" />
             <TextView
                 android:id="@+id/widget_text_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:text="Kategori 1"
                 android:textColor="#333333"
                 android:textSize="10sp"
@@ -56,17 +55,16 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
+            <TextView
                 android:id="@+id/widget_icon_2"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@android:drawable/ic_menu_edit"
-                android:tint="#1A237E" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp" />
             <TextView
                 android:id="@+id/widget_text_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:text="Kategori 2"
                 android:textColor="#333333"
                 android:textSize="10sp"
@@ -86,17 +84,16 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
+            <TextView
                 android:id="@+id/widget_icon_3"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@android:drawable/ic_menu_edit"
-                android:tint="#1A237E" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp" />
             <TextView
                 android:id="@+id/widget_text_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:text="Kategori 3"
                 android:textColor="#333333"
                 android:textSize="10sp"
@@ -124,7 +121,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:text="Tambah"
                 android:textColor="#FFFFFF"
                 android:textSize="10sp"

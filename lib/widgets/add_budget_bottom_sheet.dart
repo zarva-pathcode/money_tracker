@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../models/budget_item.dart';
 import '../providers/budget_provider.dart';
 import '../utils/constants.dart';
-import '../utils/formartters.dart';
+import '../utils/formatters.dart';
 import 'numeric_keyboard.dart';
 import 'modern_input_field.dart';
 

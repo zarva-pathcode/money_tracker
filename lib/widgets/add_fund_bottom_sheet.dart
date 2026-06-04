@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/plan_item.dart';
+import '../providers/expense_provider.dart';
 import '../providers/plan_provider.dart';
-import '../utils/formartters.dart';
+import '../utils/formatters.dart';
+import '../utils/numeric_input_controller.dart';
 import 'numeric_keyboard.dart';
 import 'modern_input_field.dart';
 
@@ -17,100 +19,52 @@ class AddFundBottomSheet extends StatefulWidget {
 
 class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
   final _amountController = TextEditingController();
-  int _cursorPosition = 0;
+  late final NumericInputController _numericInput;
+
+  @override
+  void initState() {
+    super.initState();
+    _numericInput = NumericInputController(controller: _amountController);
+  }
 
   @override
   void dispose() {
     _amountController.dispose();
+    _numericInput.dispose();
     super.dispose();
   }
 
   void _onKeyPressed(String value) {
-    final String formattedText = _amountController.text;
-    final String currentText = formattedText.replaceAll('.', '');
-    
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor = formattedText.substring(0, _cursorPosition).replaceAll('.', '').length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    if (value == '.000') {
-      if (currentText.isEmpty) {
-        _updateTextField('000', 3);
-      } else {
-        if (currentText.length + 3 > 15) return;
-        final newText = currentText.substring(0, unformattedCursor) +
-            '000' +
-            currentText.substring(unformattedCursor);
-        _updateTextField(newText, unformattedCursor + 3);
-      }
-    } else {
-      if (currentText.length + 1 > 15) return;
-      final newText = currentText.substring(0, unformattedCursor) +
-          value +
-          currentText.substring(unformattedCursor);
-      _updateTextField(newText, unformattedCursor + 1);
-    }
+    _numericInput.handleKeyPress(value);
   }
 
   void _onBackspace() {
-    final String formattedText = _amountController.text;
-    final String currentText = formattedText.replaceAll('.', '');
-    
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor = formattedText.substring(0, _cursorPosition).replaceAll('.', '').length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    if (unformattedCursor > 0) {
-      final newText = currentText.substring(0, unformattedCursor - 1) +
-          currentText.substring(unformattedCursor);
-      _updateTextField(newText, unformattedCursor - 1);
-    }
-  }
-
-  void _updateTextField(String newText, int newCursorPosition) {
-    final formattedText = Formatters.formatNumberInput(newText);
-    final textBeforeCursor = newText.substring(0, newCursorPosition);
-    final formattedBeforeCursor = Formatters.formatNumberInput(textBeforeCursor);
-    final adjustedCursor = formattedBeforeCursor.length;
-
-    _amountController.text = formattedText;
-    _amountController.selection = TextSelection.collapsed(offset: adjustedCursor);
-    setState(() {
-      _cursorPosition = adjustedCursor;
-    });
+    _numericInput.handleBackspace();
   }
 
   void _cursorLeft() {
-    if (_cursorPosition > 0) {
-      int newPos = _cursorPosition - 1;
+    if (_numericInput.cursorPosition > 0) {
+      int newPos = _numericInput.cursorPosition - 1;
       final text = _amountController.text;
       if (newPos > 0 && newPos < text.length && text[newPos] == '.') {
         newPos--;
       }
-      setState(() {
-        _amountController.selection = TextSelection.collapsed(offset: newPos);
-        _cursorPosition = newPos;
-      });
+      _amountController.selection = TextSelection.collapsed(offset: newPos);
+      _numericInput.cursorPosition = newPos;
+      setState(() {});
     }
   }
 
   void _cursorRight() {
-    if (_cursorPosition < _amountController.text.length) {
-      int newPos = _cursorPosition + 1;
+    if (_numericInput.cursorPosition < _amountController.text.length) {
+      int newPos = _numericInput.cursorPosition + 1;
       final text = _amountController.text;
       if (newPos < text.length && text[newPos] == '.') {
         newPos++;
       }
-      setState(() {
-        _amountController.selection = TextSelection.collapsed(offset: newPos);
-        _cursorPosition = newPos;
-      });
+      _amountController.selection = TextSelection.collapsed(offset: newPos);
+      _numericInput.cursorPosition = newPos;
+      setState(() {});
     }
   }
 
@@ -118,6 +72,10 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount > 0) {
       Provider.of<PlanProvider>(context, listen: false).addFundToPlan(widget.plan.id, amount);
+      Provider.of<ExpenseProvider>(context, listen: false).addSavingsAllocation(
+        amount: amount,
+        planTitle: widget.plan.title,
+      );
     }
     Navigator.pop(context);
   }
@@ -160,7 +118,7 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
                   widget.plan.title,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.blue[700],
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -173,8 +131,8 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
                   readOnly: true,
                   prefixText: "Rp ",
                   onTap: () {
-                     _cursorPosition = _amountController.selection.baseOffset;
-                     if (_cursorPosition < 0) _cursorPosition = _amountController.text.length;
+                     _numericInput.cursorPosition = _amountController.selection.baseOffset;
+                     if (_numericInput.cursorPosition < 0) _numericInput.cursorPosition = _amountController.text.length;
                   },
                 ),
               ],

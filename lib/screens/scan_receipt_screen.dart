@@ -86,13 +86,13 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Smart Receipt Scanner',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
@@ -107,16 +107,16 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                 const SizedBox(height: 24),
                 Text(
                   _processingMessage,
-                  style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.w600),
+                  style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600),
                 ),
               ] else ...[
                 Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.document_scanner_rounded, size: 80, color: Colors.blue[600]),
+                  child: Icon(Icons.document_scanner_rounded, size: 80, color: Theme.of(context).primaryColor),
                 ),
                 const SizedBox(height: 32),
                 const Text(
@@ -137,7 +137,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                     icon: const Icon(Icons.camera_alt_rounded, color: Colors.white),
                     label: const Text("Mulai Scan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
+                      backgroundColor: Theme.of(context).primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),

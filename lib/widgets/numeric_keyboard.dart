@@ -48,15 +48,15 @@ class NumericKeyboard extends StatelessWidget {
                 // Tombol Selesai / Tutup Keyboard
                 TextButton.icon(
                   onPressed: onSubmit,
-                  icon: const FaIcon(
+                  icon: FaIcon(
                     FontAwesomeIcons.keyboard,
-                    color: Colors.blue,
+                    color: Theme.of(context).primaryColor,
                     size: 16,
                   ),
-                  label: const Text(
+                  label: Text(
                     "Selesai",
                     style: TextStyle(
-                      color: Colors.blue,
+                      color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -81,9 +81,10 @@ class NumericKeyboard extends StatelessWidget {
                       _buildNumberBtn('4'),
                       _buildNumberBtn('7'),
                       _buildCustomBtn(
+                        context,
                         '.000',
-                        color: Colors.blue[50],
-                        textColor: Colors.blue[800],
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        textColor: Theme.of(context).primaryColor,
                       ),
                     ],
                   ),
@@ -140,7 +141,12 @@ class NumericKeyboard extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomBtn(String label, {Color? color, Color? textColor}) {
+  Widget _buildCustomBtn(
+    BuildContext context,
+    String label, {
+    Color? color,
+    Color? textColor,
+  }) {
     return Expanded(
       child: Material(
         color: color ?? Colors.white,

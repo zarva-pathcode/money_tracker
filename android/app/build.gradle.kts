@@ -7,8 +7,8 @@ plugins {
 
 android {
     namespace = "com.moneytracker.app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -51,6 +51,9 @@ configurations.all {
         force("androidx.browser:browser:1.8.0")
         force("androidx.core:core-ktx:1.15.0")
         force("androidx.core:core:1.15.0")
+        // Paksa glance-appwidget ke versi stabil agar tidak bergantung pada alpha yang butuh compileSdk 37+
+        force("androidx.glance:glance-appwidget:1.1.0")
+        force("androidx.glance:glance:1.1.0")
     }
 }
 flutter {

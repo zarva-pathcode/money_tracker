@@ -59,7 +59,7 @@ class MonthPickerButton extends StatelessWidget {
             Icon(
               Icons.calendar_month_rounded,
               size: 16,
-              color: Colors.blue[800],
+              color: Theme.of(context).primaryColor,
             ),
             const SizedBox(width: 6),
 
@@ -137,13 +137,13 @@ class _MonthPickerSheet extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   "${DateTime.now().year}",
                   style: TextStyle(
-                    color: Colors.blue[800],
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -152,7 +152,7 @@ class _MonthPickerSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _buildAllMonthsOption(),
+          _buildAllMonthsOption(context),
           const SizedBox(height: 20),
           const Text(
             "Bulan",
@@ -179,7 +179,7 @@ class _MonthPickerSheet extends StatelessWidget {
                       .where((m) => m != MonthFilter.all)
                       .toList();
               final monthEnum = monthsOnly[index];
-              return _buildMonthChip(monthEnum);
+              return _buildMonthChip(context, monthEnum);
             },
           ),
         ],
@@ -187,7 +187,7 @@ class _MonthPickerSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildAllMonthsOption() {
+  Widget _buildAllMonthsOption(BuildContext context) {
     final isSelected = selectedMonth == MonthFilter.all;
     return InkWell(
       onTap: () => onMonthSelected(MonthFilter.all),
@@ -196,10 +196,10 @@ class _MonthPickerSheet extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[800] : Colors.grey[100],
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.blue[800]! : Colors.transparent,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
           ),
         ),
         alignment: Alignment.center,
@@ -215,7 +215,7 @@ class _MonthPickerSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildMonthChip(MonthFilter month) {
+  Widget _buildMonthChip(BuildContext context, MonthFilter month) {
     final isSelected = month == selectedMonth;
     // Pastikan di grid juga disingkat biar rapi (Jan, Feb)
     String shortName = Constants.months[month.index];
@@ -226,10 +226,10 @@ class _MonthPickerSheet extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[600] : Colors.white,
+          color: isSelected ? Theme.of(context).primaryColor : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Colors.blue[600]! : Colors.grey[300]!,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
           ),
         ),
         alignment: Alignment.center,

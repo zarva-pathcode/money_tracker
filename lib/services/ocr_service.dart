@@ -13,7 +13,7 @@ class OcrService {
       final scanner = DocumentScanner(
         options: DocumentScannerOptions(
           documentFormats: {DocumentFormat.jpeg},
-          mode: ScannerMode.filter, // Penting: Pengganti OpenCV untuk penjernihan
+          mode: ScannerMode.full, // Menggunakan mode full untuk auto-crop otomatis
           pageLimit: 1,
           isGalleryImport: true,
         ),

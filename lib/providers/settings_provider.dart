@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import '../services/hive_service.dart';
 import '../services/notification_service.dart';
+import '../main.dart';
 
 class ReminderSetting {
   final int id;
@@ -17,11 +18,12 @@ class ReminderSetting {
 }
 
 class SettingsProvider with ChangeNotifier {
-  final Box _box = Hive.box('settings');
+  final HiveService _hiveService;
   
   late List<ReminderSetting> reminders;
 
-  SettingsProvider() {
+  SettingsProvider({required HiveService hiveService})
+      : _hiveService = hiveService {
     _loadSettings();
   }
 
@@ -33,10 +35,25 @@ class SettingsProvider with ChangeNotifier {
     ];
   }
 
+  // --- Onboarding ---
+  bool get isFirstTime => _hiveService.getSetting('hasSeenOnboarding', true);
+
+  Future<void> setOnboardingSeen() async {
+    await _hiveService.setSetting('hasSeenOnboarding', false);
+  }
+
+  // --- Period Start Day ---
+  int get periodStartDay => _hiveService.getSetting('period_start_day', 1);
+
+  Future<void> setPeriodStartDay(int day) async {
+    await _hiveService.setSetting('period_start_day', day.clamp(1, 31));
+    notifyListeners();
+  }
+
   ReminderSetting _getReminder(int id, String label, int defH, int defM) {
-    final isActive = _box.get('rem_${id}_active', defaultValue: false);
-    final hour = _box.get('rem_${id}_hour', defaultValue: defH);
-    final minute = _box.get('rem_${id}_minute', defaultValue: defM);
+    final isActive = _hiveService.getSetting('rem_${id}_active', false);
+    final hour = _hiveService.getSetting('rem_${id}_hour', defH);
+    final minute = _hiveService.getSetting('rem_${id}_minute', defM);
     
     return ReminderSetting(
       id: id,
@@ -50,37 +67,34 @@ class SettingsProvider with ChangeNotifier {
     final index = reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
 
-    // OPTIMISTIC UI: Update state immediately for responsiveness
-    final oldIsActive = reminders[index].isActive;
-    final oldTime = reminders[index].time;
-    
+    // Optimistic UI
     reminders[index].isActive = isActive;
     reminders[index].time = newTime;
     notifyListeners();
 
-    try {
-      // Save to Hive
-      await _box.put('rem_${id}_active', isActive);
-      await _box.put('rem_${id}_hour', newTime.hour);
-      await _box.put('rem_${id}_minute', newTime.minute);
+    // Always persist to Hive (tidak di-rollback)
+    await _hiveService.setSetting('rem_${id}_active', isActive);
+    await _hiveService.setSetting('rem_${id}_hour', newTime.hour);
+    await _hiveService.setSetting('rem_${id}_minute', newTime.minute);
 
-      // Update Notification in background
-      if (isActive) {
-        await NotificationService.scheduleDaily(
-          id: id,
-          title: 'Ingat Catat Pengeluaran!',
-          body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
-          time: newTime,
+    // Update notification (bisa gagal independen)
+    if (isActive) {
+      final ok = await NotificationService.scheduleDaily(
+        id: id,
+        title: 'Ingat Catat Pengeluaran!',
+        body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
+        time: newTime,
+      );
+      if (!ok && navigatorKey.currentContext != null) {
+        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+          const SnackBar(
+            content: Text('Izin notifikasi belum diberikan. Buka Pengaturan > Notifikasi untuk mengaktifkan.'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
-      } else {
-        await NotificationService.cancel(id);
       }
-    } catch (e) {
-      debugPrint("Error updating reminder: $e");
-      // Rollback on error
-      reminders[index].isActive = oldIsActive;
-      reminders[index].time = oldTime;
-      notifyListeners();
+    } else {
+      await NotificationService.cancel(id);
     }
   }
 }

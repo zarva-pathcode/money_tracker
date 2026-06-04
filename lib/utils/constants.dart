@@ -7,7 +7,7 @@ class Constants {
     switch (category) {
       case 'Makanan':
         return {
-          'icon': FontAwesomeIcons.utensils, 
+          'icon': FontAwesomeIcons.utensils,
           'color': const Color(0xFFFF8A65), // Coral Orange
         };
       case 'Transportasi':
@@ -34,6 +34,11 @@ class Constants {
         return {
           'icon': FontAwesomeIcons.stethoscope,
           'color': const Color(0xFFEF5350), // Soft Red
+        };
+      case 'Tabungan':
+        return {
+          'icon': FontAwesomeIcons.piggyBank,
+          'color': const Color(0xFFFFB74D), // Amber Orange
         };
       case 'Lainnya':
         return {
@@ -71,8 +76,11 @@ class Constants {
     'Hiburan',
     'Tagihan',
     'Kesehatan',
+    'Tabungan',
     'Lainnya',
   ];
+
+  static bool isSavingsCategory(String category) => category == 'Tabungan';
 
   static const List<String> incomeCategories = [
     'Gaji',
@@ -130,6 +138,26 @@ class Constants {
     } catch (e) {
       return FontAwesomeIcons.circleQuestion;
     }
+  }
+
+  static String getCategoryEmoji(String category) {
+    switch (category) {
+      case 'Makanan': return '\u{1F37D}';
+      case 'Transportasi': return '\u{1F697}';
+      case 'Belanja': return '\u{1F6D2}';
+      case 'Hiburan': return '\u{1F3AC}';
+      case 'Tagihan': return '\u{1F4C4}';
+      case 'Kesehatan': return '\u{1F48A}';
+      case 'Tabungan': return '\u{1F4B0}';
+      case 'Gaji': return '\u{1F4B5}';
+      case 'Bonus': return '\u{1F381}';
+      case 'Investasi': return '\u{1F4C8}';
+      default: return '\u{1F4CB}';
+    }
+  }
+
+  static String colorHex(Color color) {
+    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
   }
 }
 

@@ -10,9 +10,9 @@ class ReminderSettingsScreen extends StatelessWidget {
     final settingsProvider = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
@@ -29,17 +29,17 @@ class ReminderSettingsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: Colors.blue),
+                Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     "Aktifkan pengingat agar kamu tidak lupa mencatat transaksi harianmu.",
-                    style: TextStyle(color: Colors.blue[900], fontSize: 13, height: 1.4),
+                    style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 13, height: 1.4),
                   ),
                 ),
               ],
@@ -77,76 +77,53 @@ class ReminderSettingsScreen extends StatelessWidget {
   }
 }
 
-class _ReminderTileItem extends StatefulWidget {
+class _ReminderTileItem extends StatelessWidget {
   final ReminderSetting rem;
   final SettingsProvider provider;
 
   const _ReminderTileItem({required this.rem, required this.provider});
 
   @override
-  State<_ReminderTileItem> createState() => _ReminderTileItemState();
-}
-
-class _ReminderTileItemState extends State<_ReminderTileItem> {
-  late bool _isActive;
-
-  @override
-  void initState() {
-    super.initState();
-    _isActive = widget.rem.isActive;
-  }
-
-  @override
-  void didUpdateWidget(_ReminderTileItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.rem.isActive != widget.rem.isActive) {
-      _isActive = widget.rem.isActive;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final isActive = rem.isActive;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
+          color: Theme.of(context).primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Icon(Icons.alarm_rounded, color: Colors.blue, size: 22),
+        child: Icon(Icons.alarm_rounded, color: Theme.of(context).primaryColor, size: 22),
       ),
-      title: Text(widget.rem.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+      title: Text(rem.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       subtitle: Text(
-        widget.rem.time.format(context),
+        rem.time.format(context),
         style: TextStyle(
-          color: _isActive ? Colors.blue : Colors.grey[500],
-          fontWeight: _isActive ? FontWeight.bold : FontWeight.normal,
+          color: isActive ? Theme.of(context).primaryColor : Colors.grey[500],
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       trailing: Switch.adaptive(
-        value: _isActive,
-        onChanged: (val) {
-          setState(() => _isActive = val);
-          widget.provider.updateReminder(widget.rem.id, val, widget.rem.time);
-        },
-        activeColor: Colors.blue,
+        value: isActive,
+        onChanged: (val) => provider.updateReminder(rem.id, val, rem.time),
+        activeColor: Theme.of(context).primaryColor,
       ),
-      onTap: _isActive ? () async {
+      onTap: isActive ? () async {
         final TimeOfDay? picked = await showTimePicker(
           context: context,
-          initialTime: widget.rem.time,
+          initialTime: rem.time,
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(primary: Colors.blue),
+                colorScheme: ColorScheme.light(primary: Theme.of(context).primaryColor),
               ),
               child: child!,
             );
           },
         );
         if (picked != null) {
-          widget.provider.updateReminder(widget.rem.id, true, picked);
+          provider.updateReminder(rem.id, true, picked);
         }
       } : null,
     );

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../services/hive_service.dart';
 import '../utils/constants.dart';
+import '../utils/period_helper.dart';
+import 'recent_widget_provider.dart';
 
 class ExpenseProvider with ChangeNotifier {
+  final HiveService _hiveService;
   List<Expense> _expenses = [];
   List<Expense> _filteredExpenses = [];
 
@@ -49,14 +53,34 @@ class ExpenseProvider with ChangeNotifier {
     return totalIncome - totalExpenses;
   }
 
-  ExpenseProvider() {
+  ExpenseProvider({required HiveService hiveService})
+      : _hiveService = hiveService {
     loadExpenses();
   }
 
   void loadExpenses() {
-    _expenses = HiveService.getAllExpenses();
+    _expenses = _hiveService.getAllExpenses();
     _applyFilters();
     notifyListeners();
+    _syncRecentWidget();
+  }
+
+  void _syncRecentWidget() {
+    final allTimeInc = _expenses
+        .where((e) => e.type == 'income')
+        .fold(0.0, (sum, e) => sum + e.amount);
+    final allTimeExp = _expenses
+        .where((e) => e.type == 'expense')
+        .fold(0.0, (sum, e) => sum + e.amount);
+    final allTimeBal = allTimeInc - allTimeExp;
+    final recent = List<Expense>.from(_expenses.where((e) => e.type == 'expense'))
+      ..sort((a, b) => b.date.compareTo(a.date));
+    RecentWidgetProvider.sync(
+      balance: allTimeBal,
+      periodExpenses: balance,
+      balanceLabel: _selectedMonthFilter == MonthFilter.all ? 'Total' : 'Bulan Ini',
+      recentExpenses: recent.take(15).toList(),
+    );
   }
 
   // --- Setters ---
@@ -224,147 +248,72 @@ class ExpenseProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Chart & Helpers (Tidak Berubah) ---
-
-  Map<String, double> getWeeklyDataForMonth() {
-    final monthData = <String, double>{};
-    final selectedMonth = _selectedMonthFilter.index + 1;
-
-    for (int week = 1; week <= 4; week++) {
-      monthData['Minggu $week'] = 0.0;
-    }
-
-    for (var expense in _filteredExpenses) {
-      // Logika minggu sederhana
-      // Jika custom range aktif, tetap hitung berdasarkan data yang terfilter saja
-      bool include = false;
-      if (_startDate != null && _endDate != null) {
-        include =
-            true; // Karena _filteredExpenses sudah difilter di _applyFilters
-      } else if (_selectedMonthFilter == MonthFilter.all ||
-          expense.date.month == selectedMonth) {
-        include = true;
-      }
-
-      if (include && expense.type == 'expense') {
-        final week = ((expense.date.day - 1) ~/ 7) + 1;
-        final weekKey = 'Minggu ${week.clamp(1, 4)}';
-        monthData[weekKey] = (monthData[weekKey] ?? 0) + expense.amount;
-      }
-    }
-
-    return monthData;
-  }
-
-  String getCurrentMonthYear() {
-    // Jika menggunakan Custom Date Range
-    if (_startDate != null && _endDate != null) {
-      // Format sederhana: "1 Nov - 10 Nov"
-      return "Filter Custom";
-    }
-
-    final now = DateTime.now();
-    if (_selectedMonthFilter == MonthFilter.all) {
-      return 'Semua Bulan ${now.year}';
-    }
-
-    final monthName = Constants.months[_selectedMonthFilter.index];
-    return '$monthName ${now.year}';
-  }
-
   Future<void> addExpense(Expense expense) async {
-    await HiveService.addExpense(expense);
+    await _hiveService.addExpense(expense);
     loadExpenses();
   }
 
+  Future<void> addSavingsAllocation({
+    required double amount,
+    required String planTitle,
+  }) async {
+    final expense = Expense(
+      id: const Uuid().v4(),
+      title: 'Tabungan: $planTitle',
+      amount: amount,
+      date: DateTime.now(),
+      category: 'Tabungan',
+      type: 'expense',
+    );
+    await addExpense(expense);
+  }
+
+  Future<void> withdrawSavingsAllocation({
+    required double amount,
+    required String planTitle,
+  }) async {
+    final expense = Expense(
+      id: const Uuid().v4(),
+      title: 'Penarikan: $planTitle',
+      amount: amount,
+      date: DateTime.now(),
+      category: 'Tabungan',
+      type: 'income',
+    );
+    await addExpense(expense);
+  }
+
+  /// Checks if adding an expense of [amount] would exceed the current period
+  /// balance. Uses custom [payDay] cycle (default 1 = calendar month).
+  /// Returns the shortfall if any, or 0 if balance is sufficient.
+  double checkShortfall(double amount, {int payDay = 1}) {
+    final periodExpenses = _expenses
+        .where((e) =>
+            e.type == 'expense' && PeriodHelper.isInPeriod(e.date, payDay))
+        .fold(0.0, (sum, e) => sum + e.amount);
+    final periodIncome = _expenses
+        .where((e) =>
+            e.type == 'income' && PeriodHelper.isInPeriod(e.date, payDay))
+        .fold(0.0, (sum, e) => sum + e.amount);
+    final available = periodIncome - periodExpenses;
+    if (amount > available) {
+      return amount - available;
+    }
+    return 0;
+  }
+
   Future<void> editExpense(Expense updatedExpense) async {
-    await HiveService.updateExpense(updatedExpense);
+    await _hiveService.updateExpense(updatedExpense);
     loadExpenses();
   }
 
   Future<void> deleteExpense(String id) async {
-    await HiveService.deleteExpense(id);
+    await _hiveService.deleteExpense(id);
     loadExpenses();
   }
 
   Future<void> clearAllExpenses() async {
-    await HiveService.clearAllExpenses();
+    await _hiveService.clearAllExpenses();
     loadExpenses();
-  }
-
-  Map<String, double> getCategoryDataForChart() {
-    final categoryData = <String, double>{};
-
-    for (var expense in _filteredExpenses) {
-      if (expense.type != 'expense') continue;
-      
-      if (categoryData.containsKey(expense.category)) {
-        categoryData[expense.category] =
-            categoryData[expense.category]! + expense.amount;
-      } else {
-        categoryData[expense.category] = expense.amount;
-      }
-    }
-
-    return categoryData;
-  }
-
-  Map<String, double> getCategoryTotals() {
-    Map<String, double> categoryTotals = {};
-
-    for (var expense in _filteredExpenses) {
-      if (expense.type != 'expense') continue;
-      
-      if (categoryTotals.containsKey(expense.category)) {
-        categoryTotals[expense.category] =
-            categoryTotals[expense.category]! + expense.amount;
-      } else {
-        categoryTotals[expense.category] = expense.amount;
-      }
-    }
-
-    return categoryTotals;
-  }
-
-  // Di dalam class ExpenseProvider...
-
-  // 1. Hitung Total Bulan Lalu (Untuk perbandingan)
-  double getPreviousMonthTotal() {
-    final now = DateTime.now();
-    final lastMonthDate = DateTime(now.year, now.month - 1, 1);
-
-    // Filter manual khusus untuk bulan lalu
-    final lastMonthExpenses = _expenses.where(
-      (e) =>
-          e.type == 'expense' &&
-          e.date.year == lastMonthDate.year &&
-          e.date.month == lastMonthDate.month,
-    );
-
-    return lastMonthExpenses.fold(0.0, (sum, e) => sum + e.amount);
-  }
-
-  // 2. Hitung Rata-rata Harian (Bulan ini)
-  double getDailyAverage() {
-    if (totalExpenses == 0) return 0;
-
-    // Jika filter bukan bulan ini, kita bagi dengan jumlah hari dalam bulan tersebut
-    // Tapi untuk simpelnya, kita bagi dengan tanggal hari ini (running average)
-    final now = DateTime.now();
-    final day = now.day; // Tanggal hari ini (misal tgl 22)
-
-    // Hindari pembagian 0
-    if (day == 0) return 0;
-
-    return totalExpenses / day;
-  }
-
-  // Di dalam class ExpenseProvider
-
-  Color getCategoryColor(String category) {
-    // Mengambil style dari Constants
-    final style = Constants.getCategoryStyle(category);
-    // Mengembalikan warnanya saja
-    return style['color'] as Color;
   }
 }

@@ -10,7 +10,7 @@ class HiveService {
   static const String planBoxName = 'plans';
   static const String budgetBoxName = 'budgets';
 
-  static Future<void> init() async {
+  Future<void> init() async {
     final appDocumentDirectory =
         await path_provider.getApplicationDocumentsDirectory();
     Hive.init(appDocumentDirectory.path);
@@ -19,120 +19,115 @@ class HiveService {
     Hive.registerAdapter(PlanItemAdapter());
     Hive.registerAdapter(BudgetItemAdapter());
 
-    // Buka box
     await Hive.openBox<Expense>(expenseBoxName);
     await Hive.openBox(settingsBoxName);
     await Hive.openBox<PlanItem>(planBoxName);
     await Hive.openBox<BudgetItem>(budgetBoxName);
   }
 
-  static Box<Expense> getExpenseBox() {
+  Box<Expense> getExpenseBox() {
     return Hive.box<Expense>(expenseBoxName);
   }
 
-  static Box<PlanItem> getPlanBox() {
+  Box<PlanItem> getPlanBox() {
     return Hive.box<PlanItem>(planBoxName);
   }
 
-  static Box<BudgetItem> getBudgetBox() {
+  Box<BudgetItem> getBudgetBox() {
     return Hive.box<BudgetItem>(budgetBoxName);
   }
 
-  // --- LOGIC ONBOARDING ---
+  // --- SETTINGS ---
 
-  // Cek apakah user baru (Default true jika belum ada data)
-  static bool isFirstTime() {
+  T getSetting<T>(String key, T defaultValue) {
     final box = Hive.box(settingsBoxName);
-    return box.get('hasSeenOnboarding', defaultValue: true);
+    return box.get(key, defaultValue: defaultValue);
   }
 
-  // Set status bahwa user sudah melihat onboarding
-  static Future<void> setOnboardingSeen() async {
+  Future<void> setSetting<T>(String key, T value) async {
     final box = Hive.box(settingsBoxName);
-    await box.put('hasSeenOnboarding', false);
+    await box.put(key, value);
   }
 
-  // --- EXPENSE CRUD (Tetap Sama) ---
+  // --- ONBOARDING ---
 
-  static Future<void> addExpense(Expense expense) async {
+  bool isFirstTime() {
+    return getSetting('hasSeenOnboarding', true);
+  }
+
+  Future<void> setOnboardingSeen() async {
+    await setSetting('hasSeenOnboarding', false);
+  }
+
+  // --- EXPENSE CRUD ---
+
+  Future<void> addExpense(Expense expense) async {
     final box = getExpenseBox();
     await box.put(expense.id, expense);
   }
 
-  static Future<void> updateExpense(Expense expense) async {
+  Future<void> updateExpense(Expense expense) async {
     final box = getExpenseBox();
     await box.put(expense.id, expense);
   }
 
-  static List<Expense> getAllExpenses() {
+  List<Expense> getAllExpenses() {
     final box = getExpenseBox();
     return box.values.toList();
   }
 
-  static Future<void> deleteExpense(String id) async {
+  Future<void> deleteExpense(String id) async {
     final box = getExpenseBox();
     await box.delete(id);
   }
 
-  static Future<void> clearAllExpenses() async {
+  Future<void> clearAllExpenses() async {
     final box = getExpenseBox();
     await box.clear();
   }
 
   // --- PLAN CRUD ---
   
-  static Future<void> addPlan(PlanItem plan) async {
+  Future<void> addPlan(PlanItem plan) async {
     final box = getPlanBox();
     await box.put(plan.id, plan);
   }
 
-  static Future<void> updatePlan(PlanItem plan) async {
+  Future<void> updatePlan(PlanItem plan) async {
     final box = getPlanBox();
     await box.put(plan.id, plan);
   }
 
-  static List<PlanItem> getAllPlans() {
+  List<PlanItem> getAllPlans() {
     final box = getPlanBox();
     return box.values.toList();
   }
 
-  static Future<void> deletePlan(String id) async {
+  Future<void> deletePlan(String id) async {
     final box = getPlanBox();
     await box.delete(id);
   }
 
   // --- BUDGET CRUD ---
 
-  static Future<void> addBudget(BudgetItem item) async {
+  Future<void> addBudget(BudgetItem item) async {
     final box = getBudgetBox();
     await box.put(item.id, item);
   }
 
-  static Future<void> updateBudget(BudgetItem item) async {
+  Future<void> updateBudget(BudgetItem item) async {
     final box = getBudgetBox();
     await box.put(item.id, item);
   }
 
-  static List<BudgetItem> getAllBudgets() {
+  List<BudgetItem> getAllBudgets() {
     final box = getBudgetBox();
     return box.values.toList();
   }
 
-  static Future<void> deleteBudget(String id) async {
+  Future<void> deleteBudget(String id) async {
     final box = getBudgetBox();
     await box.delete(id);
-  }
-
-  // --- THEME MANAGEMENT ---
-
-  static String getThemeMode() {
-    final box = Hive.box(settingsBoxName);
-    return box.get('themeMode', defaultValue: 'system');
-  }
-
-  static Future<void> setThemeMode(String mode) async {
-    final box = Hive.box(settingsBoxName);
-    await box.put('themeMode', mode);
   }
 }
 

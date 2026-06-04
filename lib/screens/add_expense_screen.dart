@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../providers/expense_provider.dart';
+import '../providers/plan_provider.dart';
+import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
-import '../utils/formartters.dart';
+import '../utils/formatters.dart';
+import '../utils/numeric_input_controller.dart';
+import '../services/overspend_service.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
+import '../widgets/overspend_bottom_sheet.dart';
+import '../widgets/transaction_type_toggle.dart';
+import '../widgets/category_picker.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final String? preSelectedCategory;
@@ -30,6 +36,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
+  late final NumericInputController _numericInput;
 
   String _selectedCategory = 'Makanan';
   DateTime _selectedDate = DateTime.now();
@@ -41,11 +48,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   bool _showCustomKeyboard =
       true; // Default true agar langsung muncul saat dibuka
-  int _cursorPosition = 0;
 
   @override
   void initState() {
     super.initState();
+    _numericInput = NumericInputController(controller: _amountController);
 
     if (widget.initialTransactionType != null) {
       _transactionType = widget.initialTransactionType!;
@@ -77,100 +84,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
     });
 
-    _amountController.addListener(_updateCursorPosition);
+    _amountController.addListener(_numericInput.updateCursorPosition);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_amountFocusNode);
     });
   }
 
-  void _updateCursorPosition() {
-    _cursorPosition = _amountController.selection.baseOffset;
-  }
-
   void _handleKeyPress(String key) {
-    final String formattedText = _amountController.text;
-    final String currentText = formattedText.replaceAll('.', '');
-
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor =
-          formattedText
-              .substring(0, _cursorPosition)
-              .replaceAll('.', '')
-              .length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    String newText = "";
-    int nextCursor = 0;
-
-    if (key == '.000') {
-      if (currentText.length + 3 > 15) return;
-      newText =
-          currentText.substring(0, unformattedCursor) +
-          '000' +
-          currentText.substring(unformattedCursor);
-      nextCursor = unformattedCursor + 3;
-    } else {
-      if (currentText.length + 1 > 15) return;
-      newText =
-          currentText.substring(0, unformattedCursor) +
-          key +
-          currentText.substring(unformattedCursor);
-      nextCursor = unformattedCursor + 1;
-    }
-    _updateTextField(newText, nextCursor);
+    _numericInput.handleKeyPress(key);
   }
 
   void _handleBackspace() {
-    final String formattedText = _amountController.text;
-    final String currentText = formattedText.replaceAll('.', '');
-
-    int unformattedCursor = 0;
-    if (_cursorPosition >= 0 && _cursorPosition <= formattedText.length) {
-      unformattedCursor =
-          formattedText
-              .substring(0, _cursorPosition)
-              .replaceAll('.', '')
-              .length;
-    } else {
-      unformattedCursor = currentText.length;
-    }
-
-    if (unformattedCursor > 0) {
-      final newText =
-          currentText.substring(0, unformattedCursor - 1) +
-          currentText.substring(unformattedCursor);
-      _updateTextField(newText, unformattedCursor - 1);
-    }
-  }
-
-  void _updateTextField(String newText, int newCursorPosition) {
-    final formattedText = Formatters.formatNumberInput(newText);
-    final adjustedCursor = _calculateAdjustedCursor(
-      newText,
-      formattedText,
-      newCursorPosition,
-    );
-    _amountController.text = formattedText;
-    _amountController.selection = TextSelection.collapsed(
-      offset: adjustedCursor,
-    );
-    _cursorPosition = adjustedCursor;
-  }
-
-  int _calculateAdjustedCursor(
-    String originalText,
-    String formattedText,
-    int originalCursor,
-  ) {
-    final textBeforeCursor = originalText.substring(0, originalCursor);
-    final formattedBeforeCursor = Formatters.formatNumberInput(
-      textBeforeCursor,
-    );
-    return formattedBeforeCursor.length;
+    _numericInput.handleBackspace();
   }
 
   void _handleKeyboardSubmit() {
@@ -188,9 +114,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -198,7 +125,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          _transactionType == 'expense' ? 'Tambah Pengeluaran' : 'Tambah Pemasukan',
+          _transactionType == 'expense'
+              ? 'Tambah Pengeluaran'
+              : 'Tambah Pemasukan',
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 16,
@@ -210,15 +139,34 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 6,
+              ),
+              physics: const BouncingScrollPhysics(),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 12),
-                    _buildTypeToggle(),
-                    const SizedBox(height: 32),
-                    
+                    TransactionTypeToggle(
+                      currentType: _transactionType,
+                      onTypeChanged: (type) {
+                        setState(() {
+                          _transactionType = type;
+                          if (type == 'income') {
+                            if (!Constants.incomeCategories.contains(_selectedCategory)) {
+                              _selectedCategory = Constants.incomeCategories.first;
+                            }
+                          } else {
+                            if (!Constants.expenseCategories.contains(_selectedCategory)) {
+                              _selectedCategory = Constants.expenseCategories.first;
+                            }
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
                     // Input Nominal Modern
                     ModernInputField(
                       controller: _amountController,
@@ -231,10 +179,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         setState(() => _showCustomKeyboard = true);
                         FocusScope.of(context).requestFocus(_amountFocusNode);
                       },
+                      textStyle: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Row for Date and Note
                     Row(
                       children: [
@@ -246,18 +199,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             height: 56,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.blue[50],
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.blue[100]!),
+                              border: Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).primaryColor.withOpacity(0.2),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.calendar_month_rounded, size: 20, color: Colors.blue[700]),
+                                Icon(
+                                  Icons.calendar_month_rounded,
+                                  size: 20,
+                                  color: Theme.of(context).primaryColor,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   DateFormat('dd MMM').format(_selectedDate),
                                   style: TextStyle(
-                                    color: Colors.blue[700],
+                                    color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -280,34 +243,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 32),
-
-                    // Category Selection Header
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Kategori",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
+                    const SizedBox(height: 20),
+                    CategoryPicker(
+                      selectedCategory: _selectedCategory,
+                      transactionType: _transactionType,
+                      onCategoryChanged: (cat) => setState(() => _selectedCategory = cat),
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Category Grid
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.start,
-                      children: (_transactionType == 'expense'
-                              ? Constants.expenseCategories
-                              : Constants.incomeCategories)
-                          .map((category) => _buildCategoryItem(category))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -318,8 +260,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           Container(
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(
-              20, 12, 20, 
-              _showCustomKeyboard ? 12 : (12 + MediaQuery.of(context).padding.bottom)
+              20,
+              12,
+              20,
+              _showCustomKeyboard
+                  ? 12
+                  : (12 + MediaQuery.of(context).padding.bottom),
             ),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -332,11 +278,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: _saveExpense,
+              onPressed: () => _saveExpense(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[800],
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 0,
               ),
               child: const Text(
@@ -349,146 +297,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           // Custom Keyboard
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            height: _showCustomKeyboard ? (280 + MediaQuery.of(context).padding.bottom) : 0,
-            child: _showCustomKeyboard
-                ? Container(
-                    color: Colors.white,
-                    child: Column(
-                      children: [
-                        const Divider(height: 1, thickness: 0.5),
-                        Expanded(
-                          child: NumericKeyboard(
-                            onKeyPressed: _handleKeyPress,
-                            onBackspace: _handleBackspace,
-                            onSubmit: _handleKeyboardSubmit,
+            height:
+                _showCustomKeyboard
+                    ? (280 + MediaQuery.of(context).padding.bottom)
+                    : 0,
+            child:
+                _showCustomKeyboard
+                    ? Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          const Divider(height: 1, thickness: 0.5),
+                          Expanded(
+                            child: NumericKeyboard(
+                              onKeyPressed: _handleKeyPress,
+                              onBackspace: _handleBackspace,
+                              onSubmit: _handleKeyboardSubmit,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: MediaQuery.of(context).padding.bottom),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeToggle() {
-    return Container(
-      width: 220,
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(25),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          _buildToggleItem("Pengeluaran", 'expense'),
-          _buildToggleItem("Pemasukan", 'income'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleItem(String label, String type) {
-    final isSelected = _transactionType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _transactionType = type;
-            if (_transactionType == 'income') {
-              if (!Constants.incomeCategories.contains(_selectedCategory)) {
-                _selectedCategory = Constants.incomeCategories.first;
-              }
-            } else {
-              if (!Constants.expenseCategories.contains(_selectedCategory)) {
-                _selectedCategory = Constants.expenseCategories.first;
-              }
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected
-                  ? (type == 'expense' ? Colors.red[700] : Colors.green[700])
-                  : Colors.grey[600],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryItem(String category) {
-    final isSelected = _selectedCategory == category;
-    final style = Constants.getCategoryStyle(category);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = category),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isSelected ? color : Colors.grey[50],
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? Colors.transparent : Colors.grey[200]!,
-                width: 1,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom,
+                          ),
+                        ],
                       ),
-                    ]
-                  : [],
-            ),
-            child: Center(
-              child: FaIcon(
-                icon,
-                color: isSelected ? Colors.white : Colors.grey[500],
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            category,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.black87 : Colors.grey[600],
-            ),
+                    )
+                    : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -505,7 +338,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.blue[800]!,
+              primary: Theme.of(context).primaryColor,
               onPrimary: Colors.white,
               onSurface: Colors.black87,
             ),
@@ -529,13 +362,51 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
-  void _saveExpense() {
+  Future<void> _saveExpense() async {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Jumlah harus lebih dari 0")),
       );
       return;
+    }
+
+    final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+    final planProvider = Provider.of<PlanProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    // Check overspend only for expense transactions
+    if (_transactionType == 'expense') {
+      final shortfall = expenseProvider.checkShortfall(amount, payDay: settingsProvider.periodStartDay);
+      if (shortfall > 0) {
+        final plans =
+            planProvider.plans.where((p) => p.currentAmount > 0).toList();
+        if (plans.isNotEmpty) {
+          final totalPlansBalance =
+              plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
+
+          final allocations =
+              await showModalBottomSheet<Map<String, double>>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => OverspendBottomSheet(
+              shortfall: shortfall,
+              plans: plans,
+              totalPlansBalance: totalPlansBalance,
+            ),
+          );
+
+          if (allocations == null) return;
+
+          await OverspendService.executeAllocations(
+            allocations: allocations,
+            plans: planProvider.plans,
+            expenseProvider: expenseProvider,
+            planProvider: planProvider,
+          );
+        }
+      }
     }
 
     final newExpense = Expense(
@@ -547,10 +418,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       type: _transactionType,
     );
 
-    Provider.of<ExpenseProvider>(
-      context,
-      listen: false,
-    ).addExpense(newExpense).then((_) => Navigator.pop(context));
+    await expenseProvider.addExpense(newExpense);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -559,6 +428,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     _titleFocusNode.dispose();
     _titleController.dispose();
     _amountController.dispose();
+    _numericInput.dispose();
     super.dispose();
   }
 }

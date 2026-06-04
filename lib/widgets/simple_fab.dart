@@ -130,7 +130,7 @@ class _SimpleFabState extends State<SimpleFab>
               // B. FAB UTAMA
               FloatingActionButton(
                 onPressed: _toggle,
-                backgroundColor: Colors.blue[900],
+                backgroundColor: Theme.of(context).primaryColor,
                 elevation: 4,
                 shape: const CircleBorder(),
                 child: RotationTransition(

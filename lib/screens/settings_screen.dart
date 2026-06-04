@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:money_tracker/screens/montly_report_screen.dart';
+import 'package:money_tracker/screens/monthly_report_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/expense_provider.dart';
@@ -10,7 +10,6 @@ import '../providers/widget_provider.dart';
 import '../utils/constants.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
-import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -29,12 +28,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
@@ -63,18 +61,16 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
-            const Divider(height: 1, indent: 60),
+            const SizedBox(height: 4),
             _buildSettingTile(
               context,
-              icon: themeProvider.themeMode == ThemeMode.light
-                  ? FontAwesomeIcons.sun
-                  : themeProvider.themeMode == ThemeMode.dark
-                      ? FontAwesomeIcons.moon
-                      : FontAwesomeIcons.circleHalfStroke,
-              iconColor: Colors.orange,
-              title: 'Tema Aplikasi',
-              subtitle: _getThemeModeLabel(themeProvider.themeMode),
-              onTap: () => _showThemePicker(context, themeProvider),
+              icon: FontAwesomeIcons.calendarDay,
+              iconColor: Colors.teal,
+              title: 'Tanggal Mulai Periode',
+              subtitle: settingsProvider.periodStartDay == 1
+                  ? 'Default (tanggal 1)'
+                  : 'Tanggal ${settingsProvider.periodStartDay} setiap bulan',
+              onTap: () => _showPeriodStartPicker(context, settingsProvider),
             ),
           ]),
 
@@ -216,10 +212,7 @@ class SettingsScreen extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
               Container(
@@ -254,7 +247,11 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey[300], size: 14),
+              FaIcon(
+                FontAwesomeIcons.chevronRight,
+                color: Colors.grey[300],
+                size: 14,
+              ),
             ],
           ),
         ),
@@ -312,7 +309,7 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 24),
-                _formatInfo(),
+                _formatInfo(ctx),
               ],
             ),
           ),
@@ -351,7 +348,7 @@ class SettingsScreen extends StatelessWidget {
                   ctx,
                   "Dari File JSON",
                   FontAwesomeIcons.fileCode,
-                  Colors.blue,
+                  Theme.of(context).primaryColor,
                   () {
                     Navigator.pop(ctx);
                     _importFromJson(context, provider);
@@ -369,7 +366,7 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 24),
-                _formatInfo(),
+                _formatInfo(ctx),
               ],
             ),
           ),
@@ -407,17 +404,21 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _formatInfo() {
+  Widget _formatInfo(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: Theme.of(context).primaryColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const FaIcon(FontAwesomeIcons.circleInfo, size: 18, color: Colors.blue),
+          FaIcon(
+            FontAwesomeIcons.circleInfo,
+            size: 18,
+            color: Theme.of(context).primaryColor,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -621,7 +622,11 @@ class SettingsScreen extends StatelessWidget {
           (ctx) => AlertDialog(
             title: Row(
               children: [
-                const FaIcon(FontAwesomeIcons.circleCheck, color: Colors.green, size: 22),
+                const FaIcon(
+                  FontAwesomeIcons.circleCheck,
+                  color: Colors.green,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Text(title),
               ],
@@ -647,7 +652,11 @@ class SettingsScreen extends StatelessWidget {
           (ctx) => AlertDialog(
             title: Row(
               children: [
-                const FaIcon(FontAwesomeIcons.circleXmark, color: Colors.red, size: 22),
+                const FaIcon(
+                  FontAwesomeIcons.circleXmark,
+                  color: Colors.red,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Text(title),
               ],
@@ -671,249 +680,301 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Consumer<WidgetProvider>(
-        builder: (context, provider, child) {
-          return Container(
+      builder:
+          (ctx) => Consumer<WidgetProvider>(
+            builder: (context, provider, child) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const Text(
+                      "Kustomisasi Widget",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Pilih 3 kategori favorit untuk akses cepat",
+                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    ),
+                    const SizedBox(height: 24),
+                    ...List.generate(3, (index) {
+                      final category = provider.favoriteCategories[index];
+                      final style = Constants.getCategoryStyle(category);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(color: Colors.grey[200]!),
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: style['color'].withOpacity(0.1),
+                            child: FaIcon(
+                              style['icon'],
+                              color: style['color'],
+                              size: 16,
+                            ),
+                          ),
+                          title: Text(
+                            "Slot ${index + 1}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          subtitle: Text(
+                            category,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          trailing: const FaIcon(
+                            FontAwesomeIcons.pen,
+                            size: 14,
+                          ),
+                          onTap:
+                              () =>
+                                  _showCategoryPicker(context, index, provider),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          "Selesai",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
+          ),
+    );
+  }
+
+  void _showCategoryPicker(
+    BuildContext context,
+    int slotIndex,
+    WidgetProvider provider,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (ctx) => Container(
+            height: MediaQuery.of(context).size.height * 0.6,
             padding: const EdgeInsets.all(24),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
                 const Text(
-                  "Kustomisasi Widget",
+                  "Pilih Kategori",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  "Pilih 3 kategori favorit untuk akses cepat",
-                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                ),
-                const SizedBox(height: 24),
-                ...List.generate(3, (index) {
-                  final category = provider.favoriteCategories[index];
-                  final style = Constants.getCategoryStyle(category);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey[200]!),
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: style['color'].withOpacity(0.1),
-                        child: FaIcon(
-                          style['icon'],
-                          color: style['color'],
-                          size: 16,
+                const SizedBox(height: 20),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 0.8,
                         ),
-                      ),
-                      title: Text("Slot ${index + 1}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                      subtitle: Text(category, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                      trailing: const FaIcon(FontAwesomeIcons.pen, size: 14),
-                      onTap: () => _showCategoryPicker(context, index, provider),
-                    ),
-                  );
-                }),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text("Selesai", style: TextStyle(fontWeight: FontWeight.bold)),
+                    itemCount: Constants.expenseCategories.length,
+                    itemBuilder: (ctx, index) {
+                      final cat = Constants.expenseCategories[index];
+                      final style = Constants.getCategoryStyle(cat);
+                      return InkWell(
+                        onTap: () {
+                          provider.updateFavorite(slotIndex, cat);
+                          Navigator.pop(ctx);
+                        },
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundColor: style['color'].withOpacity(0.1),
+                              child: FaIcon(
+                                style['icon'],
+                                color: style['color'],
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              cat,
+                              style: const TextStyle(fontSize: 11),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 12),
               ],
             ),
-          );
-        },
-      ),
+          ),
     );
   }
 
-  void _showCategoryPicker(BuildContext context, int slotIndex, WidgetProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          children: [
-            const Text("Pilih Kategori", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.8,
-                ),
-                itemCount: Constants.expenseCategories.length,
-                itemBuilder: (ctx, index) {
-                  final cat = Constants.expenseCategories[index];
-                  final style = Constants.getCategoryStyle(cat);
-                  return InkWell(
-                    onTap: () {
-                      provider.updateFavorite(slotIndex, cat);
-                      Navigator.pop(ctx);
-                    },
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundColor: style['color'].withOpacity(0.1),
-                          child: FaIcon(style['icon'], color: style['color'], size: 20),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(cat, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  void _showThemePicker(BuildContext context, ThemeProvider provider) {
+  void _showPeriodStartPicker(BuildContext context, SettingsProvider settingsProvider) {
+    int selectedDay = settingsProvider.periodStartDay;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
-          (ctx) => Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+          (ctx) => StatefulBuilder(
+            builder: (context, setSheetState) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-                const Text(
-                  "Pilih Tema",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const Text(
+                      "Tanggal Mulai Periode",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Sesuaikan dengan tanggal gajian kamu",
+                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 200,
+                      child: ListWheelScrollView.useDelegate(
+                        itemExtent: 48,
+                        diameterRatio: 2,
+                        overAndUnderCenterOpacity: 0.3,
+                        onSelectedItemChanged: (index) {
+                          setSheetState(() => selectedDay = index + 1);
+                        },
+                        childDelegate: ListWheelChildBuilderDelegate(
+                          builder: (context, index) {
+                            final day = index + 1;
+                            final isSelected = day == selectedDay;
+                            final label = day == 1 ? 'Tanggal 1 (Default)' : 'Tanggal $day';
+                            return Container(
+                              alignment: Alignment.center,
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: isSelected ? 20 : 16,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? Theme.of(context).primaryColor : Colors.grey[600],
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: 31,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        if (selectedDay != 1)
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setSheetState(() => selectedDay = 1);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: BorderSide(color: Colors.grey.shade300),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                "Reset ke Default",
+                                style: TextStyle(color: Colors.black87, fontSize: 13),
+                              ),
+                            ),
+                          ),
+                        if (selectedDay != 1) const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await settingsProvider.setPeriodStartDay(selectedDay);
+                              if (context.mounted) Navigator.pop(ctx);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "Simpan",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                _buildThemeOption(
-                  ctx,
-                  provider,
-                  ThemeMode.system,
-                  "Default Sistem",
-                  FontAwesomeIcons.circleHalfStroke,
-                ),
-                const SizedBox(height: 12),
-                _buildThemeOption(
-                  ctx,
-                  provider,
-                  ThemeMode.light,
-                  "Mode Terang",
-                  FontAwesomeIcons.sun,
-                ),
-                const SizedBox(height: 12),
-                _buildThemeOption(
-                  ctx,
-                  provider,
-                  ThemeMode.dark,
-                  "Mode Gelap",
-                  FontAwesomeIcons.moon,
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              );
+            },
           ),
     );
-  }
-
-  Widget _buildThemeOption(
-    BuildContext context,
-    ThemeProvider provider,
-    ThemeMode mode,
-    String label,
-    dynamic icon,
-  ) {
-    final isSelected = provider.themeMode == mode;
-    return InkWell(
-      onTap: () {
-        provider.setThemeMode(mode);
-        Navigator.pop(context);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            FaIcon(
-              icon,
-              size: 20,
-              color: isSelected ? Colors.blue : Colors.grey,
-            ),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.blue : Colors.black87,
-              ),
-            ),
-            const Spacer(),
-            if (isSelected)
-              const FaIcon(FontAwesomeIcons.check, size: 16, color: Colors.blue),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getThemeModeLabel(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return "Mode Terang";
-      case ThemeMode.dark:
-        return "Mode Gelap";
-      case ThemeMode.system:
-        return "Ikuti Sistem";
-    }
   }
 }

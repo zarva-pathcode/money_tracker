@@ -1,8 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:money_tracker/screens/main_screen.dart';
 import 'package:money_tracker/screens/add_expense_screen.dart';
-import '../services/hive_service.dart';
+import '../providers/settings_provider.dart';
 import '../main.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -86,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           height: 180,
                           width: 180,
                           decoration: BoxDecoration(
-                            color: Colors.blue[50],
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -103,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -137,7 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: 24,
                       child: Checkbox(
                         value: _isAgreed,
-                        activeColor: Colors.blue[800],
+                        activeColor: Theme.of(context).primaryColor,
                         onChanged: (val) {
                           setState(() => _isAgreed = val ?? false);
                         },
@@ -157,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             TextSpan(
                               text: "Kebijakan Privasi",
                               style: TextStyle(
-                                color: Colors.blue[800],
+                                color: Theme.of(context).primaryColor,
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                               ),
@@ -214,12 +215,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isLastPage
-                              ? (_isAgreed
-                                  ? Colors.blue[800]
-                                  : Colors.grey[300]) // Abu jika belum setuju
-                              : Colors.blue[800],
+                      backgroundColor: isLastPage
+                          ? (_isAgreed
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey[300])
+                          : Theme.of(context).primaryColor,
                       foregroundColor:
                           isLastPage
                               ? (_isAgreed ? Colors.white : Colors.grey[500])
@@ -254,7 +254,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 8,
       width: _currentIndex == index ? 24 : 8,
       decoration: BoxDecoration(
-        color: _currentIndex == index ? Colors.blue[800] : Colors.grey[300],
+        color: _currentIndex == index ? Theme.of(context).primaryColor : Colors.grey[300],
         borderRadius: BorderRadius.circular(4),
       ),
     );
@@ -326,7 +326,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
+                      backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -360,7 +360,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _finishOnboarding() async {
-    await HiveService.setOnboardingSeen();
+    await context.read<SettingsProvider>().setOnboardingSeen();
     if (mounted) {
       Navigator.pushReplacement(
         context,
