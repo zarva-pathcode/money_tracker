@@ -3,11 +3,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/screens/monthly_report_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../providers/plan_provider.dart';
+import '../providers/analysis_provider.dart';
 import '../providers/expense_provider.dart';
 import '../providers/settings_provider.dart';
 import 'reminder_settings_screen.dart';
 import '../providers/widget_provider.dart';
 import '../utils/constants.dart';
+import '../models/expense.dart';
+import '../services/pdf_export_service.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
 
@@ -28,6 +32,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
+    final planProvider = Provider.of<PlanProvider>(context);
+    final analysisProvider = Provider.of<AnalysisProvider>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -100,7 +106,7 @@ class SettingsScreen extends StatelessWidget {
               iconColor: Colors.green,
               title: 'Ekspor Data',
               subtitle: 'Backup ke JSON atau CSV',
-              onTap: () => _showExportOptions(context, expenseProvider),
+              onTap: () => _showExportOptions(context, expenseProvider, planProvider, analysisProvider, settingsProvider),
             ),
             const SizedBox(height: 4),
             _buildSettingTile(
@@ -259,7 +265,13 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showExportOptions(BuildContext context, ExpenseProvider provider) {
+  void _showExportOptions(
+    BuildContext context,
+    ExpenseProvider expenseProvider,
+    PlanProvider planProvider,
+    AnalysisProvider analysisProvider,
+    SettingsProvider settingsProvider,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -294,7 +306,7 @@ class SettingsScreen extends StatelessWidget {
                   Colors.orange,
                   () {
                     Navigator.pop(ctx);
-                    _exportToJson(context, provider);
+                    _exportToJson(context, expenseProvider);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -305,7 +317,24 @@ class SettingsScreen extends StatelessWidget {
                   Colors.green,
                   () {
                     Navigator.pop(ctx);
-                    _exportToCsv(context, provider);
+                    _exportToCsv(context, expenseProvider);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionBtn(
+                  ctx,
+                  "Format PDF (Laporan)",
+                  FontAwesomeIcons.filePdf,
+                  Colors.red,
+                  () {
+                    Navigator.pop(ctx);
+                    _exportToPdf(
+                      context,
+                      expenseProvider,
+                      planProvider,
+                      analysisProvider,
+                      settingsProvider,
+                    );
                   },
                 ),
                 const SizedBox(height: 24),
@@ -466,6 +495,76 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _exportToPdf(
+    BuildContext context,
+    ExpenseProvider expenseProvider,
+    PlanProvider planProvider,
+    AnalysisProvider analysisProvider,
+    SettingsProvider settingsProvider,
+  ) async {
+    try {
+      if (!context.mounted) return;
+
+      final range = await showDialog<_PdfRange>(
+        context: context,
+        builder: (ctx) => _PdfRangeDialog(),
+      );
+      if (range == null) return;
+
+      DateTime? start;
+      DateTime? end;
+      List<Expense> targetExpenses;
+
+      if (range == _PdfRange.all) {
+        targetExpenses = expenseProvider.allExpenses;
+      } else {
+        if (!context.mounted) return;
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+          initialDateRange: DateTimeRange(
+            start: DateTime.now().subtract(const Duration(days: 30)),
+            end: DateTime.now(),
+          ),
+          locale: const Locale('id', 'ID'),
+        );
+        if (picked == null) return;
+        start = picked.start;
+        end = picked.end;
+        targetExpenses = expenseProvider.allExpenses.where((e) {
+          return e.date.isAfter(start!.subtract(const Duration(days: 1))) &&
+              e.date.isBefore(end!.add(const Duration(days: 1)));
+        }).toList();
+      }
+
+      if (!context.mounted) return;
+      final filePath = await PdfExportService.shareOrSave(
+        allExpenses: expenseProvider.allExpenses,
+        filteredExpenses: targetExpenses,
+        plans: planProvider.plans,
+        periodStartDay: settingsProvider.periodStartDay,
+        startDate: start,
+        endDate: end,
+      );
+      if (context.mounted) {
+        final fileName = filePath.split(RegExp(r'[/\\]')).last;
+        final folder = filePath.substring(0, filePath.length - fileName.length);
+        _showSuccessDialog(
+          context,
+          'Berhasil Export PDF',
+          'File tersimpan di:',
+          fileName: fileName,
+          folder: folder,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showErrorDialog(context, 'Gagal Export PDF', e.toString());
+      }
+    }
+  }
+
   void _importFromJson(BuildContext context, ExpenseProvider provider) async {
     try {
       final imported = await ImportService.importFromJson();
@@ -615,7 +714,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showSuccessDialog(BuildContext context, String title, String message) {
+  void _showSuccessDialog(BuildContext context, String title, String subtitle, {String? fileName, String? folder}) {
     showDialog(
       context: context,
       builder:
@@ -628,10 +727,47 @@ class SettingsScreen extends StatelessWidget {
                   size: 22,
                 ),
                 const SizedBox(width: 12),
-                Text(title),
+                Flexible(child: Text(title)),
               ],
             ),
-            content: Text(message),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(subtitle),
+                if (fileName != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Text(
+                      fileName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+                if (folder != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    folder,
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 11,
+                    ),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                  ),
+                ],
+              ],
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -661,7 +797,12 @@ class SettingsScreen extends StatelessWidget {
                 Text(title),
               ],
             ),
-            content: Text(message),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 220),
+              child: SingleChildScrollView(
+                child: SelectableText(message),
+              ),
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -975,6 +1116,30 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+    );
+  }
+}
+
+enum _PdfRange { all, custom }
+
+class _PdfRangeDialog extends StatelessWidget {
+  const _PdfRangeDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rentang Laporan'),
+      content: const Text('Pilih data yang ingin dimasukkan ke laporan PDF:'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, _PdfRange.all),
+          child: const Text('Semua Data'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, _PdfRange.custom),
+          child: const Text('Pilih Rentang'),
+        ),
+      ],
     );
   }
 }

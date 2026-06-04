@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:money_tracker/themes/app_theme.dart';
@@ -123,6 +124,16 @@ class _MyAppState extends State<MyApp> {
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('id', 'ID'),
+          Locale('en', 'US'),
+        ],
+        locale: const Locale('id', 'ID'),
         home: Builder(
           builder: (context) {
             return MediaQuery(
