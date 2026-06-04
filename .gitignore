@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# AI agent context (internal, not for remote)
+.agents/
+AGENTS.md
