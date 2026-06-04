@@ -106,13 +106,13 @@ class TextParserService {
 
   static List<String> _extractNumberPairs(String text) {
     text = text.replaceAllMapped(
-      RegExp(r'\brp\s*(\d[\d.]*\s*(?:rb|k|ribu|ribuan|juta|jutaan|jt|belas|puluh|puluhan|ratus|ratusan)?)', caseSensitive: false),
+      RegExp(r'\brp\s*(\d[\d,.]*\s*(?:rb|k|ribu|ribuan|juta|jutaan|jt|belas|puluh|puluhan|ratus|ratusan)?)', caseSensitive: false),
       (m) => m.group(1)!,
     );
     const suffix =
         r'(?:rb|k|ribu|ribuan|juta|jutaan|jt|'
         r'belas|puluh|puluhan|ratus|ratusan)?';
-    final regex = RegExp(r'(.+?)\s+(\d[\d.]*\s*' + suffix + r')');
+    final regex = RegExp(r'(.+?)\s+(\d[\d,.]*\s*' + suffix + r')');
     final matches = regex.allMatches(text);
     if (matches.length <= 1) return [text];
 

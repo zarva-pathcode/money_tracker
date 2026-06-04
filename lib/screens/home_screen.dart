@@ -459,10 +459,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Column(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Baris Atas: Judul + Toggle buttons
+          // Baris Atas: Judul + Toggle mode
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,58 +488,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 4),
-                  Text(
-                    displayAmount,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
                 ],
               ),
-              Row(
-                children: [
-                  // Eye toggle
-                  GestureDetector(
-                    onTap: () => setState(() => _hideAmount = !_hideAmount),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: FaIcon(
-                        hideAmount
-                            ? FontAwesomeIcons.eyeSlash
-                            : FontAwesomeIcons.eye,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
+              // Mode toggle
+              GestureDetector(
+                onTap: () => setState(() => _showTotalWealth = !_showTotalWealth),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 8),
-                  // Mode toggle
-                  GestureDetector(
-                    onTap: () => setState(() => _showTotalWealth = !_showTotalWealth),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: FaIcon(
-                        _showTotalWealth
-                            ? FontAwesomeIcons.moneyBillWave
-                            : FontAwesomeIcons.chartPie,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
+                  child: FaIcon(
+                    FontAwesomeIcons.arrowsRotate,
+                    color: Colors.white,
+                    size: 18,
                   ),
-                ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Baris Saldo + Eye toggle
+          Row(
+            children: [
+              Text(
+                displayAmount,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => setState(() => _hideAmount = !_hideAmount),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: FaIcon(
+                    hideAmount
+                        ? FontAwesomeIcons.eyeSlash
+                        : FontAwesomeIcons.eye,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
               ),
             ],
           ),

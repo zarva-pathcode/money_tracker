@@ -14,28 +14,54 @@ class AmountParserService {
   };
 
   static int? extractAmount(String text) {
-    final input = text.toLowerCase();
+    var input = text.toLowerCase();
 
-    final digitMatch = RegExp(r'(\d[\d.]*)\s*(rb|k|ribu|juta|jt)?')
+    // Preprocess "setengah": "satu setengah juta" → "1500000"
+    input = input.replaceAllMapped(
+      RegExp(r'(?:(\w+)\s+)?setengah\s+(juta|jt|ribu|rb|k)\b'),
+      (m) {
+        final intPart = m.group(1);
+        final multKey = m.group(2)!;
+        final multVal = (multKey == 'juta' || multKey == 'jt') ? 1000000 : 1000;
+        if (intPart != null && _numberWords.containsKey(intPart)) {
+          final intVal = _numberWords[intPart]!;
+          return '${intVal * multVal + multVal ~/ 2}';
+        }
+        return '${multVal ~/ 2}';
+      },
+    );
+
+    final digitMatch = RegExp(r'(\d[\d,.]*)\s*(rb|k|ribu|juta|jt)?')
         .firstMatch(input);
     if (digitMatch != null) {
-      final numStr = digitMatch.group(1)!.replaceAll('.', '');
-      final num = int.tryParse(numStr);
+      final raw = digitMatch.group(1)!;
+      final numStr = _normalizeNumber(raw);
+      final num = double.tryParse(numStr);
       if (num != null && num > 0) {
         final suffix = digitMatch.group(2);
         if (suffix != null) {
           if (suffix == 'rb' || suffix == 'k' || suffix == 'ribu') {
-            return num * 1000;
+            return (num * 1000).round();
           }
           if (suffix == 'juta' || suffix == 'jt') {
-            return num * 1000000;
+            return (num * 1000000).round();
           }
         }
-        return num;
+        return num.round();
       }
     }
 
     return _parseNumberWords(input);
+  }
+
+  /// Normalisasi angka Indonesia ke format double Dart:
+  /// - Hapus titik ribuan (. yang diikuti 3 digit)
+  /// - Ubah koma desimal jadi titik
+  static String _normalizeNumber(String raw) {
+    return raw.replaceAllMapped(
+      RegExp(r'\.(\d{3})(?=\d|$)'),
+      (m) => m.group(1)!,
+    ).replaceAll(',', '.');
   }
 
   static int? _parseNumberWords(String text) {

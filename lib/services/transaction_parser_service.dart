@@ -178,10 +178,10 @@ class TransactionParserService {
     final removeIdx = <int>{};
 
     for (int i = 0; i < words.length; i++) {
-      if (_isNumberWord(words[i]) || RegExp(r'^\d+$').hasMatch(words[i])) {
+      if (_isNumberWord(words[i]) || RegExp(r'^\d+([,.]\d+)?$').hasMatch(words[i])) {
         int j = i;
         while (j < words.length &&
-            (_isNumberWord(words[j]) || RegExp(r'^\d+$').hasMatch(words[j]))) {
+            (_isNumberWord(words[j]) || RegExp(r'^\d+([,.]\d+)?$').hasMatch(words[j]))) {
           j++;
         }
         for (int k = i; k < j; k++) removeIdx.add(k);
@@ -196,7 +196,7 @@ class TransactionParserService {
         .join(' ')
         .trim();
 
-    final digitsFound = RegExp(r'\d[\d.]*\s*(rb|k|ribu|juta|jt)?')
+    final digitsFound = RegExp(r'\d[\d,.]*\s*(rb|k|ribu|juta|jt)?')
         .allMatches(rest)
         .toList();
     for (int i = digitsFound.length - 1; i >= 0; i--) {
@@ -221,10 +221,11 @@ class TransactionParserService {
     }
     if (['puluh', 'belas', 'ratus', 'ribu', 'ribuan',
          'juta', 'jutaan', 'se', 'seratus', 'seribu',
-         'sejuta', 'sejutaan', 'sepuluh', 'sebelas'].contains(word)) {
+         'sejuta', 'sejutaan', 'sepuluh', 'sebelas',
+         'setengah'].contains(word)) {
       return true;
     }
-    return RegExp(r'^\d+$').hasMatch(word);
+    return RegExp(r'^\d+([,.]\d+)?$').hasMatch(word);
   }
 
   static String _capitalizeFirst(String s) {
