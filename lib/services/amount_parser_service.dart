@@ -16,6 +16,21 @@ class AmountParserService {
   static int? extractAmount(String text) {
     var input = text.toLowerCase();
 
+    // Preprocess angka slang finansial Bahasa Indonesia
+    final slangMap = {
+      'seceng': '1000',
+      'noceng': '2000',
+      'goceng': '5000',
+      'ceban': '10000',
+      'noban': '20000',
+      'goban': '50000',
+      'cepek': '100',
+      'gopek': '500',
+    };
+    slangMap.forEach((slang, replacement) {
+      input = input.replaceAll(RegExp(r'\b' + slang + r'\b'), replacement);
+    });
+
     // Preprocess "setengah": "satu setengah juta" → "1500000"
     input = input.replaceAllMapped(
       RegExp(r'(?:(\w+)\s+)?setengah\s+(juta|jt|ribu|rb|k)\b'),
@@ -31,7 +46,7 @@ class AmountParserService {
       },
     );
 
-    final digitMatch = RegExp(r'(\d[\d,.]*)\s*(rb|k|ribu|juta|jt)?')
+    final digitMatch = RegExp(r'(\d[\d,.]*)\s*(rb|k|ribu|rebu|juta|jt)?')
         .firstMatch(input);
     if (digitMatch != null) {
       final raw = digitMatch.group(1)!;
@@ -40,7 +55,7 @@ class AmountParserService {
       if (num != null && num > 0) {
         final suffix = digitMatch.group(2);
         if (suffix != null) {
-          if (suffix == 'rb' || suffix == 'k' || suffix == 'ribu') {
+          if (suffix == 'rb' || suffix == 'k' || suffix == 'ribu' || suffix == 'rebu') {
             return (num * 1000).round();
           }
           if (suffix == 'juta' || suffix == 'jt') {
@@ -58,6 +73,10 @@ class AmountParserService {
   /// - Hapus titik ribuan (. yang diikuti 3 digit)
   /// - Ubah koma desimal jadi titik
   static String _normalizeNumber(String raw) {
+    // Handle koma sebagai pemisah ribuan (pola "1,500,000" → "1500000")
+    if (RegExp(r'^\d{1,3}(,\d{3})+$').hasMatch(raw)) {
+      raw = raw.replaceAll(',', '');
+    }
     return raw.replaceAllMapped(
       RegExp(r'\.(\d{3})(?=\d|$)'),
       (m) => m.group(1)!,
@@ -102,9 +121,9 @@ class AmountParserService {
       if (word == 'se' && i + 1 < words.length) {
         final next = words[i + 1];
         if (next == 'puluh' || next == 'ratus' ||
-            next == 'ribu' || next == 'juta') {
+            next == 'ribu' || next == 'rebu' || next == 'juta') {
           final mult = next == 'puluh' ? 10 : next == 'ratus' ? 100 :
-                       next == 'ribu' ? 1000 : 1000000;
+                       (next == 'ribu' || next == 'rebu') ? 1000 : 1000000;
           result.add(AmountToken(mult, TokenType.multiplier));
           i++;
           continue;
@@ -146,7 +165,7 @@ class AmountParserService {
             result.add(AmountToken(100, TokenType.multiplier));
             i++; continue;
           }
-          if (next == 'ribu' || next == 'ribuan') {
+          if (next == 'ribu' || next == 'ribuan' || next == 'rebu') {
             result.add(AmountToken(val, TokenType.base));
             result.add(AmountToken(1000, TokenType.multiplier));
             i++; continue;
