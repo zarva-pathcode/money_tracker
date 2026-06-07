@@ -16,6 +16,7 @@ import 'providers/settings_provider.dart';
 import 'providers/widget_provider.dart';
 import 'package:home_widget/home_widget.dart';
 import 'screens/add_expense_screen.dart';
+import 'services/dictionary_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Uri? pendingWidgetUri;
@@ -28,6 +29,7 @@ void main() async {
   await hiveService.init();
   await NotificationService.init();
   await initializeDateFormatting('id_ID', null);
+  await DictionaryService.instance.init();
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 

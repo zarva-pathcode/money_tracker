@@ -67,6 +67,23 @@ class AnalysisProvider with ChangeNotifier {
 
   double getPeriodBalance(int payDay) => getPeriodIncome(payDay) - getPeriodExpenses(payDay);
 
+  Map<String, double> getRunningBalances() {
+    final sorted = List<Expense>.from(_all)
+      ..sort((a, b) {
+        final cmp = a.date.compareTo(b.date);
+        if (cmp != 0) return cmp;
+        return a.id.compareTo(b.id);
+      });
+
+    double running = 0;
+    final map = <String, double>{};
+    for (final e in sorted) {
+      running += e.type == 'income' ? e.amount : -e.amount;
+      map[e.id] = running;
+    }
+    return map;
+  }
+
   // --- Income helpers ---
 
   double get filteredIncome {

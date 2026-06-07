@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/expense.dart';
+import '../models/plan_item.dart';
 import '../providers/expense_provider.dart';
 import '../providers/plan_provider.dart';
 import '../providers/settings_provider.dart';
@@ -41,6 +42,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   String _selectedCategory = 'Makanan';
   DateTime _selectedDate = DateTime.now();
   String _transactionType = 'expense'; // 'expense' or 'income'
+
+  bool _payFromSavings = false;
+  PlanItem? _selectedGoal;
+  List<PlanItem> _plans = [];
 
   // Focus Nodes untuk mengatur perpindahan kursor
   final FocusNode _titleFocusNode = FocusNode();
@@ -88,6 +93,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_amountFocusNode);
+      final plans = Provider.of<PlanProvider>(context, listen: false).plans;
+      _plans = plans.where((p) => p.currentAmount > 0).toList();
     });
   }
 
@@ -153,6 +160,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       onTypeChanged: (type) {
                         setState(() {
                           _transactionType = type;
+                          _payFromSavings = false;
+                          _selectedGoal = null;
                           if (type == 'income') {
                             if (!Constants.incomeCategories.contains(_selectedCategory)) {
                               _selectedCategory = Constants.incomeCategories.first;
@@ -249,6 +258,73 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       transactionType: _transactionType,
                       onCategoryChanged: (cat) => setState(() => _selectedCategory = cat),
                     ),
+                    const SizedBox(height: 16),
+                    if (_transactionType == 'expense' && _plans.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              title: const Text(
+                                'Bayar dari Tabungan',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Kurangi saldo ${_selectedGoal != null ? _selectedGoal!.title : 'goal'}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              value: _payFromSavings,
+                              onChanged: (val) => setState(() {
+                                _payFromSavings = val;
+                                if (val && _plans.isNotEmpty && _selectedGoal == null) {
+                                  _selectedGoal = _plans.first;
+                                }
+                              }),
+                              activeColor: Theme.of(context).primaryColor,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              dense: true,
+                            ),
+                            if (_payFromSavings) ...[
+                              const Divider(height: 1, indent: 16, endIndent: 16),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                                child: DropdownButtonFormField<PlanItem>(
+                                  value: _selectedGoal,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Pilih Tabungan',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  items: _plans.map((plan) {
+                                    return DropdownMenuItem(
+                                      value: plan,
+                                      child: Text(
+                                        '${plan.title} — ${NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(plan.currentAmount)}',
+                                        style: const TextStyle(fontSize: 13),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (plan) => setState(() {
+                                    _selectedGoal = plan;
+                                  }),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -375,8 +451,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final planProvider = Provider.of<PlanProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
-    // Check overspend only for expense transactions
-    if (_transactionType == 'expense') {
+    // Mode: Bayar dari Tabungan — withdraw + skip overspend
+    if (_payFromSavings && _transactionType == 'expense' && _selectedGoal != null) {
+      await expenseProvider.withdrawSavingsAllocation(
+        amount: amount,
+        planTitle: _selectedGoal!.title,
+      );
+      await planProvider.withdrawFromPlan(_selectedGoal!.id, amount);
+    } else if (_transactionType == 'expense') {
+      // Check overspend only for expense transactions (bukan bayar dari tabungan)
       final shortfall = expenseProvider.checkShortfall(amount, payDay: settingsProvider.periodStartDay);
       if (shortfall > 0) {
         final plans =

@@ -28,8 +28,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _showTotalWealth = false;
-  bool _hideAmount = false;
+  bool _showKekayaanMode = false;
 
   @override
   void initState() {
@@ -45,8 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          Consumer2<ExpenseProvider, PlanProvider>(
-            builder: (context, provider, planProvider, child) {
+          Consumer3<ExpenseProvider, PlanProvider, SettingsProvider>(
+            builder: (context, provider, planProvider, settings, child) {
               final hasActiveFilter =
                   provider.selectedCategory != 'Semua Kategori' ||
                   provider.selectedMonthFilter != MonthFilter.all ||
@@ -78,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Padding(
                       // Padding atas tipis, bawah cukup untuk shadow (20px)
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                      child: _buildHeroCard(context, provider, planProvider),
+                      child: _buildHeroCard(context, provider, planProvider, settings),
                     ),
                   ),
 
@@ -162,21 +161,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // WIDGET: Kartu Utama (Gradient Blue)
-  // WIDGET: Kartu Insight (Pengganti Total Biasa)
   Widget _buildHeroCard(
     BuildContext context,
     ExpenseProvider provider,
     PlanProvider planProvider,
+    SettingsProvider settings,
   ) {
-    final showWealth = _showTotalWealth;
-    final hideAmount = _hideAmount;
+    final showKekayaan = _showKekayaanMode;
+    final hideAmount = settings.hideAmount;
     final analysisProvider = context.read<AnalysisProvider>();
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
     final payDay = settings.periodStartDay;
     final usePeriod = payDay > 1;
 
-    // Formatter
+    final flowIncome = usePeriod
+        ? analysisProvider.getPeriodIncome(payDay)
+        : provider.totalIncome;
+    final flowExpenses = usePeriod
+        ? analysisProvider.getPeriodExpenses(payDay)
+        : provider.totalExpenses;
+    final flowBalance = flowIncome - flowExpenses;
+
+    final allTimeBal = analysisProvider.allTimeBalance;
+    final totalGoals =
+        planProvider.plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
+    final totalWealth = allTimeBal + totalGoals;
+
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -189,250 +198,58 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     String heroTitle;
-    String? heroSubtitle;
     String displayAmount;
     Widget bottomSection;
 
-    if (showWealth) {
-      final allTimeBal = analysisProvider.allTimeBalance;
-      final totalGoals =
-          planProvider.plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
-      final totalWealth = allTimeBal + totalGoals;
-
+    if (showKekayaan) {
       heroTitle = 'Total Kekayaan';
-      displayAmount = hideAmount ? 'Rp •••••' : currencyFormat.format(totalWealth);
-
+      displayAmount = hideAmount
+          ? 'Rp •••••'
+          : currencyFormat.format(totalWealth);
       bottomSection = Row(
         children: [
-          // Uang Tersedia
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tersedia',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    FaIcon(
-                      FontAwesomeIcons.wallet,
-                      color: Colors.greenAccent.withValues(alpha: 0.7),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(allTimeBal),
-                      style: const TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Colors.white.withValues(alpha: 0.2),
+          _rowItem(
+            icon: FontAwesomeIcons.moneyBillWave,
+            label: 'Arus Kas',
+            amount: flowBalance,
+            color: flowBalance >= 0 ? Colors.greenAccent : Colors.redAccent,
+            hideAmount: hideAmount,
+            compactFormat: compactFormat,
           ),
           const SizedBox(width: 16),
-          // Ditabung
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ditabung',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    FaIcon(
-                      FontAwesomeIcons.piggyBank,
-                      color: Colors.amberAccent.withValues(alpha: 0.7),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(totalGoals),
-                      style: const TextStyle(
-                        color: Colors.amberAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    } else if (usePeriod) {
-      final periodBalance = analysisProvider.getPeriodBalance(payDay);
-      final periodIncome = analysisProvider.getPeriodIncome(payDay);
-      final periodExpenses = analysisProvider.getPeriodExpenses(payDay);
-
-      heroTitle = 'Saldo Periode';
-      heroSubtitle = PeriodHelper.formatPeriodRange(payDay);
-      displayAmount = hideAmount ? 'Rp •••••' : currencyFormat.format(periodBalance);
-
-      bottomSection = Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pemasukan',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const FaIcon(
-                      FontAwesomeIcons.arrowDown,
-                      color: Colors.greenAccent,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(periodIncome),
-                      style: const TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Colors.white.withValues(alpha: 0.2),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pengeluaran',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const FaIcon(
-                      FontAwesomeIcons.arrowUp,
-                      color: Colors.redAccent,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(periodExpenses),
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          _rowItem(
+            icon: FontAwesomeIcons.piggyBank,
+            label: 'Ditabung',
+            amount: totalGoals,
+            color: Colors.amberAccent,
+            hideAmount: hideAmount,
+            compactFormat: compactFormat,
           ),
         ],
       );
     } else {
-      final balance = provider.balance;
-      final totalIncome = provider.totalIncome;
-      final totalExpense = provider.totalExpenses;
-
-      displayAmount = hideAmount ? 'Rp •••••' : currencyFormat.format(balance);
-
-      if (provider.selectedMonthFilter == MonthFilter.all) {
-        heroTitle = 'Saldo Saat Ini';
-      } else {
-        heroTitle = 'Saldo Bulan Ini';
-      }
-
+      heroTitle = 'Uang Saya';
+      displayAmount = hideAmount
+          ? 'Rp •••••'
+          : currencyFormat.format(allTimeBal);
       bottomSection = Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pemasukan',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const FaIcon(
-                      FontAwesomeIcons.arrowDown,
-                      color: Colors.greenAccent,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(totalIncome),
-                      style: const TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Colors.white.withValues(alpha: 0.2),
+          _rowItem(
+            icon: FontAwesomeIcons.arrowDown,
+            label: 'Pemasukan',
+            amount: flowIncome,
+            color: Colors.greenAccent,
+            hideAmount: hideAmount,
+            compactFormat: compactFormat,
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pengeluaran',
-                  style: TextStyle(color: Colors.blue[200], fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const FaIcon(
-                      FontAwesomeIcons.arrowUp,
-                      color: Colors.redAccent,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      hideAmount ? 'Rp •••••' : compactFormat.format(totalExpense),
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          _rowItem(
+            icon: FontAwesomeIcons.arrowUp,
+            label: 'Pengeluaran',
+            amount: flowExpenses,
+            color: Colors.redAccent,
+            hideAmount: hideAmount,
+            compactFormat: compactFormat,
           ),
         ],
       );
@@ -459,40 +276,25 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-        child: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Baris Atas: Judul + Toggle mode
+          // Title + Toggle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    heroTitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (heroSubtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      heroSubtitle!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ],
+              Text(
+                heroTitle,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              // Mode toggle
               GestureDetector(
-                onTap: () => setState(() => _showTotalWealth = !_showTotalWealth),
+                onTap: () =>
+                    setState(() => _showKekayaanMode = !_showKekayaanMode),
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -508,10 +310,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
-          // Baris Saldo + Eye toggle
+          // Balance + Eye
           Row(
             children: [
               Text(
@@ -525,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () => setState(() => _hideAmount = !_hideAmount),
+                onTap: () => settings.setHideAmount(!hideAmount),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -543,16 +343,53 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
           Divider(
             color: Colors.white.withValues(alpha: 0.2),
             height: 1,
           ),
           const SizedBox(height: 12),
-
-          // Bottom section
           bottomSection,
+        ],
+      ),
+    );
+  }
+
+  Widget _rowItem({
+    required FaIconData icon,
+    required String label,
+    required double amount,
+    required bool hideAmount,
+    required NumberFormat compactFormat,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(color: Colors.blue[200], fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              FaIcon(
+                icon,
+                color: color.withValues(alpha: 0.7),
+                size: 14,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                hideAmount ? 'Rp •••••' : compactFormat.format(amount),
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -934,6 +771,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showExpenseOptions(BuildContext context, Expense expense) {
     final provider = Provider.of<ExpenseProvider>(context, listen: false);
+    final analysisProvider = Provider.of<AnalysisProvider>(context, listen: false);
+    final balances = analysisProvider.getRunningBalances();
+    final after = balances[expense.id] ?? 0.0;
+    final before = after - (expense.type == 'income' ? expense.amount : -expense.amount);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -1041,9 +882,83 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
-                // 3. Tombol Edit
+                // 3. Running Balance
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Saldo Sebelum',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currencyFormatter.format(before),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 34,
+                        color: Colors.grey[300],
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Saldo Sesudah',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currencyFormatter.format(after),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: after >= 0
+                                    ? Colors.black87
+                                    : Colors.red[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 4. Tombol Edit
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -1070,7 +985,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 12),
 
-                // 4. Tombol Hapus
+                // 5. Tombol Hapus
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/plan_item.dart';
 import '../providers/plan_provider.dart';
 import '../widgets/add_fund_bottom_sheet.dart';
+import '../widgets/withdraw_fund_bottom_sheet.dart';
 import '../widgets/add_budget_bottom_sheet.dart';
 import '../widgets/budget_tab.dart';
 import '../widgets/animated_tap.dart';
@@ -343,6 +344,15 @@ class PlanScreen extends StatelessWidget {
                   onPressed: () => _showAddFundDialog(context, plan),
                   tooltip: 'Tambah Saldo',
                 ),
+                if (plan.currentAmount > 0)
+                  IconButton(
+                    icon: const FaIcon(
+                      FontAwesomeIcons.circleMinus,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () => _showWithdrawDialog(context, plan),
+                    tooltip: 'Tarik Saldo',
+                  ),
               ],
             ),
             const SizedBox(height: 20),
@@ -389,6 +399,15 @@ class PlanScreen extends StatelessWidget {
       builder: (context) {
         return AddFundBottomSheet(plan: plan);
       },
+    );
+  }
+
+  void _showWithdrawDialog(BuildContext context, PlanItem plan) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => WithdrawFundBottomSheet(plan: plan),
     );
   }
 }

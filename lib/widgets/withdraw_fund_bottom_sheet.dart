@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../models/plan_item.dart';
+import '../providers/expense_provider.dart';
+import '../providers/plan_provider.dart';
+import '../utils/formatters.dart';
+import '../utils/numeric_input_controller.dart';
+import 'numeric_keyboard.dart';
+import 'modern_input_field.dart';
+
+class WithdrawFundBottomSheet extends StatefulWidget {
+  final PlanItem plan;
+
+  const WithdrawFundBottomSheet({super.key, required this.plan});
+
+  @override
+  State<WithdrawFundBottomSheet> createState() => _WithdrawFundBottomSheetState();
+}
+
+class _WithdrawFundBottomSheetState extends State<WithdrawFundBottomSheet> {
+  final _amountController = TextEditingController();
+  late final NumericInputController _numericInput;
+
+  @override
+  void initState() {
+    super.initState();
+    _numericInput = NumericInputController(controller: _amountController);
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _numericInput.dispose();
+    super.dispose();
+  }
+
+  void _onKeyPressed(String value) {
+    _numericInput.handleKeyPress(value);
+  }
+
+  void _onBackspace() {
+    _numericInput.handleBackspace();
+  }
+
+  void _cursorLeft() {
+    if (_numericInput.cursorPosition > 0) {
+      int newPos = _numericInput.cursorPosition - 1;
+      final text = _amountController.text;
+      if (newPos > 0 && newPos < text.length && text[newPos] == '.') {
+        newPos--;
+      }
+      _amountController.selection = TextSelection.collapsed(offset: newPos);
+      _numericInput.cursorPosition = newPos;
+      setState(() {});
+    }
+  }
+
+  void _cursorRight() {
+    if (_numericInput.cursorPosition < _amountController.text.length) {
+      int newPos = _numericInput.cursorPosition + 1;
+      final text = _amountController.text;
+      if (newPos < text.length && text[newPos] == '.') {
+        newPos++;
+      }
+      _amountController.selection = TextSelection.collapsed(offset: newPos);
+      _numericInput.cursorPosition = newPos;
+      setState(() {});
+    }
+  }
+
+  void _submit() {
+    final amount = Formatters.parseFormattedNumber(_amountController.text);
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Jumlah harus lebih dari 0')),
+      );
+      return;
+    }
+    if (amount > widget.plan.currentAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Jumlah melebihi saldo tabungan')),
+      );
+      return;
+    }
+
+    final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+    final planProvider = Provider.of<PlanProvider>(context, listen: false);
+
+    expenseProvider.withdrawSavingsAllocation(
+      amount: amount,
+      planTitle: widget.plan.title,
+    );
+    planProvider.withdrawFromPlan(widget.plan.id, amount);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            child: Column(
+              children: [
+                Text(
+                  'Tarik Tabungan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.plan.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Saldo: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.plan.currentAmount)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                ModernInputField(
+                  controller: _amountController,
+                  hintText: "0",
+                  icon: Icons.account_balance_wallet_rounded,
+                  readOnly: true,
+                  prefixText: "Rp ",
+                  onTap: () {
+                     _numericInput.cursorPosition = _amountController.selection.baseOffset;
+                     if (_numericInput.cursorPosition < 0) _numericInput.cursorPosition = _amountController.text.length;
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          const Divider(height: 1, thickness: 0.5),
+
+          Container(
+            height: 280,
+            color: Colors.white,
+            child: NumericKeyboard(
+              onKeyPressed: _onKeyPressed,
+              onBackspace: _onBackspace,
+              onSubmit: _submit,
+              onCursorLeft: _cursorLeft,
+              onCursorRight: _cursorRight,
+            ),
+          ),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+        ],
+      ),
+    );
+  }
+}

@@ -42,6 +42,14 @@ class SettingsProvider with ChangeNotifier {
     await _hiveService.setSetting('hasSeenOnboarding', false);
   }
 
+  // --- Hide Amount ---
+  bool get hideAmount => _hiveService.getSetting('hide_amount', false);
+
+  Future<void> setHideAmount(bool value) async {
+    await _hiveService.setSetting('hide_amount', value);
+    notifyListeners();
+  }
+
   // --- Period Start Day ---
   int get periodStartDay => _hiveService.getSetting('period_start_day', 1);
 
