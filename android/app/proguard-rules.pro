@@ -26,3 +26,22 @@
 -keep class com.jakewharton.threetenabp.** { *; }
 -dontwarn com.jakewharton.threetenabp.**
 
+# Hive (native storage layer)
+-keep class com.hivedb.** { *; }
+
+# Syncfusion Charts
+-keep class com.syncfusion.** { *; }
+-dontwarn com.syncfusion.**
+
+# Google MLKit Document Scanner
+-keep class com.google.mlkit.vision.documentscanner.** { *; }
+-dontwarn com.google.mlkit.vision.documentscanner.**
+
+# speech_to_text
+-keep class com.speech_to_text.** { *; }
+-dontwarn com.speech_to_text.**
+
+# image_picker / permission_handler
+-keep class io.flutter.plugins.imagepicker.** { *; }
+-keep class com.baseflow.permissionhandler.** { *; }
+

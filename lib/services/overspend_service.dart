@@ -43,8 +43,10 @@ class OverspendService {
     if ((totalNow - shortfall).abs() > 1 && selectedIds.isNotEmpty) {
       final largestId = selectedIds
           .reduce((a, b) => allocations[a]! > allocations[b]! ? a : b);
+      final largestPlan = plans.firstWhere((p) => p.id == largestId);
       allocations[largestId] =
-          (allocations[largestId]! + (shortfall - totalNow)).clamp(0.0, 1e12);
+          (allocations[largestId]! + (shortfall - totalNow))
+              .clamp(0.0, largestPlan.currentAmount);
     }
 
     return allocations;

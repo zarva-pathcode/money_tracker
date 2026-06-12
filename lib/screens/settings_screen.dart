@@ -78,6 +78,18 @@ class SettingsScreen extends StatelessWidget {
                   : 'Tanggal ${settingsProvider.periodStartDay} setiap bulan',
               onTap: () => _showPeriodStartPicker(context, settingsProvider),
             ),
+            const SizedBox(height: 4),
+            _buildToggleTile(
+              context,
+              icon: FontAwesomeIcons.bell,
+              iconColor: Colors.orange,
+              title: 'Peringatan Anggaran',
+              subtitle: settingsProvider.budgetAlertsEnabled
+                  ? 'Aktif'
+                  : 'Nonaktif',
+              value: settingsProvider.budgetAlertsEnabled,
+              onChanged: (val) => settingsProvider.setBudgetAlertsEnabled(val),
+            ),
           ]),
 
           const SizedBox(height: 24),
@@ -260,6 +272,62 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleTile(
+    BuildContext context, {
+    required dynamic icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(child: FaIcon(icon, color: iconColor, size: 18)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeColor: iconColor,
+            ),
+          ],
         ),
       ),
     );

@@ -28,7 +28,9 @@ void main() async {
   final hiveService = HiveService();
   await hiveService.init();
   await NotificationService.init();
+  await NotificationService.requestAndCheckPermission();
   await initializeDateFormatting('id_ID', null);
+  DictionaryService.instance.setHiveService(hiveService);
   await DictionaryService.instance.init();
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -116,7 +118,14 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => ExpenseProvider(hiveService: hs)),
         ChangeNotifierProvider(create: (ctx) => AnalysisProvider(expenseProvider: ctx.read<ExpenseProvider>())),
         ChangeNotifierProvider(create: (_) => PlanProvider(hiveService: hs)),
-        ChangeNotifierProvider(create: (_) => BudgetProvider(hiveService: hs)),
+        ChangeNotifierProvider(create: (ctx) {
+          final bp = BudgetProvider(hiveService: hs);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final ep = ctx.read<ExpenseProvider>();
+            bp.linkToExpenseProvider(ep);
+          });
+          return bp;
+        }),
         ChangeNotifierProvider(create: (_) => SettingsProvider(hiveService: hs)),
         ChangeNotifierProvider(create: (_) => WidgetProvider(hiveService: hs)..initialSync()),
       ],
@@ -138,6 +147,12 @@ class _MyAppState extends State<MyApp> {
         locale: const Locale('id', 'ID'),
         home: Builder(
           builder: (context) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                final sp = Provider.of<SettingsProvider>(context, listen: false);
+                sp.rescheduleAll();
+              }
+            });
             return MediaQuery(
               data: MediaQuery.of(
                 context,

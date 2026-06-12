@@ -7,7 +7,6 @@ class ExpenseChart extends StatelessWidget {
   final double totalAmount;
   final List<ChartData> chartData;
   final String period;
-
   const ExpenseChart({
     super.key,
     required this.totalAmount,

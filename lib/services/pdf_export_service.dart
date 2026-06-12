@@ -46,7 +46,7 @@ class PdfExportService {
     );
     await Printing.sharePdf(
       bytes: pdf,
-      filename: _generateFilename(startDate, endDate),
+      filename: '${_generateFilename(startDate, endDate)}.pdf',
     );
   }
 

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/budget_item.dart';
 import '../providers/budget_provider.dart';
-import '../providers/expense_provider.dart';
 import '../utils/constants.dart';
 import 'add_budget_bottom_sheet.dart';
 import 'animated_tap.dart';
@@ -14,12 +13,9 @@ class BudgetTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<BudgetProvider, ExpenseProvider>(
-      builder: (context, budgetProvider, expenseProvider, _) {
+    return Consumer<BudgetProvider>(
+      builder: (context, budgetProvider, _) {
         final budgets = budgetProvider.budgets;
-        final currentExpenses = expenseProvider.allExpenses;
-        final currentMonth = DateTime.now().month;
-        final currentYear = DateTime.now().year;
 
         if (budgets.isEmpty) {
           return Center(
@@ -37,25 +33,9 @@ class BudgetTab extends StatelessWidget {
           );
         }
 
-        double totalBudget = 0;
-        double totalSpent = 0;
-
-        for (var budget in budgets) {
-          totalBudget += budget.limitAmount;
-          double categorySpent = 0;
-          for (var expense in currentExpenses) {
-            if (expense.category == budget.category && 
-                expense.date.month == currentMonth && 
-                expense.date.year == currentYear &&
-                expense.type == 'expense') { 
-              categorySpent += expense.amount;
-            }
-          }
-          totalSpent += categorySpent;
-        }
-
-        double overallProgress = totalBudget > 0 ? totalSpent / totalBudget : 0;
-        if (overallProgress > 1.0) overallProgress = 1.0;
+        final totalBudget = budgetProvider.totalBudget;
+        final totalSpent = budgetProvider.totalSpent;
+        final overallProgress = budgetProvider.overallProgress;
 
         final currencyFormat = NumberFormat.compactCurrency(
           locale: 'id_ID',
@@ -141,16 +121,7 @@ class BudgetTab extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final budget = budgets[index];
-                    
-                    double spentAmount = 0;
-                    for (var expense in currentExpenses) {
-                      if (expense.category == budget.category && 
-                          expense.date.month == currentMonth && 
-                          expense.date.year == currentYear &&
-                          expense.type == 'expense') { 
-                        spentAmount += expense.amount;
-                      }
-                    }
+                    final spentAmount = budgetProvider.spentForCategory(budget.category);
 
                     return _buildBudgetCard(context, budget, spentAmount);
                   },
@@ -181,11 +152,12 @@ class BudgetTab extends StatelessWidget {
     double progress = spentAmount / budget.limitAmount;
     if (progress > 1.0) progress = 1.0;
 
-    // Color logic: Green (<50%), Yellow (50-85%), Red (>85%)
+    final thresholdPct = budget.threshold / 100;
+    // Color logic: threshold-based
     Color progressColor = Colors.green;
-    if (progress >= 0.85) {
+    if (progress >= 1.0) {
       progressColor = Colors.red;
-    } else if (progress >= 0.5) {
+    } else if (progress >= thresholdPct) {
       progressColor = Colors.orange;
     }
 
@@ -248,6 +220,15 @@ class BudgetTab extends StatelessWidget {
                         fontSize: 13,
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Peringatan di ${budget.threshold.toInt()}%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],

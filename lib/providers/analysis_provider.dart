@@ -190,6 +190,45 @@ class AnalysisProvider with ChangeNotifier {
     return data;
   }
 
+  static const _dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+  static const _timeSlots = ['Pagi', 'Siang', 'Sore', 'Malam'];
+
+  static String _timeSlot(int hour) {
+    if (hour >= 6 && hour < 12) return 'Pagi';
+    if (hour >= 12 && hour < 17) return 'Siang';
+    if (hour >= 17 && hour < 19) return 'Sore';
+    return 'Malam';
+  }
+
+  /// Return heatmap data: {dayName: {timeSlot: totalAmount}}
+  Map<String, Map<String, double>> getTimeHeatmap() {
+    final heatmap = <String, Map<String, double>>{};
+    for (final day in _dayNames) {
+      heatmap[day] = {for (final t in _timeSlots) t: 0.0};
+    }
+    for (final e in _filtered) {
+      if (e.type != 'expense') continue;
+      final day = _dayNames[e.date.weekday - 1];
+      final slot = _timeSlot(e.date.hour);
+      heatmap[day]![slot] = (heatmap[day]![slot] ?? 0) + e.amount;
+    }
+    return heatmap;
+  }
+
+  double get maxHeatmapValue {
+    final hm = getTimeHeatmap();
+    double max = 0;
+    for (final day in hm.values) {
+      for (final v in day.values) {
+        if (v > max) max = v;
+      }
+    }
+    return max;
+  }
+
+  List<String> get heatmapDayLabels => _dayNames;
+  List<String> get heatmapTimeSlotLabels => _timeSlots;
+
   // --- Top transaction helpers ---
 
   List<Expense> getTopExpenseTransactions(int count) {

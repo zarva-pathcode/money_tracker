@@ -9,6 +9,8 @@ class HiveService {
   static const String settingsBoxName = 'settings';
   static const String planBoxName = 'plans';
   static const String budgetBoxName = 'budgets';
+  static const String correctionsBoxName = 'word_corrections';
+  static const String subscriptionsBoxName = 'subscriptions';
 
   Future<void> init() async {
     final appDocumentDirectory =
@@ -23,6 +25,8 @@ class HiveService {
     await Hive.openBox(settingsBoxName);
     await Hive.openBox<PlanItem>(planBoxName);
     await Hive.openBox<BudgetItem>(budgetBoxName);
+    await Hive.openBox(correctionsBoxName);
+    await Hive.openBox(subscriptionsBoxName);
   }
 
   Box<Expense> getExpenseBox() {
@@ -127,6 +131,46 @@ class HiveService {
 
   Future<void> deleteBudget(String id) async {
     final box = getBudgetBox();
+    await box.delete(id);
+  }
+
+  // --- WORD CORRECTIONS (Auto-Learning) ---
+
+  Map<String, String> getAllWordCorrections() {
+    final box = Hive.box(correctionsBoxName);
+    final map = <String, String>{};
+    for (final key in box.keys) {
+      map[key.toString()] = box.get(key).toString();
+    }
+    return map;
+  }
+
+  Future<void> saveWordCorrection(String word, String category) async {
+    final box = Hive.box(correctionsBoxName);
+    await box.put(word.toLowerCase().trim(), category);
+  }
+
+  // --- SUBSCRIPTIONS ---
+
+  Future<void> saveSubscription(String id, Map<String, dynamic> data) async {
+    final box = Hive.box(subscriptionsBoxName);
+    await box.put(id, data);
+  }
+
+  Map<String, Map<String, dynamic>> getAllSubscriptions() {
+    final box = Hive.box(subscriptionsBoxName);
+    final map = <String, Map<String, dynamic>>{};
+    for (final key in box.keys) {
+      final val = box.get(key);
+      if (val is Map) {
+        map[key.toString()] = Map<String, dynamic>.from(val);
+      }
+    }
+    return map;
+  }
+
+  Future<void> deleteSubscription(String id) async {
+    final box = Hive.box(subscriptionsBoxName);
     await box.delete(id);
   }
 }

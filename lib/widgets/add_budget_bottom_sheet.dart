@@ -24,6 +24,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   final FocusNode _amountFocusNode = FocusNode();
   
   String? _selectedCategory;
+  double _threshold = 80.0;
   int _cursorPosition = 0;
   bool _showCustomKeyboard = true;
 
@@ -34,6 +35,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
     super.initState();
     if (widget.budgetToEdit != null) {
       _selectedCategory = widget.budgetToEdit!.category;
+      _threshold = widget.budgetToEdit!.threshold;
       _amountController.text = Formatters.formatNumberInput(widget.budgetToEdit!.limitAmount.toInt().toString());
     } else {
       _amountController.text = '';
@@ -165,6 +167,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
         id: widget.budgetToEdit!.id,
         category: _selectedCategory!,
         limitAmount: amount,
+        threshold: _threshold,
       );
       Provider.of<BudgetProvider>(context, listen: false).updateBudget(updatedBudget);
     } else {
@@ -172,6 +175,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
         id: const Uuid().v4(),
         category: _selectedCategory!,
         limitAmount: amount,
+        threshold: _threshold,
       );
       Provider.of<BudgetProvider>(context, listen: false).addBudget(newBudget);
     }
@@ -297,11 +301,50 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       SystemChannels.textInput.invokeMethod('TextInput.hide');
                     },
                   ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Ambang Peringatan', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 14,
+                      color: Colors.grey[800]
+                    )
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: _threshold,
+                          min: 50,
+                          max: 100,
+                          divisions: 10,
+                          label: '${_threshold.toInt()}%',
+                          onChanged: (val) => setState(() => _threshold = val),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 48,
+                        child: Text(
+                          '${_threshold.toInt()}%',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Text(
+                      'Notifikasi akan dikirim saat pengeluaran mencapai ${_threshold.toInt()}%, 100%, dan 120%',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-          
+           
           if (_showCustomKeyboard) ...[
             const Divider(height: 1, thickness: 0.5),
             Container(

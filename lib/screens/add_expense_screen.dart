@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/expense.dart';
@@ -10,10 +11,9 @@ import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
 import '../utils/formatters.dart';
 import '../utils/numeric_input_controller.dart';
-import '../services/overspend_service.dart';
+import '../services/subscription_service.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
-import '../widgets/overspend_bottom_sheet.dart';
 import '../widgets/transaction_type_toggle.dart';
 import '../widgets/category_picker.dart';
 
@@ -46,6 +46,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool _payFromSavings = false;
   PlanItem? _selectedGoal;
   List<PlanItem> _plans = [];
+  bool _isSubscription = false;
 
   // Focus Nodes untuk mengatur perpindahan kursor
   final FocusNode _titleFocusNode = FocusNode();
@@ -90,12 +91,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     });
 
     _amountController.addListener(_numericInput.updateCursorPosition);
+    _titleController.addListener(_onTitleChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_amountFocusNode);
       final plans = Provider.of<PlanProvider>(context, listen: false).plans;
       _plans = plans.where((p) => p.currentAmount > 0).toList();
+      // Cek subscription
+      final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+      _isSubscription = SubscriptionService.isKnownSubscription(
+        _titleController.text, expenseProvider.subscriptions,
+      );
     });
+  }
+
+  void _onTitleChanged() {
+    final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+    final isSub = SubscriptionService.isKnownSubscription(
+      _titleController.text, expenseProvider.subscriptions,
+    );
+    if (isSub != _isSubscription) {
+      setState(() => _isSubscription = isSub);
+    }
   }
 
   void _handleKeyPress(String key) {
@@ -325,6 +342,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           ],
                         ),
                       ),
+                    if (_transactionType == 'expense')
+                      _buildSubscriptionToggle(),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -459,37 +478,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       );
       await planProvider.withdrawFromPlan(_selectedGoal!.id, amount);
     } else if (_transactionType == 'expense') {
-      // Check overspend only for expense transactions (bukan bayar dari tabungan)
-      final shortfall = expenseProvider.checkShortfall(amount, payDay: settingsProvider.periodStartDay);
-      if (shortfall > 0) {
-        final plans =
-            planProvider.plans.where((p) => p.currentAmount > 0).toList();
-        if (plans.isNotEmpty) {
-          final totalPlansBalance =
-              plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
-
-          final allocations =
-              await showModalBottomSheet<Map<String, double>>(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => OverspendBottomSheet(
-              shortfall: shortfall,
-              plans: plans,
-              totalPlansBalance: totalPlansBalance,
-            ),
-          );
-
-          if (allocations == null) return;
-
-          await OverspendService.executeAllocations(
-            allocations: allocations,
-            plans: planProvider.plans,
-            expenseProvider: expenseProvider,
-            planProvider: planProvider,
-          );
-        }
-      }
+      final proceed = await expenseProvider.handleOverspendIfNeeded(
+        amount: amount,
+        payDay: settingsProvider.periodStartDay,
+        context: context,
+        planProvider: planProvider,
+      );
+      if (!proceed) return;
     }
 
     final newExpense = Expense(
@@ -501,8 +496,49 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       type: _transactionType,
     );
 
-    await expenseProvider.addExpense(newExpense);
+    if (_isSubscription && _transactionType == 'expense') {
+      expenseProvider.saveSubscriptionData(
+        _titleController.text.toLowerCase().trim(),
+        {
+          'key': _titleController.text.toLowerCase().trim(),
+          'title': _titleController.text,
+          'category': _selectedCategory,
+          'amount': amount,
+          'dayOfMonth': _selectedDate.day,
+          'isAutoDetected': false,
+          'isActive': true,
+        },
+      );
+    }
+    await expenseProvider.addExpense(newExpense, sttCategory: widget.preSelectedCategory);
     if (mounted) Navigator.pop(context);
+  }
+
+  Widget _buildSubscriptionToggle() {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: SwitchListTile(
+        title: const Text(
+          'Langganan Rutin',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+        subtitle: Text(
+          'Transaksi berulang setiap bulan',
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        ),
+        value: _isSubscription,
+        onChanged: (v) => setState(() => _isSubscription = v),
+        activeColor: Colors.indigo,
+        secondary: FaIcon(FontAwesomeIcons.repeat, size: 16, color: _isSubscription ? Colors.indigo : Colors.grey[400]),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        dense: true,
+      ),
+    );
   }
 
   @override

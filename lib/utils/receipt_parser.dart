@@ -1,180 +1,167 @@
 import 'package:flutter/foundation.dart';
 
 class ReceiptParser {
-  /// Mengekstrak total belanja dari teks OCR menggunakan Pipeline 5 Tahap.
-  static double? extractTotal(List<String> rawLines) {
-    if (rawLines.isEmpty) return null;
+  static const _minPrice = 200;
+  static const _maxPrice = 100000000;
 
-    // TAHAP 1: Universal Normalization (Pembersihan Ekstrem)
-    List<String> normalizedLines = rawLines.map((line) => _normalizeLine(line)).toList();
+  /// Keyword anchor: original → daftar kemungkinan OCR typo
+  static final _keywordVariants = <String, List<String>>{
+    'TOTAL': ['TOTAL', 'TOTA1', 'TOTAI', 'T0TAL', 'TOTAl'],
+    'GRAND TOTAL': ['GRAND TOTAL', 'GRAND T0TAL', 'GRAND TOTA1'],
+    'TOTAL BAYAR': ['TOTAL BAYAR', 'TOTAL BAYA', 'TOTAL BAYAR', 'T0TAL BAYAR'],
+    'CASH': ['CASH', 'CASH', 'CA5H', 'C4511'],
+    'TUNAI': ['TUNAI', 'TUNA1', 'TUNAI'],
+    'DEBIT': ['DEBIT', 'DEB1T', 'DEB1T', 'DE8IT'],
+    'KREDIT': ['KREDIT', 'KRED1T'],
+    'QRIS': ['QRIS', 'QR1S'],
+    'VISA': ['VISA', 'V1SA', 'VI5A'],
+    'NETTO': ['NETTO', 'NETT0'],
+    'AMOUNT': ['AMOUNT', 'AM0UNT', 'AMOUNT'],
+    'SUBTOTAL': ['SUBTOTAL', 'SUBT0TAL', 'SUB T0TAL'],
+  };
 
-    return _processNormalizedLines(normalizedLines);
-  }
-
-  /// Helper untuk memproses teks mentah (raw text) langsung dari ML Kit
+  /// Ekstrak total belanja dari teks OCR mentah
   static double? parseFromRawText(String text) {
     if (text.isEmpty) return null;
-    final lines = text.split('\n');
-    return extractTotal(lines);
+    final lines = text.split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) return null;
+
+    return _extractTotal(lines);
   }
 
-  static double? _processNormalizedLines(List<String> normalizedLines) {
-    // TAHAP 4: Weighted Anchor Search (Pencarian Baris Cerdas)
-    // List array berbobot dari prioritas paling tinggi ke rendah
-    final List<List<String>> keywordPriorities = [
-      ["CASH", "TUNAI", "DEBIT", "KARTU", "QRIS", "CREDIT", "VISA"],   // Prio 1
-      ["GRAND TOTAL", "TOTAL BAYAR", "NETTO"],                         // Prio 2
-      ["TOTAL", "AMOUNT"],                                             // Prio 3
+  static double? _extractTotal(List<String> rawLines) {
+    final normalized = rawLines.map(_normalizeLine).toList();
+
+    // --- Priority search: keyword anchoring ---
+    final priorities = [
+      ['CASH', 'TUNAI', 'DEBIT', 'KREDIT', 'QRIS', 'VISA'],
+      ['GRAND TOTAL', 'TOTAL BAYAR', 'NETTO'],
+      ['TOTAL', 'AMOUNT'],
     ];
 
-    for (List<String> priorityKeywords in keywordPriorities) {
-      for (int i = 0; i < normalizedLines.length; i++) {
-        final String currentLine = normalizedLines[i];
+    for (final group in priorities) {
+      for (int i = 0; i < normalized.length; i++) {
+        final line = normalized[i];
 
-        // Memeriksa apakah baris ini mengandung kata kunci dari level prioritas saat ini
-        bool hasKeyword = priorityKeywords.any((keyword) => currentLine.contains(keyword)) &&
-                          !currentLine.contains("SUBTOTAL") &&
-                          !currentLine.contains("SUB TOTAL");
+        final hasKeyword = group.any((kw) => _fuzzyContains(line, kw));
+        if (!hasKeyword) continue;
+        if (_fuzzyContains(line, 'SUBTOTAL') ||
+            _fuzzyContains(line, 'SUB TOTAL')) continue;
 
-        if (hasKeyword) {
-          // Kata kunci ditemukan! Cek baris ini dan maksimal 2 baris ke bawahnya
-          for (int j = 0; j <= 2; j++) {
-            if (i + j < normalizedLines.length) {
-              final String searchLine = normalizedLines[i + j];
-              // Ekstrak semua format uang yang potensial di baris target
-              final List<double> validPrices = _extractValidPricesFromLine(searchLine);
-              
-              if (validPrices.isNotEmpty) {
-                // Biasanya baris pembayaran memiliki harga yang valid (ambil angka terbesarnya jika ada multiple)
-                validPrices.sort((a, b) => b.compareTo(a));
-                debugPrint("ReceiptParser: PrioMatched '$searchLine' -> ${validPrices.first}");
-                return validPrices.first;
-              }
-            }
+        // Cek baris ini, lalu max 3 baris ke bawah
+        for (int j = 0; j <= 3 && i + j < normalized.length; j++) {
+          final target = normalized[i + j];
+          if (target.isEmpty) continue;
+          final prices = _extractPrices(target);
+          if (prices.isNotEmpty) {
+            prices.sort((a, b) => b.compareTo(a));
+            debugPrint("ReceiptParser: matched '${target.trim()}' -> ${prices.first}");
+            return prices.first;
           }
         }
       }
     }
 
-    // TAHAP 5: Desperate Fallback (Sapu Jagat Bawah)
-    // Mengambil 30% baris terbawah dari kertas (Misal total ada 10 baris, ambil 3 baris terakhir)
-    int startIndex = (normalizedLines.length * 0.7).floor();
-    List<String> bottomLines = normalizedLines.sublist(startIndex);
-
-    List<double> bottomValidPrices = [];
-    for (String line in bottomLines) {
-      bottomValidPrices.addAll(_extractValidPricesFromLine(line));
+    // --- Fallback: bottom 40% ambil nominal terbesar ---
+    final startIdx = (normalized.length * 0.6).floor();
+    final bottom = normalized.sublist(startIdx);
+    final allPrices = <double>[];
+    for (final line in bottom) {
+      allPrices.addAll(_extractPrices(line));
+    }
+    if (allPrices.isNotEmpty) {
+      allPrices.sort((a, b) => b.compareTo(a));
+      debugPrint("ReceiptParser: fallback bottom -> ${allPrices.first}");
+      return allPrices.first;
     }
 
-    if (bottomValidPrices.isNotEmpty) {
-      // Urutkan menurun dan kembalikan angka nominal yang paling besar
-      bottomValidPrices.sort((a, b) => b.compareTo(a));
-      debugPrint("ReceiptParser: Fallback Bottom 30% -> ${bottomValidPrices.first}");
-      return bottomValidPrices.first;
+    // --- Last resort: seluruh dokumen, ambil nominal terbesar ---
+    final allDocPrices = <double>[];
+    for (final line in normalized) {
+      allDocPrices.addAll(_extractPrices(line));
+    }
+    if (allDocPrices.isNotEmpty) {
+      allDocPrices.sort((a, b) => b.compareTo(a));
+      debugPrint("ReceiptParser: last resort -> ${allDocPrices.first}");
+      return allDocPrices.first;
     }
 
-    debugPrint("ReceiptParser: GAGAL menemukan angka valid");
+    debugPrint("ReceiptParser: GAGAL");
     return null;
   }
 
+  static bool _fuzzyContains(String text, String keyword) {
+    final variants = _keywordVariants[keyword] ?? [keyword];
+    return variants.any((v) => text.contains(v));
+  }
+
   // ==========================================
-  // TAHAP 1: Universal Normalization
+  // Normalisasi
   // ==========================================
   static String _normalizeLine(String line) {
-    // 1. Ubah ke uppercase
-    String cleaned = line.toUpperCase();
+    String s = line.toUpperCase().trim();
 
-    // 2. Koreksi typo OCR (O->0, I->1, l->1, B->8) yang diapit angka
-    // Regex mencari karakter-karakter tersebut jika di sekitarnya terdapat angka
-    cleaned = cleaned.replaceAllMapped(RegExp(r'\d+[OIQlB]+\d*|\d*[OIQlB]+\d+'), (match) {
-      String segment = match.group(0)!;
-      segment = segment.replaceAll(RegExp(r'[OQ]'), '0');
-      segment = segment.replaceAll(RegExp(r'[Iil]'), '1');
-      segment = segment.replaceAll(RegExp(r'[B]'), '8');
-      return segment;
-    });
+    // Koreksi OCR typo: sub O/O → 0, I/l → 1, S → 5, B → 8 di konteks angka
+    s = s.replaceAllMapped(RegExp(r'[OQ]'), (m) => '0');
+    s = s.replaceAllMapped(RegExp(r'[Il]'), (m) => '1');
+    s = s.replaceAllMapped(RegExp(r'[B]'), (m) => '8');
 
-    // 3. Bersihkan simbol mata uang pengganggu (RP, IDR)
-    // Pakai Regex agar menghapus "RP", "RP.", "IDR", "IDR." secara dinamis
-    cleaned = cleaned.replaceAll(RegExp(r'\b(?:RP|IDR)\.?\s*', caseSensitive: false), '');
+    // Bersihkan prefix RP/IDR
+    s = s.replaceAll(RegExp(r'\b(?:RP|IDR)\.?\s*'), '');
 
-    return cleaned;
+    return s;
   }
 
   // ==========================================
-  // EXTRACTOR UTAMA (Menghubungkan Tahap 2 & 3)
-  // Mengambil semua angka di baris tertentu yang masuk kriteria harga
+  // Ekstraksi harga dari satu baris
   // ==========================================
-  static List<double> _extractValidPricesFromLine(String line) {
-    List<double> foundPrices = [];
-    
-    // Regex ini menangkap deretan angka yang berpotensi menjadi harga
-    // Termasuk yang pakai titik (15.000) koma (15,000.00) atau murni angka rapat (15000)
-    final numRegex = RegExp(r'\b\d+(?:[\.,]\d+)*\b');
-    
-    Iterable<Match> matches = numRegex.allMatches(line);
-    for (Match match in matches) {
-      String rawExtracted = match.group(0)!;
-      double? parsedValue = _parseSmartCurrency(rawExtracted);
+  static List<double> _extractPrices(String line) {
+    final result = <double>[];
 
-      if (parsedValue != null && _isValidPrice(parsedValue, rawExtracted)) {
-        foundPrices.add(parsedValue);
+    // Format: <digit>{,.\d}* — tangkap semua calon nominal
+    final matches = RegExp(r'\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?|\d+').allMatches(line);
+
+    for (final m in matches) {
+      final raw = m.group(0)!;
+      final parsed = _parsePrice(raw);
+      if (parsed != null && _isValidPrice(parsed)) {
+        result.add(parsed);
       }
     }
 
-    return foundPrices;
+    return result;
   }
 
-  // ==========================================
-  // TAHAP 2: Smart Currency Formatter (Mengatasi Titik & Koma)
-  // ==========================================
-  static double? _parseSmartCurrency(String rawExtracted) {
-    String numberStr = rawExtracted;
+  static double? _parsePrice(String raw) {
+    String s = raw;
 
-    // Bersihkan titik atau koma di ujung string jika ada
-    numberStr = numberStr.replaceAll(RegExp(r'^[\.,]+|[\.,]+$'), '');
-    if (numberStr.isEmpty) return null;
+    // Buang separator di ujung
+    s = s.replaceAll(RegExp(r'^[.,]+|[.,]+$'), '');
 
-    // Cek apakah ada desimal (sen) 2 karakter di belakang (,00 atau .00)
-    // Umum di struk minimarket: 15.000,00 atau 15,000.00
-    if (numberStr.length > 3) {
-      String lastThree = numberStr.substring(numberStr.length - 3);
-      if (lastThree.startsWith(',') || lastThree.startsWith('.')) {
-        // Hapus 3 karakter terakhir (pemisah desimal dan 2 angka nol)
-        // Karena expense tracker umum tidak mencatat sen
-        numberStr = numberStr.substring(0, numberStr.length - 3);
+    // Deteksi format desimal: 15.000,00 atau 15,000.00
+    // 3 digit terakhir dengan pemisah → desimal
+    if (s.length > 3) {
+      final sep = s[s.length - 3];
+      if ((sep == '.' || sep == ',') &&
+          RegExp(r'^\d$').hasMatch(s[s.length - 1]) &&
+          RegExp(r'^\d$').hasMatch(s[s.length - 2])) {
+        s = s.substring(0, s.length - 3);
       }
     }
 
-    // Buang semua titik dan koma yang tersisa (yang seharusnya merupakan pemisah ribuan)
-    // Mengubah "15.000" atau "15,000" menjadi "15000"
-    String finalDigits = numberStr.replaceAll(RegExp(r'[\.,]'), '');
+    // Buang semua separator ribuan (titik/koma)
+    s = s.replaceAll(RegExp(r'[.,]'), '');
 
-    return double.tryParse(finalDigits);
+    return double.tryParse(s);
   }
 
-  // ==========================================
-  // TAHAP 3: Filter "Anti-Barcode" (Price Validator)
-  // ==========================================
-  static bool _isValidPrice(double parsedPrice, String rawExtracted) {
-    // 1. Tolak angka yang di luar batas kewajaran Expense harian
-    // Struk belanja biasanya antara Rp 500 sampai Rp 50.000.000
-    if (parsedPrice < 500 || parsedPrice > 50000000) {
+  static bool _isValidPrice(double value) {
+    if (value < _minPrice || value > _maxPrice) {
       return false;
     }
-
-    // 2. Tolak deretan digit panjang tanpa pemisah ribuan (Kemungkinan Barcode / PLU barang)
-    // Misal: string asal "250043" atau "999905" (tanpa titik koma) dengan digit > 4.
-    // Hilangkan kemungkinan desimal, cek panjang string sebelum desimal
-    String withoutDecimal = rawExtracted.replaceAll(RegExp(r'[\.,]\d{2}$'), '');
-    bool hasNoThousandsSeparator = !withoutDecimal.contains('.') && !withoutDecimal.contains(',');
-
-    // Tolak jika panjang digit tanpa titik/koma >= 6 (misal: 250043, 899990)
-    // Angka 15000 (5 digit) masih kita hargai sebagai nominal Rp 15.000 tanpa pemisah
-    if (hasNoThousandsSeparator && withoutDecimal.length >= 6) {
-      return false;
-    }
-
-    return true; // Lolos semua filter pencucian!
+    return true;
   }
 }

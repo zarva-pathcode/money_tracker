@@ -4,6 +4,28 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+enum NotificationScheduleResult {
+  success,
+  permissionDenied,
+  exactAlarmDenied,
+  error;
+
+  bool get isSuccess => this == success;
+
+  String get message {
+    switch (this) {
+      case NotificationScheduleResult.success:
+        return 'Notifikasi berhasil dijadwalkan';
+      case NotificationScheduleResult.permissionDenied:
+        return 'Izin notifikasi belum diberikan';
+      case NotificationScheduleResult.exactAlarmDenied:
+        return 'Izin alarm eksak belum diberikan. Notifikasi akan dikirim perkiraan waktu.';
+      case NotificationScheduleResult.error:
+        return 'Gagal menjadwalkan notifikasi. Coba restart HP.';
+    }
+  }
+}
+
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -11,41 +33,51 @@ class NotificationService {
   static Future<void> init() async {
     tz.initializeTimeZones();
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
+    final androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
+    final iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
 
-    const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        );
+    await _notificationsPlugin.initialize(
+      settings: InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
+    );
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-          android: initializationSettingsAndroid,
-          iOS: initializationSettingsIOS,
-        );
+    await _createChannels();
+  }
 
-    await _notificationsPlugin.initialize(initializationSettings);
-
-    // Create notification channel explicitly with correct importance
+  static Future<void> _createChannels() async {
     final androidPlugin = _notificationsPlugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    if (androidPlugin != null) {
-      await androidPlugin.createNotificationChannel(
-        const AndroidNotificationChannel(
-          'daily_reminder_channel',
-          'Daily Reminders',
-          description: 'Pengingat untuk mencatat transaksi harian',
-          importance: Importance.max,
-          playSound: true,
-          enableVibration: true,
-        ),
-      );
-    }
+    if (androidPlugin == null) return;
+
+    await androidPlugin.createNotificationChannel(
+      AndroidNotificationChannel(
+        'daily_reminder_channel',
+        'Pengeluaran Harian',
+        description: 'Pengingat untuk mencatat transaksi harian',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    await androidPlugin.createNotificationChannel(
+      AndroidNotificationChannel(
+        'budget_alerts_channel',
+        'Peringatan Anggaran',
+        description: 'Notifikasi ketika pengeluaran mendekati atau melebihi anggaran',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
   }
 
   static Future<bool> hasPermission() async {
@@ -81,7 +113,35 @@ class NotificationService {
     return true;
   }
 
-  static Future<bool> scheduleDaily({
+  static Future<bool> requestAndCheckPermission() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (androidPlugin == null) return false;
+      final enabled = await androidPlugin.areNotificationsEnabled() ?? false;
+      if (!enabled) {
+        await androidPlugin.requestNotificationsPermission();
+        return await androidPlugin.areNotificationsEnabled() ?? false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  static Future<bool> requestExactAlarmPermission() async {
+    if (!Platform.isAndroid) return true;
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin == null) return false;
+    final result = await androidPlugin.requestExactAlarmsPermission();
+    return result ?? false;
+  }
+
+  static Future<NotificationScheduleResult> scheduleDaily({
     required int id,
     required String title,
     required String body,
@@ -97,38 +157,74 @@ class NotificationService {
         time.hour,
         time.minute,
       );
-
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      await _notificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduledDate,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'daily_reminder_channel',
-            'Daily Reminders',
-            importance: Importance.max,
-            priority: Priority.high,
+      if (Platform.isAndroid) {
+        await _notificationsPlugin.zonedSchedule(
+          id: id,
+          title: title,
+          body: body,
+          scheduledDate: scheduledDate,
+          notificationDetails: NotificationDetails(
+            android: AndroidNotificationDetails(
+              'daily_reminder_channel',
+              'Pengeluaran Harian',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
           ),
-          iOS: DarwinNotificationDetails(),
-        ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-      return true;
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } else {
+        await _notificationsPlugin.zonedSchedule(
+          id: id,
+          title: title,
+          body: body,
+          scheduledDate: scheduledDate,
+          notificationDetails: NotificationDetails(
+            iOS: DarwinNotificationDetails(),
+          ),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      }
+      return NotificationScheduleResult.success;
     } catch (e) {
       debugPrint("NotificationService.scheduleDaily error: $e");
-      return false;
+      return NotificationScheduleResult.error;
+    }
+  }
+
+  static Future<void> showBudgetAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      await _notificationsPlugin.show(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            'budget_alerts_channel',
+            'Peringatan Anggaran',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("NotificationService.showBudgetAlert error: $e");
     }
   }
 
   static Future<void> cancel(int id) async {
-    await _notificationsPlugin.cancel(id);
+    await _notificationsPlugin.cancel(id: id);
   }
 }

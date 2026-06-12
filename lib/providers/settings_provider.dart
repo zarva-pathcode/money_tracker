@@ -50,6 +50,14 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Budget Alerts ---
+  bool get budgetAlertsEnabled => _hiveService.getSetting('budget_alerts_enabled', true);
+
+  Future<void> setBudgetAlertsEnabled(bool value) async {
+    await _hiveService.setSetting('budget_alerts_enabled', value);
+    notifyListeners();
+  }
+
   // --- Period Start Day ---
   int get periodStartDay => _hiveService.getSetting('period_start_day', 1);
 
@@ -87,22 +95,50 @@ class SettingsProvider with ChangeNotifier {
 
     // Update notification (bisa gagal independen)
     if (isActive) {
-      final ok = await NotificationService.scheduleDaily(
+      final hasPerm = await NotificationService.requestAndCheckPermission();
+      if (!hasPerm) {
+        _showSnackBar('Izin notifikasi belum diberikan. Buka Pengaturan > Notifikasi > Money Tracker untuk mengaktifkan.');
+        return;
+      }
+
+      final result = await NotificationService.scheduleDaily(
         id: id,
         title: 'Ingat Catat Pengeluaran!',
         body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
         time: newTime,
       );
-      if (!ok && navigatorKey.currentContext != null) {
-        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-          const SnackBar(
-            content: Text('Izin notifikasi belum diberikan. Buka Pengaturan > Notifikasi untuk mengaktifkan.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+
+      if (!result.isSuccess) {
+        _showSnackBar(result.message);
       }
     } else {
       await NotificationService.cancel(id);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> rescheduleAll() async {
+    for (final rem in reminders) {
+      if (rem.isActive) {
+        await NotificationService.scheduleDaily(
+          id: rem.id,
+          title: 'Ingat Catat Pengeluaran!',
+          body: 'Yuk, catat transaksi kamu sekarang agar tetap terkontrol.',
+          time: rem.time,
+        );
+      }
     }
   }
 }

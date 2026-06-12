@@ -12,6 +12,7 @@ import 'package:money_tracker/screens/plan_screen.dart';
 import 'package:money_tracker/screens/settings_screen.dart';
 import 'package:money_tracker/screens/add_expense_screen.dart';
 import 'package:money_tracker/screens/scan_receipt_screen.dart';
+import 'package:money_tracker/screens/subscription_screen.dart';
 import 'package:money_tracker/services/speech_service.dart';
 import 'package:money_tracker/services/transaction_parser_service.dart';
 import 'package:provider/provider.dart';
@@ -579,41 +580,17 @@ class _MainScreenState extends State<MainScreen>
     final planProvider = Provider.of<PlanProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
-    final shortfall = expenseProvider.checkShortfall(
-      netAdditionalExpense,
+    if (mounted) setState(() => _isProcessing = false);
+
+    final proceed = await expenseProvider.handleOverspendIfNeeded(
+      amount: netAdditionalExpense,
       payDay: settingsProvider.periodStartDay,
-    );
-    if (shortfall <= 0) return true;
-
-    final plans = planProvider.plans.where((p) => p.currentAmount > 0).toList();
-    if (plans.isEmpty) return true;
-
-    if (mounted) {
-      setState(() => _isProcessing = false);
-    }
-
-    final allocations = await showModalBottomSheet<Map<String, double>>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => OverspendBottomSheet(
-        shortfall: shortfall,
-        plans: plans,
-        totalPlansBalance: plans.fold<double>(0, (sum, p) => sum + p.currentAmount),
-      ),
-    );
-
-    if (allocations == null) return false;
-
-    setState(() => _isProcessing = true);
-
-    await OverspendService.executeAllocations(
-      allocations: allocations,
-      plans: planProvider.plans,
-      expenseProvider: expenseProvider,
       planProvider: planProvider,
     );
-    return true;
+
+    if (mounted) setState(() => _isProcessing = true);
+    return proceed;
   }
 
   void _cancelRecording() {
@@ -657,8 +634,10 @@ class _MainScreenState extends State<MainScreen>
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceEvenly,
                 children: [
                   _buildTransactionOption(
                     context: context,
@@ -705,6 +684,21 @@ class _MainScreenState extends State<MainScreen>
                         context,
                         MaterialPageRoute(
                           builder: (_) => const ScanReceiptScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildTransactionOption(
+                    context: context,
+                    icon: FontAwesomeIcons.repeat,
+                    label: 'Langganan',
+                    color: Colors.indigo[400]!,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SubscriptionScreen(),
                         ),
                       );
                     },

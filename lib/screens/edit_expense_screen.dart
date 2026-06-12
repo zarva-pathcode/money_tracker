@@ -9,12 +9,10 @@ import '../providers/plan_provider.dart';
 import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
 import '../utils/numeric_input_controller.dart';
-import '../services/overspend_service.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
 import '../widgets/transaction_type_toggle.dart';
 import '../widgets/category_picker.dart';
-import '../widgets/overspend_bottom_sheet.dart';
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
@@ -349,36 +347,13 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
       final planProvider = Provider.of<PlanProvider>(context, listen: false);
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-      final shortfall = expenseProvider.checkShortfall(delta, payDay: settingsProvider.periodStartDay);
-      if (shortfall > 0) {
-        final plans =
-            planProvider.plans.where((p) => p.currentAmount > 0).toList();
-        if (plans.isNotEmpty) {
-          final totalPlansBalance =
-              plans.fold<double>(0, (sum, p) => sum + p.currentAmount);
-
-          final allocations =
-              await showModalBottomSheet<Map<String, double>>(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => OverspendBottomSheet(
-              shortfall: shortfall,
-              plans: plans,
-              totalPlansBalance: totalPlansBalance,
-            ),
-          );
-
-          if (allocations == null) return;
-
-          await OverspendService.executeAllocations(
-            allocations: allocations,
-            plans: planProvider.plans,
-            expenseProvider: expenseProvider,
-            planProvider: planProvider,
-          );
-        }
-      }
+      final proceed = await expenseProvider.handleOverspendIfNeeded(
+        amount: delta,
+        payDay: settingsProvider.periodStartDay,
+        context: context,
+        planProvider: planProvider,
+      );
+      if (!proceed) return;
     }
 
     final updatedExpense = Expense(

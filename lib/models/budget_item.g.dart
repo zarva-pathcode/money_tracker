@@ -20,19 +20,22 @@ class BudgetItemAdapter extends TypeAdapter<BudgetItem> {
       id: fields[0] as String,
       category: fields[1] as String,
       limitAmount: fields[2] as double,
+      threshold: fields[3] == null ? 80.0 : fields[3] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, BudgetItem obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.category)
       ..writeByte(2)
-      ..write(obj.limitAmount);
+      ..write(obj.limitAmount)
+      ..writeByte(3)
+      ..write(obj.threshold);
   }
 
   @override

@@ -18,6 +18,7 @@ import '../providers/plan_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/animated_tap.dart';
 import '../services/notification_service.dart';
+import '../utils/financial_health.dart';
 import '../utils/period_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,6 +79,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Padding atas tipis, bawah cukup untuk shadow (20px)
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                       child: _buildHeroCard(context, provider, planProvider, settings),
+                    ),
+                  ),
+
+                  // 2b. Financial Health Scorecard
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                      child: _buildHealthScorecard(context),
                     ),
                   ),
 
@@ -144,6 +153,38 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+
+                  // 4. Search Bar
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Cari transaksi...',
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                          suffixIcon: provider.searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded, size: 18),
+                                  onPressed: () => provider.setSearchQuery(''),
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[200]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[200]!),
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                        onChanged: (v) => provider.setSearchQuery(v),
                       ),
                     ),
                   ),
@@ -395,6 +436,126 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildHealthScorecard(BuildContext context) {
+    final analysisProvider = context.read<AnalysisProvider>();
+    final allTimeIncome = analysisProvider.allTimeIncome;
+    final allTimeExpenses = analysisProvider.allTimeExpenses;
+    final totalSavings = analysisProvider.totalSavingsAllTime;
+    final incomeMap = analysisProvider.getMonthlyIncomeTotals(DateTime.now().year);
+    final monthlyIncomes = List.generate(12, (i) {
+      return incomeMap[i + 1] ?? 0.0;
+    });
+
+    // Hitung budget hit rate dari expenseProvider langsung
+    final budgetHitRate = 0;
+    final totalBudgets = 0;
+
+    final health = calculateFinancialHealth(
+      totalIncome: allTimeIncome,
+      totalExpenses: allTimeExpenses,
+      totalSavings: totalSavings,
+      budgetsHit: budgetHitRate,
+      totalBudgets: totalBudgets,
+      monthlyIncomes: monthlyIncomes,
+    );
+
+    final gradeColors = {
+      'A': const Color(0xFF2ECC71),
+      'B': const Color(0xFF27AE60),
+      'C': const Color(0xFFF39C12),
+      'D': const Color(0xFFE67E22),
+      'E': const Color(0xFFE74C3C),
+    };
+    final color = gradeColors[health.grade] ?? Colors.grey;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.08), color.withOpacity(0.02)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [
+                BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                health.grade,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Skor Keuangan',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        health.label,
+                        style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '${health.score}/100',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        health.advice,
+                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // WIDGET: List Transaksi Model Kartu Harian (REVAMP TOTAL)
   // WIDGET: List Transaksi dengan Gaya Kartu Terpisah (Monthly Report Style)
   Widget _buildGroupedExpenseList(
@@ -475,6 +636,10 @@ class _HomeScreenState extends State<HomeScreen> {
           final dailyExpense = expenses
               .where((e) => e.type == 'expense')
               .fold(0.0, (sum, e) => sum + e.amount);
+
+          final runningBalances =
+              context.read<AnalysisProvider>().getRunningBalances();
+          final hideAmount = context.read<SettingsProvider>().hideAmount;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,7 +745,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // B. LIST ITEM (Individual Cards)
               ...expenses.map((expense) {
-                return _buildExpenseCard(context, expense, provider);
+                final after = runningBalances[expense.id] ?? 0.0;
+                return _buildExpenseCard(context, expense, provider, after, hideAmount);
               }).toList(),
             ],
           );
@@ -653,6 +819,8 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     Expense expense,
     ExpenseProvider provider,
+    double runningBalance,
+    bool hideAmount,
   ) {
     final style = Constants.getCategoryStyle(expense.category);
     final color = style['color'] as Color;
@@ -725,22 +893,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // 3. Nominal
-                Text(
-                  (expense.type == 'income' ? '+ ' : '- ') +
-                      NumberFormat.currency(
-                        locale: 'id_ID',
-                        symbol: 'Rp ',
-                        decimalDigits: 0,
-                      ).format(expense.amount),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color:
-                        expense.type == 'income'
-                            ? Colors.green[700]
-                            : Colors.red[700],
-                  ),
+                // 3. Nominal + Running Balance
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      hideAmount
+                          ? 'Rp •••••'
+                          : NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(runningBalance),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: runningBalance >= 0
+                            ? Colors.grey[500]
+                            : Colors.red[400],
+                      ),
+                    ),
+                    if (!hideAmount)
+                      Icon(
+                        Icons.arrow_upward,
+                        size: 10,
+                        color: runningBalance >= 0
+                            ? Colors.grey[400]
+                            : Colors.red[300],
+                      ),
+                    if (!hideAmount) const SizedBox(height: 1),
+                    Text(
+                      (expense.type == 'income' ? '+ ' : '- ') +
+                          NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'Rp ',
+                            decimalDigits: 0,
+                          ).format(expense.amount),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color:
+                            expense.type == 'income'
+                                ? Colors.green[700]
+                                : Colors.red[700],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -763,7 +957,7 @@ class _HomeScreenState extends State<HomeScreen> {
               expense: expense,
               onSave:
                   (updatedExpense) =>
-                      expenseProvider.editExpense(updatedExpense),
+                      expenseProvider.editExpense(updatedExpense, sttCategory: expense.category),
             ),
       ),
     );

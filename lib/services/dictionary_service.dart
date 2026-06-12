@@ -1,10 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'hive_service.dart';
 
 class DictionaryService {
   DictionaryService._();
   static final DictionaryService _instance = DictionaryService._();
   static DictionaryService get instance => _instance;
+
+  HiveService? _hiveService;
+  Map<String, String> _localCorrections = {};
+
+  void setHiveService(HiveService service) {
+    _hiveService = service;
+    _localCorrections = service.getAllWordCorrections();
+  }
 
   bool _loaded = false;
   late Map<String, dynamic> _data;
@@ -85,6 +94,13 @@ class DictionaryService {
   String inferCategory(String description, String type) {
     if (description.isEmpty) return 'Lainnya';
     final desc = description.toLowerCase();
+
+    // 1. Cek koreksi lokal dulu
+    for (final entry in _localCorrections.entries) {
+      if (desc.contains(entry.key)) return entry.value;
+    }
+
+    // 2. Fallback ke dictionary JSON
     for (final keyword in _sortedKeywords) {
       if (desc.contains(keyword)) {
         final cat = _keywordCategory[keyword]!;
@@ -94,6 +110,12 @@ class DictionaryService {
       }
     }
     return 'Lainnya';
+  }
+
+  Future<void> saveCorrection(String word, String category) async {
+    final key = word.toLowerCase().trim();
+    _localCorrections[key] = category;
+    await _hiveService?.saveWordCorrection(key, category);
   }
 
   /// Cek apakah teks mengandung keyword dari kategori income (Gaji, Bonus, Investasi).

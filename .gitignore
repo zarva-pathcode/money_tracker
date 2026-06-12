@@ -47,3 +47,7 @@ app.*.map.json
 # AI agent context (internal, not for remote)
 .agents/
 AGENTS.md
+
+# ECC node dependencies
+.opencode/node_modules/
+.opencode/dist/
