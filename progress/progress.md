@@ -43,6 +43,12 @@
   - **2.6** Ganti semua `print()` → `debugPrint()` + import `package:flutter/foundation.dart`
   - `dart analyze` No issues found
 
+- **OCR Phase 3 — UI/UX Scan Screen**: `lib/screens/scan_receipt_screen.dart` (378→421 baris):
+  - **3.1** Inline amount editing: icon edit/checkmark di samping nominal terdeteksi → TextField numerik yang bisa diedit langsung
+  - **3.3** Confidence badge: hijau (tinggi, total terdeteksi), kuning (sedang, teks terbaca tanpa total), merah (rendah, gagal) → badge pill di header amount
+  - **3.2** Skipped: `AddExpenseScreen` belum punya `preFilledNote` parameter
+  - `dart analyze` 0 error
+
 ## Recently Completed (2026-08-20)
 
 - **Notification fix (timezone)**: Rewrite `NotificationService` — 3-tier timezone fallback (IANA → system name → offset-based). Cancel reminder tanpa affect budget alerts (`cancelReminder()` ID base 100 vs `showBudgetAlert()` ID base 200). `rescheduleAll()` sekarang hanya cancel reminders, bukan `cancelAll()`. Detail logging `[NOTIF]` untuk debugging. **✅ Verified on device** — notif muncul di tray sesuai jadwal.

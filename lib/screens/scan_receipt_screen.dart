@@ -18,6 +18,8 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
   String _rawOcrText = "";
   double? _detectedTotal;
   String? _errorMessage;
+  final _amountController = TextEditingController();
+  bool _editingAmount = false;
 
   Future<void> _startScanSequence() async {
     try {
@@ -72,6 +74,47 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
           initialTransactionType: 'expense',
           preFilledAmount: amount,
         ),
+      ),
+    );
+  }
+
+  /// Confidence badge: hijau (total terdeteksi), kuning (teks terbaca tapi tanpa total), merah (gagal)
+  Widget _buildConfidenceBadge() {
+    Color color;
+    String label;
+    IconData icon;
+
+    if (_errorMessage == null && _detectedTotal != null) {
+      color = Colors.green;
+      label = "Tinggi";
+      icon = Icons.check_circle;
+    } else if (_rawOcrText.isNotEmpty && _detectedTotal == null) {
+      color = Colors.orange;
+      label = "Sedang";
+      icon = Icons.warning_amber;
+    } else {
+      color = Colors.red;
+      label = "Rendah";
+      icon = Icons.error_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
@@ -213,7 +256,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
           ),
         const SizedBox(height: 16),
 
-        // Detected amount
+        // Detected amount + inline editing
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -231,28 +274,69 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Total Terdeteksi",
-                style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+              Row(
+                children: [
+                  const Text(
+                    "Total Terdeteksi",
+                    style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                  ),
+                  const Spacer(),
+                  // Confidence badge
+                  _buildConfidenceBadge(),
+                ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
-                    _detectedTotal != null
-                        ? "Rp ${_detectedTotal!.toInt()}"
-                        : "Rp 0",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: _detectedTotal != null
-                          ? Theme.of(context).primaryColor
-                          : Colors.red,
+if (_editingAmount) ...[
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            autofocus: true,
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            final val = double.tryParse(_amountController.text);
+                            if (val != null && val > 0) {
+                              setState(() {
+                                _detectedTotal = val;
+                                _editingAmount = false;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                        ),
+                      ] else ...[
+                    Text(
+                      _detectedTotal != null
+                          ? "Rp ${_detectedTotal!.toInt()}"
+                          : "Rp 0",
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: _detectedTotal != null
+                            ? Theme.of(context).primaryColor
+                            : Colors.red,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  if (_detectedTotal != null)
-                    const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                    const Spacer(),
+                    if (_detectedTotal != null)
+                      IconButton(
+                        onPressed: () {
+                          _amountController.text = _detectedTotal!.toInt().toString();
+                          setState(() => _editingAmount = true);
+                        },
+                        icon: const Icon(Icons.edit, color: Colors.blue, size: 22),
+                        tooltip: "Edit amount",
+                      ),
+                  ],
                 ],
               ),
             ],
