@@ -76,6 +76,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Sapaan dinamis berdasarkan jam: Pagi / Siang / Sore / Malam.
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) return 'Selamat Pagi';
+    if (hour >= 11 && hour < 15) return 'Selamat Siang';
+    if (hour >= 15 && hour < 19) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }
+
   @override
   Widget build(BuildContext context) {
     // Tanpa Scaffold ganda — keyboard insets dikelola satu pintu oleh
@@ -88,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // 1. AppBar simpel (hanya judul saat collapsed)
+                  // 1. AppBar sapaan dinamis + tanggal hari ini
                   SliverAppBar(
                     systemOverlayStyle: SystemUiOverlayStyle.dark,
                     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -96,14 +105,61 @@ class _HomeScreenState extends State<HomeScreen> {
                     floating: false,
                     pinned: true,
                     elevation: 0,
-                    title: const Text(
-                      'Ringkasan',
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                      ),
+                    centerTitle: false, // Judul rata kiri
+                    titleSpacing: 20,
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _greeting(),
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          DateFormat(
+                            'EEEE, d MMMM yyyy',
+                            'id_ID',
+                          ).format(DateTime.now()),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
+                    actions: [
+                      // Badge jumlah transaksi bulan berjalan
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${provider.expenses.length} transaksi',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   // 2. Hero Card — di luar SliverAppBar agar shadow tidak ter-clip
@@ -130,7 +186,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       minHeight: 60.0,
                       maxHeight: 60.0,
                       child: Container(
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 10,
@@ -376,38 +441,38 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title + Toggle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                heroTitle,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+          // Pill switcher mode saldo: Uang Saya / Total Kekayaan
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                _buildHeroModeItem(
+                  selected: !showKekayaan,
+                  label: 'Uang Saya',
+                  onTap: () => setState(() => _showKekayaanMode = false),
                 ),
-              ),
-              GestureDetector(
-                onTap: () =>
-                    setState(() => _showKekayaanMode = !_showKekayaanMode),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: FaIcon(
-                    FontAwesomeIcons.arrowsRotate,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                _buildHeroModeItem(
+                  selected: showKekayaan,
+                  label: 'Total Kekayaan',
+                  onTap: () => setState(() => _showKekayaanMode = true),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
+          Text(
+            heroTitle,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
           // Balance + Eye
           Row(
             children: [
@@ -449,9 +514,46 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomSection,
         ],
       ),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-     .scaleXY(begin: 1.0, end: 1.015, duration: 2500.ms, curve: Curves.easeInOut)
-     .shimmer(duration: 2500.ms, color: Colors.white.withValues(alpha: 0.15));
+      // Animasi masuk sekali jalan (tanpa infinite loop hemat CPU/baterai).
+    ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(
+      begin: 0.08,
+      end: 0,
+      duration: 400.ms,
+      curve: Curves.easeOutQuad,
+    );
+  }
+
+  /// Item pill switcher mode saldo di hero card (putih transparan).
+  Widget _buildHeroModeItem({
+    required bool selected,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color:
+                selected
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _rowItem({
@@ -514,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -523,7 +625,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: FaIcon(
                   FontAwesomeIcons.fileInvoiceDollar,
                   size: 40,
-                  color: Theme.of(context).primaryColor.withOpacity(0.5),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 20),
@@ -697,65 +799,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMonthBadges(ExpenseProvider provider) {
-    final List<MonthFilter> options = [
-      MonthFilter.all,
-      ...MonthFilter.values.where((m) => m != MonthFilter.all),
-    ];
-
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      // HAPUS padding horizontal di sini agar scroll mentok ke tepi
-      itemCount: options.length,
-      itemBuilder: (context, index) {
-        final month = options[index];
-        final isSelected = provider.selectedMonthFilter == month;
-
-        String label;
-        if (month == MonthFilter.all) {
-          label = "Semua";
-        } else {
-          label = Constants.months[month.index].substring(0, 3);
-        }
-
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: InkWell(
-            onTap: () => provider.setMonthFilter(month),
-            borderRadius: BorderRadius.circular(20),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color:
-                    isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color:
-                      isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey.shade300,
-                ),
-              ),
-              alignment: Alignment.center, // Pastikan teks di tengah
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[700],
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   // WIDGET ITEM: Gaya Kartu Terpisah (Monthly Report Style)
   Widget _buildExpenseCard(
     BuildContext context,
@@ -773,10 +816,11 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20), // Radius membulat
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.04),
-            blurRadius: 10,
+            color: Colors.grey.withValues(alpha: 0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -794,7 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(child: FaIcon(icon, color: color, size: 20)),
@@ -953,19 +997,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // 2. Header: Detail Transaksi + Waktu
+                // 2. Header: ikon besar + judul + badge waktu + nominal
                 Row(
                   children: [
                     // Ikon Kategori
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        shape: BoxShape.circle,
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
-                        child: FaIcon(icon, color: color, size: 24),
+                        child: FaIcon(icon, color: color, size: 26),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -981,35 +1025,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ? expense.title
                                 : expense.category,
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
                               color: Colors.black87,
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
 
-                          const SizedBox(height: 4),
-
-                          // INFO WAKTU (BARU)
-                          Text(
-                            dateString,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-
                           const SizedBox(height: 6),
 
-                          // Nominal
-                          Text(
-                            currencyFormatter.format(expense.amount),
-                            style: const TextStyle(
-                              fontSize: 16, // Sedikit lebih besar biar jelas
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black87,
+                          // Badge waktu
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              dateString,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -1018,9 +1060,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
+                const SizedBox(height: 16),
+
+                // Nominal besar dengan tanda +/− sesuai tipe
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${expense.type == 'income' ? '+' : '−'} ${currencyFormatter.format(expense.amount)}',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color:
+                          expense.type == 'income'
+                              ? Colors.green[700]
+                              : Colors.red[700],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 20),
 
-                // 3. Running Balance
+                // 3. Kartu dampak ke saldo (Sebelum ➔ Sesudah)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: 14,
@@ -1028,128 +1089,141 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey[200]!),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Saldo Sebelum',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              currencyFormatter.format(before),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Dampak ke Saldo',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Container(
-                        width: 1,
-                        height: 34,
-                        color: Colors.grey[300],
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Saldo Sesudah',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.w500,
-                              ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Sebelum',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  currencyFormatter.format(before),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              currencyFormatter.format(after),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: after >= 0
-                                    ? Colors.black87
-                                    : Colors.red[600],
-                              ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                        ),
+                            child: Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 15,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Sesudah',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  currencyFormatter.format(after),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: after >= 0
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.red[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // 4. Tombol Edit
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _showEditExpense(context, expense);
-                    },
-                    icon: const Icon(Icons.edit_rounded, size: 20),
-                    label: const Text("Edit Transaksi"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
+                // 4. Tombol aksi berdampingan: Edit + Hapus
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showEditExpense(context, expense);
+                        },
+                        icon: const Icon(Icons.edit_rounded, size: 18),
+                        label: const Text("Edit"),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                       ),
-                      side: BorderSide(color: Colors.grey[300]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _confirmDelete(context, provider, expense.id);
+                        },
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.red[600],
+                          size: 18,
+                        ),
+                        label: Text(
+                          "Hapus",
+                          style: TextStyle(
+                            color: Colors.red[600],
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: Colors.red[50],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                       ),
-                      foregroundColor: Colors.black87,
-                      alignment: Alignment.centerLeft,
                     ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 5. Tombol Hapus
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _confirmDelete(context, provider, expense.id);
-                    },
-                    icon: Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.red[400],
-                      size: 20,
-                    ),
-                    label: Text(
-                      "Hapus Transaksi",
-                      style: TextStyle(color: Colors.red[400]),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
-                      ),
-                      backgroundColor: Colors.red[50],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      alignment: Alignment.centerLeft,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),

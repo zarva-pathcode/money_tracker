@@ -216,3 +216,4 @@
 | 2026-09-04 | Detail Screen Revamp | Judul + tahun dinamis, hero arus kas putih + badge Surplus/Defisit, weekly chart pill Wrap + bar rounded-8, top list tile badge tanggal, segmented kategori, kategori jadi kartu tap-to-sheet, animasi staggered | ✅ Done |
 | 2026-09-04 | Detail Toggle Overflow | Pisah judul + toggle distribusi kategori jadi 2 baris + toggle full-width Expanded 50:50; atasi RenderFlex overflow 42px | ✅ Done |
 | 2026-09-04 | Detail Donut Unify | Ganti donut polos dengan ExpenseChart + kartu distribusi + pill kategori terbesar (identik Tab Bulanan); hapus _buildCategoryDonut & _DetailChartData | ✅ Done |
+| 2026-09-04 | Home Revamp | AppBar sapaan dinamis + badge transaksi, hero pill switcher + hapus infinite anim, sticky bar shadow, kartu transaksi border, sheet opsi (nominal +/−, kartu Sebelum➔Sesudah, tombol Edit/Hapus berdampingan); hapus _buildMonthBadges + withOpacity → analyze bersih | ✅ Done |
