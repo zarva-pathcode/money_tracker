@@ -58,10 +58,13 @@ class OcrService {
         final inputImage = InputImage.fromFilePath(path);
         final recognizedText = await _textRecognizer.processImage(inputImage);
         final text = recognizedText.text.trim();
+        debugPrint("[OCR] Pass $attempt raw text:\n$text");
 
         if (_hasReadableText(text)) {
+          debugPrint("[OCR] Pass $attempt: ACCEPTED (${text.length} chars)");
           return text;
         }
+        debugPrint("[OCR] Pass $attempt: REJECTED (${text.length} chars, no digits)");
       } catch (e) {
         debugPrint("OcrService.extractText attempt $attempt error: $e");
       }

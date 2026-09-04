@@ -190,6 +190,8 @@ class ReceiptParser {
   }
 
   static bool _isValidPrice(double value) {
+    // Exclude tahun yang terbaca OCR dari tanggal (e.g. 2027, 2026)
+    if (value >= 1900 && value <= 2099) return false;
     if (value < _minPrice || value > _maxPrice) {
       return false;
     }
