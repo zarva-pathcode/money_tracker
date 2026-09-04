@@ -136,10 +136,13 @@ class ReceiptParser {
   static List<double> _extractPrices(String line) {
     final result = <double>[];
 
-    // Tangkap semua calon nominal: 1.000,00 / 15000 / 15rb / 15.000
-    final matches = RegExp(
-      r'\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?|\d+',
-    ).allMatches(line);
+    // Pattern:1-3 digit + (separator ribuan)xN + optional desimal 2 digit
+    // Prioritas: ribuan.detik → ribuan,detik → integer
+    // Jangan pakai \d+ fallback karena memecah "32.300" jadi ["32","300"]
+    final pricePattern = RegExp(
+      r'\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?|\d{1,3}(?:[.,]\d{3})?|\d{4,}',
+    );
+    final matches = pricePattern.allMatches(line);
 
     for (final m in matches) {
       final raw = m.group(0)!;
