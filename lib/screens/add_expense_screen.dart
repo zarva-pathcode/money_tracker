@@ -303,7 +303,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         ),
                         child: Column(
                           children: [
-                            SwitchListTile(
+                            // Material sendiri agar ink splash SwitchListTile
+                            // tidak tertutup kartu putih (ListTile invisible error).
+                            Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              clipBehavior: Clip.antiAlias,
+                              child: SwitchListTile(
                               title: const Text(
                                 'Bayar dari Tabungan',
                                 style: TextStyle(
@@ -339,6 +345,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                               dense: true,
+                              ),
                             ),
                             if (_payFromSavings) ...[
                               const Divider(height: 1, indent: 16, endIndent: 16),
@@ -555,21 +562,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: SwitchListTile(
-        title: const Text(
-          'Langganan Rutin',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      // Material sendiri agar ink splash tidak tertutup kartu putih.
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: SwitchListTile(
+          title: const Text(
+            'Langganan Rutin',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+          subtitle: Text(
+            'Transaksi berulang setiap bulan',
+            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+          ),
+          value: _isSubscription,
+          onChanged: (v) => setState(() => _isSubscription = v),
+          activeColor: Colors.indigo,
+          secondary: FaIcon(FontAwesomeIcons.repeat, size: 16, color: _isSubscription ? Colors.indigo : Colors.grey[400]),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          dense: true,
         ),
-        subtitle: Text(
-          'Transaksi berulang setiap bulan',
-          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-        ),
-        value: _isSubscription,
-        onChanged: (v) => setState(() => _isSubscription = v),
-        activeColor: Colors.indigo,
-        secondary: FaIcon(FontAwesomeIcons.repeat, size: 16, color: _isSubscription ? Colors.indigo : Colors.grey[400]),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        dense: true,
       ),
     );
   }

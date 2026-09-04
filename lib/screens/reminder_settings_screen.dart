@@ -280,7 +280,12 @@ class _ReminderTileItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = rem.isActive;
-    return ListTile(
+    // Material sendiri agar ink splash tidak tertutup kartu putih.
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
       contentPadding: const EdgeInsets.only(left: 20, right: 8, top: 4, bottom: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -314,6 +319,7 @@ class _ReminderTileItem extends StatelessWidget {
         ],
       ),
       onTap: onEdit,
+      ),
     );
   }
 }

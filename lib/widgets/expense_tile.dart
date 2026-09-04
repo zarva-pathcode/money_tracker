@@ -77,24 +77,31 @@ class ExpenseTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              ListTile(
-                leading: const FaIcon(FontAwesomeIcons.penToSquare, size: 18),
-                title: const Text('Edit Transaksi'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onEdit();
-                },
-              ),
-              ListTile(
-                leading: const FaIcon(FontAwesomeIcons.trashCan, size: 18, color: Colors.red),
-                title: const Text(
-                  'Hapus Transaksi',
-                  style: TextStyle(color: Colors.red),
+              Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const FaIcon(FontAwesomeIcons.penToSquare, size: 18),
+                      title: const Text('Edit Transaksi'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        onEdit();
+                      },
+                    ),
+                    ListTile(
+                      leading: const FaIcon(FontAwesomeIcons.trashCan, size: 18, color: Colors.red),
+                      title: const Text(
+                        'Hapus Transaksi',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _confirmDelete(context);
+                      },
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete(context);
-                },
               ),
               const SizedBox(height: 16),
             ],

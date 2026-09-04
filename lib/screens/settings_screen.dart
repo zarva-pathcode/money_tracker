@@ -934,7 +934,13 @@ class SettingsScreen extends StatelessWidget {
                       final style = Constants.getCategoryStyle(category);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
+                        // Material sendiri agar ink splash tidak tertutup
+                        // container sheet putih (ListTile invisible error).
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 4,
@@ -972,6 +978,7 @@ class SettingsScreen extends StatelessWidget {
                           onTap:
                               () =>
                                   _showCategoryPicker(context, index, provider),
+                          ),
                         ),
                       );
                     }),

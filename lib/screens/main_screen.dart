@@ -14,6 +14,7 @@ import 'package:money_tracker/screens/add_expense_screen.dart';
 import 'package:money_tracker/screens/scan_receipt_screen.dart';
 import 'package:money_tracker/screens/subscription_screen.dart';
 import 'package:money_tracker/services/speech_service.dart';
+import 'package:money_tracker/services/ocr_service.dart';
 import 'package:money_tracker/services/transaction_parser_service.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -648,6 +649,22 @@ class _MainScreenState extends State<MainScreen>
     });
   }
 
+  /// Alur scan langsung: tutup modal → buka kamera MLKit → jika ada
+  /// hasil, langsung masuk layar hasil scan (tanpa halaman kosong).
+  /// PENTING: pakai State.context milik MainScreen (bukan context modal
+  /// yang sudah unmount setelah pop) agar Navigator.push selalu jalan.
+  Future<void> _startScanFlow() async {
+    Navigator.pop(context);
+    final scannedPath = await OcrService.scanDocument();
+    if (scannedPath == null || !mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScanReceiptScreen(initialImagePath: scannedPath),
+      ),
+    );
+  }
+
   void _showAddTransactionBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -735,15 +752,7 @@ class _MainScreenState extends State<MainScreen>
                   subtitle: 'Ekstrak total langsung dari foto nota',
                   color: Colors.blue[700]!,
                   badge: 'Otomatis',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ScanReceiptScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => _startScanFlow(),
                 ),
                 _buildTransactionOption(
                   context: context,
