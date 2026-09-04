@@ -199,4 +199,5 @@
 | 2026-09-04 | Notif Verify | Notif verified on device — muncul di tray sesuai jadwal, timezone fallback bekerja | ✅ Done |
 | 2026-09-04 | OCR Phase 1 | ReceiptParser: 8 keyword anchor, context-aware normalize, extractPrices filter, parsePrice last-sep format | ✅ Done |
 | 2026-09-04 | OCR Phase 1.5 | ReceiptParser: Exclude quantity `2X 5.500`. Logika pencarian Relasi Matematik `CASH - KEMBALI` pada mode Fallback bottom-40% | ✅ Done |
+| 2026-09-04 | OCR Phase 1.6 | ReceiptParser: Leveling Prioritas kata kunci & Relasi Matematika Smart Cash-Change langsung di baris pemindai Cash | ✅ Done |
 | 2026-09-04 | OCR Phase 2 | OcrService: upscaling, white border, gaussian blur, combined pass 4, readable text threshold, print→debugPrint | ✅ Done |

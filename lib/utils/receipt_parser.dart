@@ -25,6 +25,11 @@ class ReceiptParser {
     'QRIS': ['QRIS', 'QR1S'],
     'VISA': ['VISA', 'V1SA', 'VI5A'],
     'CHARGE': ['CHARGE', 'CHARG3', 'CHARGE'],
+    'GOPAY': ['GOPAY', 'G0PAY', 'GOP4Y'],
+    'OVO': ['OVO', '0V0', 'OVO'],
+    'SHOPEEPAY': ['SHOPEEPAY', 'SHOPEEP4Y', 'SPAY'],
+    'DANA': ['DANA', 'DAN4', 'DANA'],
+    'PEMBAYARAN SEBENARNYA': ['PEMBAYARAN SEBENARNYA', 'PEMBAYARAN', 'PEMB4YARAN SEBENARNYA'],
     'SUBTOTAL': ['SUBTOTAL', 'SUBT0TAL', 'SUB T0TAL'],
   };
 
@@ -44,10 +49,15 @@ class ReceiptParser {
     final normalized = rawLines.map(_normalizeLine).toList();
 
     // --- Priority search: keyword anchoring ---
+    // Level 1: Total belanja bersih (paling akurat, tidak sekadar uang tunai)
+    // Level 2: Pembayaran digital / total umum
+    // Level 3: Tunai fisik (CASH/TUNAI) — hanya digunakan sebagai fallback terakhir
     final priorities = [
-      ['CASH', 'TUNAI', 'DEBIT', 'KREDIT', 'QRIS', 'VISA'],
-      ['GRAND TOTAL', 'TOTAL BAYAR', 'NETTO'],
-      ['TOTAL', 'AMOUNT'],
+      ['GRAND TOTAL', 'TOTAL BAYAR', 'PEMBAYARAN SEBENARNYA', 'TOTAL TAGIHAN',
+       'TOTAL BELANJA', 'NET TOTAL', 'NETTO', 'TOTAL AKHIR'],
+      ['TOTAL HARGA', 'TOTAL', 'JUMLAH', 'AMOUNT', 'QRIS', 'DEBIT', 'KREDIT',
+       'GOPAY', 'OVO', 'SHOPEEPAY', 'DANA', 'VISA', 'CHARGE', 'SUBTOTAL'],
+      ['CASH', 'TUNAI', 'BAYAR'],
     ];
 
     for (final group in priorities) {
@@ -65,6 +75,16 @@ class ReceiptParser {
           if (target.isEmpty) continue;
           final prices = _extractPrices(target);
           if (prices.isNotEmpty) {
+            // Special case: jika keyword adalah CASH/TUNAI/BAYAR, jangan langsung
+            // kembalikan harga pertama. Scan 5 baris ke bawah dan cari total belanja
+            // dengan logika Cash - Change = Total.
+            if (group.first == 'CASH') {
+              final smartTotal = _resolveCashChange(normalized, i, j);
+              if (smartTotal != null) {
+                debugPrint("ReceiptParser: smart CASH resolved -> $smartTotal");
+                return smartTotal;
+              }
+            }
             prices.sort((a, b) => b.compareTo(a));
             debugPrint("ReceiptParser: matched '${target.trim()}' -> ${prices.first}");
             return prices.first;
@@ -121,6 +141,34 @@ class ReceiptParser {
 
     debugPrint("ReceiptParser: GAGAL");
     return null;
+  }
+
+  /// Cerdas membedakan Uang Tunai vs Total Belanja
+  static double? _resolveCashChange(List<String> normalized, int startLine, int currentJ) {
+    // Kumpulkan seluruh angka di 5-7 baris ke bawah setelah keyword CASH ditemukan
+    final prices = <double>[];
+    for (int k = 0; k <= 7 && startLine + k < normalized.length; k++) {
+       prices.addAll(_extractPrices(normalized[startLine + k]));
+    }
+    
+    if (prices.length >= 2) {
+      prices.sort((a, b) => b.compareTo(a));
+      // Cari hubungan Tunai - Kembali = Total Belanja
+      for (int m = 0; m < prices.length; m++) {
+        for (int n = m + 1; n < prices.length; n++) {
+           double cash = prices[m];
+           double total = prices[n];
+           double diff = cash - total;
+           bool hasChangeMatch = prices.any((val) => (val - diff).abs() <= 1000);
+           
+           // Jika math relation terpenuhi dan total masuk akal (mencegah Rp0)
+           if (hasChangeMatch && total > _minPrice) {
+               return total;
+           }
+        }
+      }
+    }
+    return null; // Gagal memvalidasi logik kasir
   }
 
   static bool _fuzzyContains(String text, String keyword) {
