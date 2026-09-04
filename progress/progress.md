@@ -28,7 +28,7 @@
 
 ## Recently Completed (2026-08-20)
 
-- **Notification fix (timezone)**: Rewrite `NotificationService` — 3-tier timezone fallback (IANA → system name → offset-based). Cancel reminder tanpa affect budget alerts (`cancelReminder()` ID base 100 vs `showBudgetAlert()` ID base 200). `rescheduleAll()` sekarang hanya cancel reminders, bukan `cancelAll()`. Verifikasi pending notif setelah schedule. Detail logging `[NOTIF]` untuk debugging.
+- **Notification fix (timezone)**: Rewrite `NotificationService` — 3-tier timezone fallback (IANA → system name → offset-based). Cancel reminder tanpa affect budget alerts (`cancelReminder()` ID base 100 vs `showBudgetAlert()` ID base 200). `rescheduleAll()` sekarang hanya cancel reminders, bukan `cancelAll()`. Detail logging `[NOTIF]` untuk debugging. **✅ Verified on device** — notif muncul di tray sesuai jadwal.
 - **OCR improvement plan**: Disimpan di `docs/plan-ocr-improvement.md`. 3 phase: parser fix, preprocessing improvement, UI/UX inline editing.
 - **AGENTS.md cleanup**: Pindahkan semua progress data ke `progress/progress.md`. AGENTS.md sekarang hanya berisi rules/instruksi.
 
@@ -171,3 +171,5 @@
 | 2026-08-20 | OCR Plan | Riset + plan penyempurnaan OCR | ✅ Done |
 | 2026-08-20 | AGENTS.md | SOLID rules, progress tracking, cleanup | ✅ Done |
 | 2026-09-04 | Overspend Fix | Fix false-positive: period end midnight, exclude Tabungan dari checkShortfall & getPeriodIncome/Expenses | ✅ Done |
+| 2026-09-04 | Settings Animasi | Tambah import flutter_animate, per-section fadeIn+slideY delay 80ms (0→400ms) sesuai gaya Report | ✅ Done |
+| 2026-09-04 | Notif Verify | Notif verified on device — muncul di tray sesuai jadwal, timezone fallback bekerja | ✅ Done |
