@@ -80,8 +80,30 @@ class ReceiptParser {
     for (final line in bottom) {
       allPrices.addAll(_extractPrices(line));
     }
+    
+    // Coba temukan hubungan Cash - Kembali = Total
     if (allPrices.isNotEmpty) {
       allPrices.sort((a, b) => b.compareTo(a));
+      // Hanya lihat 5 angka terbesar yang potensial menjadi nominal pembayaran
+      final topPrices = allPrices.take(10).toList();
+      
+      for (int i = 0; i < topPrices.length; i++) {
+        for (int j = i + 1; j < topPrices.length; j++) {
+           double maxVal = topPrices[i]; // Diduga Uang Tunai (e.g. 150.000)
+           double midVal = topPrices[j]; // Diduga Total Belanja (e.g. 120.800)
+           
+           // Jika selisihnya cocok dengan angka kembalian yang ada di struk
+           // Toleransi pembulatan kantong plastik / donasi (±1000)
+           double diff = maxVal - midVal;
+           bool hasChangeMatch = topPrices.any((val) => (val - diff).abs() <= 1000);
+           
+           if (hasChangeMatch && midVal > _minPrice) {
+               debugPrint("ReceiptParser: math relation found! Cash: $maxVal, Total: $midVal");
+               return midVal;
+           }
+        }
+      }
+
       debugPrint("ReceiptParser: fallback bottom -> ${allPrices.first}");
       return allPrices.first;
     }
@@ -135,12 +157,16 @@ class ReceiptParser {
   // ==========================================
   static List<double> _extractPrices(String line) {
     final result = <double>[];
+    
+    // Jangan proses baris yang kelihatannya berisi kuantitas barang
+    if (RegExp(r'\d+\s*[xX]\s*\d+').hasMatch(line)) return result;
+    if (line.toUpperCase().contains('PCS')) return result;
+    if (line.contains('@')) return result;
 
-    // Pattern:1-3 digit + (separator ribuan)xN + optional desimal 2 digit
-    // Prioritas: ribuan.detik → ribuan,detik → integer
-    // Jangan pakai \d+ fallback karena memecah "32.300" jadi ["32","300"]
+    // Pattern: ribuan.detik → ribuan,detik → integer (prioritas tinggi ke rendah)
+    // Menggunakan word character boundaries (\b) untuk mencegah pemotongan
     final pricePattern = RegExp(
-      r'\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?|\d{1,3}(?:[.,]\d{3})?|\d{4,}',
+      r'\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?\b|\b\d+\b',
     );
     final matches = pricePattern.allMatches(line);
 
@@ -158,6 +184,11 @@ class ReceiptParser {
       }
     }
 
+    // Debug: log semua harga yang ditemukan per baris
+    if (result.isNotEmpty) {
+      debugPrint("ReceiptParser _extractPrices('$line') -> $result");
+    }
+
     return result;
   }
 
@@ -167,22 +198,25 @@ class ReceiptParser {
     // Buang separator di ujung
     s = s.replaceAll(RegExp(r'^[.,]+|[.,]+$'), '');
 
-    // Deteksi format berdasarkan posisi separator TERAKHIR:
-    // - "15.000,00" → last sep ',' → Indonesian: ribuan '.', desimal ','
-    // - "15,000.00" → last sep '.' → International: ribuan ',', desimal '.'
     final lastDot = s.lastIndexOf('.');
     final lastComma = s.lastIndexOf(',');
-    final hasDecimal = (lastDot > lastComma && lastDot != -1) ||
-        (lastComma > lastDot && lastComma != -1);
-    final sepChar = lastDot > lastComma ? '.' : ',';
+    
+    int lastSepIndex = lastDot > lastComma ? lastDot : lastComma;
 
-    if (hasDecimal) {
-      final parts = s.split(sepChar);
-      if (parts.length == 2 && parts[1].length <= 2) {
-        // Desimal: buang semua ribuan, ganti desimal jadi '.'
-        final intPart = parts[0].replaceAll(RegExp(r'[.,]'), '');
-        final decPart = parts[1];
+    if (lastSepIndex != -1) {
+      // Hitung ada berapa karakter setelah pemisah terakhir
+      int charsAfterSep = s.length - lastSepIndex - 1;
+
+      if (charsAfterSep == 1 || charsAfterSep == 2) {
+        // Ini adalah desimal (mis. ,50 atau .00)
+        // Hapus semua pemisah ribuan di depan, jadikan pemisah akhir sebagai '.'
+        String intPart = s.substring(0, lastSepIndex).replaceAll(RegExp(r'[.,]'), '');
+        String decPart = s.substring(lastSepIndex + 1);
         s = '$intPart.$decPart';
+      } else {
+        // charsAfterSep == 3 (mis. .000 atau ,500)
+        // Berarti ini pemisah ribuan. Buang semua titik/koma.
+        s = s.replaceAll(RegExp(r'[.,]'), '');
       }
     } else {
       // Tidak ada separator → angka bulat

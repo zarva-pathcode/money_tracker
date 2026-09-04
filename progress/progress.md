@@ -198,4 +198,5 @@
 | 2026-09-04 | Settings Animasi | Tambah import flutter_animate, per-section fadeIn+slideY delay 80ms (0→400ms) sesuai gaya Report | ✅ Done |
 | 2026-09-04 | Notif Verify | Notif verified on device — muncul di tray sesuai jadwal, timezone fallback bekerja | ✅ Done |
 | 2026-09-04 | OCR Phase 1 | ReceiptParser: 8 keyword anchor, context-aware normalize, extractPrices filter, parsePrice last-sep format | ✅ Done |
+| 2026-09-04 | OCR Phase 1.5 | ReceiptParser: Exclude quantity `2X 5.500`. Logika pencarian Relasi Matematik `CASH - KEMBALI` pada mode Fallback bottom-40% | ✅ Done |
 | 2026-09-04 | OCR Phase 2 | OcrService: upscaling, white border, gaussian blur, combined pass 4, readable text threshold, print→debugPrint | ✅ Done |
