@@ -779,11 +779,13 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
 
         // Accordion teks OCR mentah
         if (_rawOcrText.isNotEmpty)
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Colors.grey[200]!),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey[200]!),
             ),
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

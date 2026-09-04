@@ -76,7 +76,7 @@ class ReceiptParser {
           final prices = _extractPrices(target);
           if (prices.isNotEmpty) {
             // Special case: jika keyword adalah CASH/TUNAI/BAYAR, jangan langsung
-            // kembalikan harga pertama. Scan 5 baris ke bawah dan cari total belanja
+            // kembalikan harga pertama. Scan 7 baris ke bawah dan cari total belanja
             // dengan logika Cash - Change = Total.
             if (group.first == 'CASH') {
               final smartTotal = _resolveCashChange(normalized, i, j);
@@ -84,6 +84,10 @@ class ReceiptParser {
                 debugPrint("ReceiptParser: smart CASH resolved -> $smartTotal");
                 return smartTotal;
               }
+              // Jika gagal menemukan relasi matematika di sekitar kata CASH, 
+              // DILARANG mengambil angka pertama (karena sering jebol ke harga barang).
+              // Lanjutkan loop agar jatuh ke metode Fallback Bottom-40%.
+              continue;
             }
             prices.sort((a, b) => b.compareTo(a));
             debugPrint("ReceiptParser: matched '${target.trim()}' -> ${prices.first}");
@@ -101,21 +105,27 @@ class ReceiptParser {
       allPrices.addAll(_extractPrices(line));
     }
     
+    // Filter angka negatif (diskon/pembulatan dibuang dari kandidat utama)
+    final positiveBottomPrices = allPrices.where((p) => p > 0).toSet().toList();
+    
     // Coba temukan hubungan Cash - Kembali = Total
-    if (allPrices.isNotEmpty) {
-      allPrices.sort((a, b) => b.compareTo(a));
-      // Hanya lihat 5 angka terbesar yang potensial menjadi nominal pembayaran
-      final topPrices = allPrices.take(10).toList();
+    if (positiveBottomPrices.isNotEmpty) {
+      positiveBottomPrices.sort((a, b) => b.compareTo(a));
+      // Hanya lihat 5-10 angka terbesar yang potensial
+      final topPrices = positiveBottomPrices.take(10).toList();
       
       for (int i = 0; i < topPrices.length; i++) {
         for (int j = i + 1; j < topPrices.length; j++) {
            double maxVal = topPrices[i]; // Diduga Uang Tunai (e.g. 150.000)
            double midVal = topPrices[j]; // Diduga Total Belanja (e.g. 120.800)
            
-           // Jika selisihnya cocok dengan angka kembalian yang ada di struk
-           // Toleransi pembulatan kantong plastik / donasi (±1000)
+           if (maxVal <= midVal) continue;
            double diff = maxVal - midVal;
-           bool hasChangeMatch = topPrices.any((val) => (val - diff).abs() <= 1000);
+           
+           // Cari kembalian yang merupakan angka ketiga yang beda
+           bool hasChangeMatch = topPrices.any((val) => 
+              val != maxVal && val != midVal && (val - diff).abs() <= 1000
+           );
            
            if (hasChangeMatch && midVal > _minPrice) {
                debugPrint("ReceiptParser: math relation found! Cash: $maxVal, Total: $midVal");
@@ -124,8 +134,8 @@ class ReceiptParser {
         }
       }
 
-      debugPrint("ReceiptParser: fallback bottom -> ${allPrices.first}");
-      return allPrices.first;
+      debugPrint("ReceiptParser: fallback bottom -> ${positiveBottomPrices.first}");
+      return positiveBottomPrices.first;
     }
 
     // --- Last resort: seluruh dokumen, ambil nominal terbesar ---
@@ -151,17 +161,28 @@ class ReceiptParser {
        prices.addAll(_extractPrices(normalized[startLine + k]));
     }
     
-    if (prices.length >= 2) {
-      prices.sort((a, b) => b.compareTo(a));
+    // Filter angka negatif (diskon/pembulatan tidak dihitung sebagai kandidat pembayaran utama)
+    final positivePrices = prices.where((p) => p > 0).toSet().toList();
+    
+    if (positivePrices.length >= 2) {
+      positivePrices.sort((a, b) => b.compareTo(a));
       // Cari hubungan Tunai - Kembali = Total Belanja
-      for (int m = 0; m < prices.length; m++) {
-        for (int n = m + 1; n < prices.length; n++) {
-           double cash = prices[m];
-           double total = prices[n];
-           double diff = cash - total;
-           bool hasChangeMatch = prices.any((val) => (val - diff).abs() <= 1000);
+      // Membutuhkan 3 angka berbeda: Tunai (cash), Total (total), dan Kembalian (change)
+      for (int m = 0; m < positivePrices.length; m++) {
+        for (int n = m + 1; n < positivePrices.length; n++) {
+           double cash = positivePrices[m];
+           double total = positivePrices[n];
            
-           // Jika math relation terpenuhi dan total masuk akal (mencegah Rp0)
+           // Tunai harus lebih besar dari Total Belanja
+           if (cash <= total) continue;
+           
+           double diff = cash - total;
+           
+           // Periksa apakah angka selisih ini benar-benar muncul sebagai angka *berbeda* di list (bukan dirinya sendiri)
+           bool hasChangeMatch = positivePrices.any((val) => 
+               val != cash && val != total && (val - diff).abs() <= 1000
+           );
+           
            if (hasChangeMatch && total > _minPrice) {
                return total;
            }
