@@ -34,6 +34,15 @@
   - **1.5** `_parsePrice()` deteksi format berdasarkan separator TERAKHIR (`15.000,00` vs `15,000.00`) → akurat Indonesian & international
   - `dart analyze` clean (0 error, 1 info pre-existing)
 
+- **OCR Phase 2 — Preprocessing Improvement**: `lib/services/ocr_service.dart` (144→187 baris):
+  - **2.1** `_ensureMinWidth()`: gambar < 1000px di-resize 2x → karakter minimal 16x16px untuk MLKit
+  - **2.2** `_addWhiteBorder()`: white border 10px di tepi gambar → mencegah MLKit salah crop edge detection
+  - **2.3** `img.gaussianBlur(gray, radius: 1)` sebelum binarization → noise reduction untuk struk thermal kabur
+  - **2.4** Pass 4 `_preprocessCombined()`: grayscale + blur + bw + contrast + sharpen sekaligus → kasus yang tidak tertangani pass 1-3
+  - **2.5** `_hasReadableText()`: ganti `text.length > 10` dengan validasi minimal ada 1 angka terbaca
+  - **2.6** Ganti semua `print()` → `debugPrint()` + import `package:flutter/foundation.dart`
+  - `dart analyze` No issues found
+
 ## Recently Completed (2026-08-20)
 
 - **Notification fix (timezone)**: Rewrite `NotificationService` — 3-tier timezone fallback (IANA → system name → offset-based). Cancel reminder tanpa affect budget alerts (`cancelReminder()` ID base 100 vs `showBudgetAlert()` ID base 200). `rescheduleAll()` sekarang hanya cancel reminders, bukan `cancelAll()`. Detail logging `[NOTIF]` untuk debugging. **✅ Verified on device** — notif muncul di tray sesuai jadwal.
@@ -183,3 +192,4 @@
 | 2026-09-04 | Settings Animasi | Tambah import flutter_animate, per-section fadeIn+slideY delay 80ms (0→400ms) sesuai gaya Report | ✅ Done |
 | 2026-09-04 | Notif Verify | Notif verified on device — muncul di tray sesuai jadwal, timezone fallback bekerja | ✅ Done |
 | 2026-09-04 | OCR Phase 1 | ReceiptParser: 8 keyword anchor, context-aware normalize, extractPrices filter, parsePrice last-sep format | ✅ Done |
+| 2026-09-04 | OCR Phase 2 | OcrService: upscaling, white border, gaussian blur, combined pass 4, readable text threshold, print→debugPrint | ✅ Done |
