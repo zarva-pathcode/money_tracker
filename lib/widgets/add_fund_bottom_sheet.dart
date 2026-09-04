@@ -68,6 +68,16 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
     }
   }
 
+  void _addShortcut(double amount) {
+    if (amount <= 0) return;
+    setState(() {
+      final current = Formatters.parseFormattedNumber(_amountController.text);
+      final newAmount = current + amount;
+      _amountController.text = Formatters.formatNumberInput(newAmount.toInt().toString());
+      _numericInput.updateCursorPosition();
+    });
+  }
+
   void _submit() {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount > 0) {
@@ -100,7 +110,7 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
             child: Column(
@@ -123,7 +133,7 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 ModernInputField(
                   controller: _amountController,
                   hintText: "0",
@@ -135,13 +145,29 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
                      if (_numericInput.cursorPosition < 0) _numericInput.cursorPosition = _amountController.text.length;
                   },
                 ),
+                const SizedBox(height: 16),
+
+                // Shortcut Pills
+                SizedBox(
+                  height: 36,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildShortcutBtn(50000, '+50rb'),
+                      _buildShortcutBtn(100000, '+100rb'),
+                      _buildShortcutBtn(500000, '+500rb'),
+                      _buildShortcutBtn(1000000, '+1jt'),
+                      _buildShortcutBtn(widget.plan.targetAmount - widget.plan.currentAmount, 'Lunasi Target'),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          
-          const SizedBox(height: 24),
+
+          const SizedBox(height: 16),
           const Divider(height: 1, thickness: 0.5),
-          
+
           // Numeric Keyboard
           Container(
             height: 280,
@@ -156,6 +182,34 @@ class _AddFundBottomSheetState extends State<AddFundBottomSheet> {
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShortcutBtn(double amount, String label) {
+    if (amount <= 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Material(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _addShortcut(amount),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

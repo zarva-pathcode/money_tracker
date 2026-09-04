@@ -69,6 +69,17 @@ class _WithdrawFundBottomSheetState extends State<WithdrawFundBottomSheet> {
     }
   }
 
+  void _addShortcut(double amount) {
+    setState(() {
+      final current = Formatters.parseFormattedNumber(_amountController.text);
+      final total = current + amount;
+      if (total <= widget.plan.currentAmount) {
+        _amountController.text = Formatters.formatNumberInput(total.toInt().toString());
+        _numericInput.updateCursorPosition();
+      }
+    });
+  }
+
   void _submit() {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount <= 0) {
@@ -120,49 +131,54 @@ class _WithdrawFundBottomSheetState extends State<WithdrawFundBottomSheet> {
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
             child: Column(
               children: [
-                Text(
-                  'Tarik Tabungan',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Target: ${widget.plan.title}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    Text(
+                      'Saldo: ${NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp ').format(widget.plan.currentAmount)}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.plan.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Saldo: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.plan.currentAmount)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 ModernInputField(
                   controller: _amountController,
-                  hintText: "0",
-                  icon: Icons.account_balance_wallet_rounded,
-                  readOnly: true,
+                  hintText: 'Berapa besar nominalnya?',
+                  icon: Icons.remove_circle_outline,
                   prefixText: "Rp ",
-                  onTap: () {
-                     _numericInput.cursorPosition = _amountController.selection.baseOffset;
-                     if (_numericInput.cursorPosition < 0) _numericInput.cursorPosition = _amountController.text.length;
-                  },
+                  readOnly: true,
+                ),
+                const SizedBox(height: 20),
+
+                // Shortcut pills
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildShortcutBtn(50000, '+50 rb'),
+                      const SizedBox(width: 8),
+                      _buildShortcutBtn(100000, '+100 rb'),
+                      const SizedBox(width: 8),
+                      _buildShortcutBtn(500000, '+500 rb'),
+                      const SizedBox(width: 8),
+                      _buildShortcutBtn(widget.plan.currentAmount, 'Tarik Semua'),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           const Divider(height: 1, thickness: 0.5),
 
           Container(
@@ -178,6 +194,34 @@ class _WithdrawFundBottomSheetState extends State<WithdrawFundBottomSheet> {
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShortcutBtn(double amount, String label) {
+    if (amount <= 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Material(
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _addShortcut(amount),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
