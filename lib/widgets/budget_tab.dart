@@ -7,7 +7,6 @@ import '../models/budget_item.dart';
 import '../providers/budget_provider.dart';
 import '../utils/constants.dart';
 import 'add_budget_bottom_sheet.dart';
-import 'animated_tap.dart';
 
 class BudgetTab extends StatelessWidget {
   const BudgetTab({super.key});
@@ -30,7 +29,7 @@ class BudgetTab extends StatelessWidget {
                     color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const FaIcon(FontAwesomeIcons.pieChart, size: 60, color: Color(0xFF6366F1)),
+                  child: const FaIcon(FontAwesomeIcons.chartPie, size: 60, color: Color(0xFF6366F1)),
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -301,7 +300,7 @@ class BudgetTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: FaIcon(
-                    categoryData['icon'] as IconData,
+                    categoryData['icon'],
                     color: categoryData['color'] as Color,
                     size: 22,
                   ),
@@ -484,8 +483,8 @@ class BudgetTab extends StatelessWidget {
               Provider.of<BudgetProvider>(context, listen: false).deleteBudget(budget.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Anggaran dihapus'),
+                SnackBar(
+                  content: const Text('Anggaran dihapus'),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
