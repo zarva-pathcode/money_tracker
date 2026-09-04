@@ -14,19 +14,22 @@ import '../utils/numeric_input_controller.dart';
 import '../services/subscription_service.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
-import '../widgets/transaction_type_toggle.dart';
+import '../widgets/transaction_mode_segment.dart';
+import '../widgets/amount_hero_input.dart';
 import '../widgets/category_picker.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final String? preSelectedCategory;
   final String? initialTransactionType; // 'expense' or 'income'
   final double? preFilledAmount;
+  final String? preFilledNote; // Catatan dari OCR struk / voice
 
   const AddExpenseScreen({
     super.key,
     this.preSelectedCategory,
     this.initialTransactionType,
     this.preFilledAmount,
+    this.preFilledNote,
   });
 
   @override
@@ -77,6 +80,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       );
     }
 
+    if (widget.preFilledNote != null && widget.preFilledNote!.isNotEmpty) {
+      _titleController.text = widget.preFilledNote!;
+    }
+
     _titleFocusNode.addListener(() {
       if (_titleFocusNode.hasFocus) {
         setState(() => _showCustomKeyboard = false);
@@ -121,6 +128,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   void _handleBackspace() {
     _numericInput.handleBackspace();
+  }
+
+  /// Menambahkan nominal cepat ke nilai saat ini (pill +10rb dst).
+  void _addQuickAmount(int value) {
+    final current = Formatters.parseFormattedNumber(_amountController.text);
+    _amountController.text = Formatters.formatNumberInput(
+      (current + value).toInt().toString(),
+    );
   }
 
   void _handleKeyboardSubmit() {
@@ -172,7 +187,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    TransactionTypeToggle(
+                    TransactionModeSegment(
                       currentType: _transactionType,
                       onTypeChanged: (type) {
                         setState(() {
@@ -193,23 +208,16 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Input Nominal Modern
-                    ModernInputField(
+                    // Kartu hero nominal + pill cepat
+                    AmountHeroInput(
                       controller: _amountController,
-                      focusNode: _amountFocusNode,
-                      hintText: "0",
-                      icon: Icons.account_balance_wallet_rounded,
-                      readOnly: true,
-                      prefixText: "Rp ",
-                      onTap: () {
+                      transactionType: _transactionType,
+                      onTapAmount: () {
                         setState(() => _showCustomKeyboard = true);
                         FocusScope.of(context).requestFocus(_amountFocusNode);
                       },
-                      textStyle: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                      onClear: () => _amountController.clear(),
+                      onQuickAdd: _addQuickAmount,
                     ),
 
                     const SizedBox(height: 16),
@@ -227,12 +235,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
-                              ).primaryColor.withOpacity(0.1),
+                              ).primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: Theme.of(
                                   context,
-                                ).primaryColor.withOpacity(0.2),
+                                ).primaryColor.withValues(alpha: 0.25),
                               ),
                             ),
                             child: Row(
@@ -244,7 +252,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  DateFormat('dd MMM').format(_selectedDate),
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                    'id_ID',
+                                  ).format(_selectedDate),
                                   style: TextStyle(
                                     color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
@@ -282,6 +293,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: Colors.grey.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
@@ -305,6 +323,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                 }
                               }),
                               activeColor: Theme.of(context).primaryColor,
+                              secondary: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: FaIcon(
+                                  FontAwesomeIcons.piggyBank,
+                                  size: 16,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                               dense: true,
                             ),
@@ -372,7 +404,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
               ],
             ),
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: () => _saveExpense(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
@@ -382,7 +414,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
+              icon: const Icon(Icons.check_rounded, size: 20),
+              label: const Text(
                 "Simpan Transaksi",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),

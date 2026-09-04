@@ -73,9 +73,22 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
           preSelectedCategory: null,
           initialTransactionType: 'expense',
           preFilledAmount: amount,
+          preFilledNote: _firstOcrLine(),
         ),
       ),
     );
+  }
+
+  /// Baris teks bermakna pertama dari OCR (biasanya nama merchant)
+  /// untuk mengisi catatan transaksi otomatis.
+  String? _firstOcrLine() {
+    for (final line in _rawOcrText.split('\n')) {
+      final text = line.trim();
+      if (text.length >= 3) {
+        return text.length > 40 ? text.substring(0, 40) : text;
+      }
+    }
+    return null;
   }
 
   /// Confidence badge: hijau (total terdeteksi), kuning (teks terbaca tapi tanpa total), merah (gagal)

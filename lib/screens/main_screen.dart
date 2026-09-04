@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/providers/expense_provider.dart';
 import 'package:money_tracker/providers/plan_provider.dart';
@@ -650,107 +651,122 @@ class _MainScreenState extends State<MainScreen>
   void _showAddTransactionBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF7F8FA),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const Text(
-                'Pilih Jenis Transaksi',
+                'Tambah Transaksi',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.spaceEvenly,
-                children: [
-                  _buildTransactionOption(
-                    context: context,
-                    icon: FontAwesomeIcons.arrowUp,
-                    label: 'Pengeluaran',
-                    color: Colors.redAccent,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => const AddExpenseScreen(
-                                initialTransactionType: 'expense',
-                              ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildTransactionOption(
-                    context: context,
-                    icon: FontAwesomeIcons.arrowDown,
-                    label: 'Pemasukan',
-                    color: Colors.greenAccent[700]!,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => const AddExpenseScreen(
-                                initialTransactionType: 'income',
-                              ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildTransactionOption(
-                    context: context,
-                    icon: FontAwesomeIcons.receipt,
-                    label: 'Scan Struk',
-                    color: Colors.blueAccent[700]!,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ScanReceiptScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildTransactionOption(
-                    context: context,
-                    icon: FontAwesomeIcons.repeat,
-                    label: 'Langganan',
-                    color: Colors.indigo[400]!,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SubscriptionScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+              const SizedBox(height: 4),
+              Text(
+                'Pilih jenis pencatatan yang ingin kamu buat',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              ...[
+                _buildTransactionOption(
+                  context: context,
+                  icon: FontAwesomeIcons.arrowUp,
+                  label: 'Pengeluaran',
+                  subtitle: 'Catat belanja, jajan, atau tagihan harian',
+                  color: Colors.red[700]!,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => const AddExpenseScreen(
+                              initialTransactionType: 'expense',
+                            ),
+                      ),
+                    );
+                  },
+                ),
+                _buildTransactionOption(
+                  context: context,
+                  icon: FontAwesomeIcons.arrowDown,
+                  label: 'Pemasukan',
+                  subtitle: 'Catat gaji, bonus, atau transfer masuk',
+                  color: Colors.green[700]!,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => const AddExpenseScreen(
+                              initialTransactionType: 'income',
+                            ),
+                      ),
+                    );
+                  },
+                ),
+                _buildTransactionOption(
+                  context: context,
+                  icon: FontAwesomeIcons.receipt,
+                  label: 'Scan Struk Belanja',
+                  subtitle: 'Ekstrak total langsung dari foto nota',
+                  color: Colors.blue[700]!,
+                  badge: 'Otomatis',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ScanReceiptScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildTransactionOption(
+                  context: context,
+                  icon: FontAwesomeIcons.repeat,
+                  label: 'Langganan Rutin',
+                  subtitle: 'Kelola pengeluaran berulang tiap bulan',
+                  color: Colors.indigo[400]!,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SubscriptionScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ].animate(interval: 60.ms).fadeIn(duration: 300.ms, curve: Curves.easeOut).slideY(
+                    begin: 0.15,
+                    end: 0,
+                    duration: 300.ms,
+                    curve: Curves.easeOutQuad,
+                  ),
             ],
           ),
         );
@@ -758,36 +774,103 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
+  /// Kartu pilihan full-width: ikon tint + judul + subtitle + chevron.
   Widget _buildTransactionOption({
     required BuildContext context,
     required dynamic icon,
     required String label,
+    required String subtitle,
     required Color color,
     required VoidCallback onTap,
+    String? badge,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.grey[100]!),
             ),
-            child: FaIcon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Center(child: FaIcon(icon, color: color, size: 20)),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 7),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                badge,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.grey[400],
+                  size: 22,
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

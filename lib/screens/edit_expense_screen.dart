@@ -11,7 +11,8 @@ import '../utils/constants.dart';
 import '../utils/numeric_input_controller.dart';
 import '../widgets/numeric_keyboard.dart';
 import '../widgets/modern_input_field.dart';
-import '../widgets/transaction_type_toggle.dart';
+import '../widgets/transaction_mode_segment.dart';
+import '../widgets/amount_hero_input.dart';
 import '../widgets/category_picker.dart';
 
 class EditExpenseScreen extends StatefulWidget {
@@ -79,6 +80,14 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _numericInput.handleBackspace();
   }
 
+  /// Menambahkan nominal cepat ke nilai saat ini (pill +10rb dst).
+  void _addQuickAmount(int value) {
+    final current = Formatters.parseFormattedNumber(_amountController.text);
+    _amountController.text = Formatters.formatNumberInput(
+      (current + value).toInt().toString(),
+    );
+  }
+
   void _handleKeyboardSubmit() {
     final amount = Formatters.parseFormattedNumber(_amountController.text);
     if (amount > 0) {
@@ -124,7 +133,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 12),
-                    TransactionTypeToggle(
+                    TransactionModeSegment(
                       currentType: _transactionType,
                       onTypeChanged: (type) {
                         setState(() {
@@ -141,25 +150,18 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
 
-                    // Input Nominal Modern
-                    ModernInputField(
+                    // Kartu hero nominal + pill cepat
+                    AmountHeroInput(
                       controller: _amountController,
-                      focusNode: _amountFocusNode,
-                      hintText: "0",
-                      icon: Icons.account_balance_wallet_rounded,
-                      readOnly: true,
-                      prefixText: "Rp ",
-                      onTap: () {
+                      transactionType: _transactionType,
+                      onTapAmount: () {
                         setState(() => _showCustomKeyboard = true);
                         FocusScope.of(context).requestFocus(_amountFocusNode);
                       },
-                      textStyle: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                      onClear: () => _amountController.clear(),
+                      onQuickAdd: _addQuickAmount,
                     ),
 
                     const SizedBox(height: 16),
@@ -175,9 +177,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                             height: 56,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
+                              border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.25)),
                             ),
                             child: Row(
                               children: [
@@ -188,7 +190,10 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  DateFormat('dd MMM').format(_selectedDate),
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                    'id_ID',
+                                  ).format(_selectedDate),
                                   style: TextStyle(
                                     color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
@@ -247,7 +252,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 ),
               ],
             ),
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: () => _saveExpense(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
@@ -257,7 +262,8 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
+              icon: const Icon(Icons.check_rounded, size: 20),
+              label: const Text(
                 "Update Transaksi",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
