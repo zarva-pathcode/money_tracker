@@ -25,6 +25,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   
   String? _selectedCategory;
   double _threshold = 80.0;
+  String _granularity = 'monthly'; // 'daily', 'weekly', 'monthly'
   int _cursorPosition = 0;
   bool _showCustomKeyboard = true;
 
@@ -36,7 +37,13 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
     if (widget.budgetToEdit != null) {
       _selectedCategory = widget.budgetToEdit!.category;
       _threshold = widget.budgetToEdit!.threshold;
-      _amountController.text = Formatters.formatNumberInput(widget.budgetToEdit!.limitAmount.toInt().toString());
+      _granularity = widget.budgetToEdit!.granularity;
+      // If daily or weekly, display base input if preferred or display limitAmount
+      final limit = widget.budgetToEdit!.limitAmount;
+      double displayAmount = limit;
+      if (_granularity == 'daily') displayAmount = limit / 30;
+      if (_granularity == 'weekly') displayAmount = limit / 4;
+      _amountController.text = Formatters.formatNumberInput(displayAmount.toInt().toString());
     } else {
       _amountController.text = '';
     }
@@ -154,33 +161,76 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   }
 
   void _submit() {
-    final amount = Formatters.parseFormattedNumber(_amountController.text);
-    if (amount <= 0 || _selectedCategory == null) {
+    final rawInput = Formatters.parseFormattedNumber(_amountController.text);
+    if (rawInput <= 0 || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pilih kategori dan masukkan limit yang valid')),
       );
       return;
     }
 
+    double finalLimit = rawInput;
+    if (_granularity == 'daily') {
+      finalLimit = rawInput * 30;
+    } else if (_granularity == 'weekly') {
+      finalLimit = rawInput * 4.2857; // ~30/7
+    }
+
     if (widget.budgetToEdit != null) {
       final updatedBudget = BudgetItem(
         id: widget.budgetToEdit!.id,
         category: _selectedCategory!,
-        limitAmount: amount,
+        limitAmount: finalLimit,
         threshold: _threshold,
+        granularity: _granularity,
       );
       Provider.of<BudgetProvider>(context, listen: false).updateBudget(updatedBudget);
     } else {
       final newBudget = BudgetItem(
         id: const Uuid().v4(),
         category: _selectedCategory!,
-        limitAmount: amount,
+        limitAmount: finalLimit,
         threshold: _threshold,
+        granularity: _granularity,
       );
       Provider.of<BudgetProvider>(context, listen: false).addBudget(newBudget);
     }
 
     Navigator.pop(context);
+  }
+
+  Widget _buildGranularityChip(String value, String label) {
+    final isSelected = _granularity == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _granularity = value;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF16A34A) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF16A34A) : Colors.grey[300]!,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.grey[700],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -262,7 +312,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                         value: cName,
                         child: Row(
                           children: [
-                            FaIcon(cStyle['icon'], color: cStyle['color'] as Color, size: 20),
+                            FaIcon(cStyle['icon'] as FaIconData, color: cStyle['color'] as Color, size: 20),
                             const SizedBox(width: 12),
                             Text(cName, style: const TextStyle(fontSize: 15)),
                           ],
@@ -275,9 +325,30 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       });
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Text(
-                    'Limit Bulanan', 
+                    'Tipe Target Anggaran', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 14,
+                      color: Colors.grey[800]
+                    )
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildGranularityChip('daily', 'Harian'),
+                      const SizedBox(width: 8),
+                      _buildGranularityChip('weekly', 'Mingguan'),
+                      const SizedBox(width: 8),
+                      _buildGranularityChip('monthly', 'Bulanan'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _granularity == 'daily'
+                        ? 'Target Uang per Hari'
+                        : (_granularity == 'weekly' ? 'Target Uang per Minggu' : 'Limit Uang Bulanan'), 
                     style: TextStyle(
                       fontWeight: FontWeight.bold, 
                       fontSize: 14,
@@ -299,6 +370,50 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                         if (_cursorPosition < 0) _cursorPosition = _amountController.text.length;
                       });
                       SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    },
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final rawInput = Formatters.parseFormattedNumber(_amountController.text);
+                      if (rawInput <= 0) return const SizedBox.shrink();
+
+                      String textPreview = '';
+                      if (_granularity == 'daily') {
+                        final estMonthly = rawInput * 30;
+                        textPreview = 'Estimasi Limit Bulanan: ~${Formatters.formatRupiah(estMonthly)} (asumsi 30 hari)';
+                      } else if (_granularity == 'weekly') {
+                        final estMonthly = rawInput * 4.2857;
+                        textPreview = 'Estimasi Limit Bulanan: ~${Formatters.formatRupiah(estMonthly)} (~4.3 minggu)';
+                      } else {
+                        final dailyEst = rawInput / 30;
+                        textPreview = 'Batas harian dasar: ~${Formatters.formatRupiah(dailyEst)} / hari';
+                      }
+
+                      return Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                        ),
+                        child: Row(
+                          children: [
+                            const FaIcon(FontAwesomeIcons.lightbulb, size: 14, color: Color(0xFF16A34A)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                textPreview,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF15803D),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 24),

@@ -2,6 +2,7 @@ package com.moneytracker.app
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.Uri
@@ -27,73 +28,13 @@ class QuickRecentWidget : HomeWidgetProvider() {
             views.setTextViewText(R.id.widget_recent_balance, "Rp$balance")
             views.setTextViewText(R.id.widget_recent_expenses, "Rp$expenses")
 
-            // Transactions
-            val txsJson = widgetData.getString("recent_transactions", "[]") ?: "[]"
-            val txs = try { JSONArray(txsJson) } catch (_: Exception) { JSONArray() }
-            val totalPages = maxOf(1, (txs.length() + 4) / 5)
-            var currentPage = try {
-                widgetData.getString("recent_page", "0")?.toIntOrNull() ?: 0
-            } catch (_: Exception) { 0 }
-            if (currentPage >= totalPages) currentPage = totalPages - 1
-            if (currentPage < 0) currentPage = 0
-
-            val startIndex = currentPage * 5
-            for (i in 0 until 5) {
-                val emojiId = context.resources.getIdentifier(
-                    "widget_recent_tx_${i + 1}_emoji", "id", context.packageName)
-                val titleId = context.resources.getIdentifier(
-                    "widget_recent_tx_${i + 1}_title", "id", context.packageName)
-                val amountId = context.resources.getIdentifier(
-                    "widget_recent_tx_${i + 1}_amount", "id", context.packageName)
-                val rowId = context.resources.getIdentifier(
-                    "widget_recent_tx_${i + 1}", "id", context.packageName)
-
-                val txIndex = startIndex + i
-                if (txIndex < txs.length()) {
-                    val tx = txs.getJSONObject(txIndex)
-                    views.setTextViewText(emojiId, tx.optString("emoji", ""))
-                    views.setTextViewText(titleId, tx.optString("title", ""))
-                    views.setTextViewText(amountId, "Rp${tx.optString("amount", "0")}")
-                    val colorHex = tx.optString("color", "#EF5350")
-                    try {
-                        views.setTextColor(emojiId, Color.parseColor(colorHex))
-                    } catch (_: Exception) {}
-                    views.setViewVisibility(rowId, View.VISIBLE)
-                } else {
-                    views.setTextViewText(emojiId, "")
-                    views.setTextViewText(titleId, "Tidak ada")
-                    views.setTextViewText(amountId, "")
-                }
-            }
-
-            // Pagination
-            views.setTextViewText(R.id.widget_recent_page, "${currentPage + 1}/$totalPages")
-
-            // Prev button
-            views.setViewVisibility(R.id.widget_recent_btn_prev, View.VISIBLE)
-            val prevPage = currentPage - 1
-            if (prevPage >= 0) {
-                views.setOnClickPendingIntent(R.id.widget_recent_btn_prev,
-                    HomeWidgetLaunchIntent.getActivity(
-                        context, MainActivity::class.java,
-                        Uri.parse("expenseTracker://widget?action=page&value=$prevPage")))
-            } else {
-                views.setOnClickPendingIntent(R.id.widget_recent_btn_prev, null)
-                views.setViewVisibility(R.id.widget_recent_btn_prev, View.INVISIBLE)
-            }
-
-            // Next button
-            views.setViewVisibility(R.id.widget_recent_btn_next, View.VISIBLE)
-            val nextPage = currentPage + 1
-            if (nextPage < totalPages) {
-                views.setOnClickPendingIntent(R.id.widget_recent_btn_next,
-                    HomeWidgetLaunchIntent.getActivity(
-                        context, MainActivity::class.java,
-                        Uri.parse("expenseTracker://widget?action=page&value=$nextPage")))
-            } else {
-                views.setOnClickPendingIntent(R.id.widget_recent_btn_next, null)
-                views.setViewVisibility(R.id.widget_recent_btn_next, View.INVISIBLE)
-            }
+            // Set up the ListView
+            val intent = Intent(context, QuickRecentWidgetService::class.java)
+            // Add appWidgetId to intent to differentiate instances if needed
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            intent.data = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME))
+            views.setRemoteAdapter(R.id.widget_recent_list, intent)
+            views.setEmptyView(R.id.widget_recent_list, R.id.widget_recent_list) // This is optional if we have empty view
 
             // Voice button
             views.setOnClickPendingIntent(R.id.widget_recent_btn_voice,

@@ -21,13 +21,14 @@ class BudgetItemAdapter extends TypeAdapter<BudgetItem> {
       category: fields[1] as String,
       limitAmount: fields[2] as double,
       threshold: fields[3] == null ? 80.0 : fields[3] as double,
+      granularity: fields[4] == null ? 'monthly' : fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, BudgetItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class BudgetItemAdapter extends TypeAdapter<BudgetItem> {
       ..writeByte(2)
       ..write(obj.limitAmount)
       ..writeByte(3)
-      ..write(obj.threshold);
+      ..write(obj.threshold)
+      ..writeByte(4)
+      ..write(obj.granularity);
   }
 
   @override

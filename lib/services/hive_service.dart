@@ -53,6 +53,11 @@ class HiveService {
     await box.put(key, value);
   }
 
+  Future<void> deleteSetting(String key) async {
+    final box = Hive.box(settingsBoxName);
+    await box.delete(key);
+  }
+
   // --- ONBOARDING ---
 
   bool isFirstTime() {

@@ -62,6 +62,24 @@
                 android:resource="@xml/widget_recent_info" />
         </receiver>
 
+        <!-- RemoteViewsService for QuickRecentWidget ListView -->
+        <service android:name=".QuickRecentWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <!-- WAJIB: Receiver untuk menangani scheduled notification alarm -->
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+
+        <!-- WAJIB: Receiver untuk me-reschedule notifikasi setelah reboot -->
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

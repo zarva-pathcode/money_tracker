@@ -16,10 +16,14 @@ class BudgetItem extends HiveObject {
   @HiveField(3, defaultValue: 80.0)
   final double threshold;
 
+  @HiveField(4, defaultValue: 'monthly')
+  final String granularity; // 'daily', 'weekly', 'monthly'
+
   BudgetItem({
     required this.id,
     required this.category,
     required this.limitAmount,
     this.threshold = 80.0,
+    this.granularity = 'monthly',
   }) : assert(threshold >= 50 && threshold <= 100, 'threshold must be 50-100');
 }

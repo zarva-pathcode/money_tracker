@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import '../models/expense.dart';
 import '../utils/constants.dart';
+import '../utils/formatters.dart';
 
 class RecentWidgetProvider {
   static const _channel = 'QuickRecentWidget';
@@ -14,21 +15,23 @@ class RecentWidgetProvider {
     required List<Expense> recentExpenses,
   }) async {
     try {
-      final txs = recentExpenses.take(15).map((e) {
+      final txs = recentExpenses.take(10).map((e) {
         final style = Constants.getCategoryStyle(e.category);
         return {
           'emoji': Constants.getCategoryEmoji(e.category),
           'color': Constants.colorHex(style['color'] as Color),
           'title': e.title.isNotEmpty ? e.title : e.category,
-          'amount': e.amount.toInt().toString(),
+          'amount': Formatters.formatNumber(e.amount.toInt()),
         };
       }).toList();
 
-      await HomeWidget.saveWidgetData('recent_balance', balance.toInt().toString());
-      await HomeWidget.saveWidgetData('recent_expenses', periodExpenses.toInt().toString());
+      final formattedBalance = Formatters.formatNumber(balance.toInt());
+      final formattedExpenses = Formatters.formatNumber(periodExpenses.toInt());
+
+      await HomeWidget.saveWidgetData('recent_balance', formattedBalance);
+      await HomeWidget.saveWidgetData('recent_expenses', formattedExpenses);
       await HomeWidget.saveWidgetData('recent_label', balanceLabel);
       await HomeWidget.saveWidgetData('recent_transactions', jsonEncode(txs));
-      await HomeWidget.saveWidgetData('recent_page', '0');
 
       await HomeWidget.updateWidget(
         name: _channel,

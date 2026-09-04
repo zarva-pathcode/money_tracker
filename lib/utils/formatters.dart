@@ -9,6 +9,10 @@ class Formatters {
     ).format(amount);
   }
 
+  static String formatRupiah(num amount) {
+    return formatCurrency(amount.toDouble());
+  }
+
   static String formatDayMonth(DateTime date) {
     // Format: Sabtu, 8 April
     return DateFormat('EEEE, d MMM', 'id_ID').format(date);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -184,7 +185,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                     : _buildUnifiedCategoryAnalysis(context, expenseProvider, budgetProvider),
               ],
             ),
-          ),
+          ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           const SizedBox(height: 40),
         ],
       ),
@@ -312,7 +313,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildYearPicker(context),
           const SizedBox(height: 16),
           if (year < DateTime.now().year)
@@ -341,7 +342,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           const SizedBox(height: 24),
           _buildGoalsSummary(context, planProvider, expenseProvider),
           const SizedBox(height: 40),
-        ],
+        ].animate(interval: 50.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
       ),
     );
   }

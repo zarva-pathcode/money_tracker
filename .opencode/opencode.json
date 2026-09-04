@@ -1,0 +1,63 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+  "default_agent": "build",
+  "instructions": [
+    "AGENTS.md",
+    "skills/coding-standards/SKILL.md",
+    "skills/tdd-workflow/SKILL.md",
+    "skills/verification-loop/SKILL.md",
+    "skills/dart-flutter-patterns/SKILL.md",
+    "skills/flutter-dart-code-review/SKILL.md"
+  ],
+  "plugin": [],
+  "skills": {
+    "paths": [
+      "../skills"
+    ]
+  },
+  "agent": {
+    "build": {
+      "description": "Primary coding agent for development work",
+      "mode": "primary",
+      "model": "anthropic/claude-sonnet-4-5",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "changed-files": true
+      }
+    }
+  },
+  "command": {
+    "plan": {
+      "description": "Create a detailed implementation plan for complex features",
+      "template": "{file:commands/plan.md}\n\n$ARGUMENTS"
+    },
+    "tdd": {
+      "description": "Enforce TDD workflow with 80%+ test coverage",
+      "template": "{file:commands/tdd.md}\n\n$ARGUMENTS"
+    },
+    "code-review": {
+      "description": "Review code for quality, security, and maintainability",
+      "template": "{file:commands/code-review.md}\n\n$ARGUMENTS"
+    },
+    "build-fix": {
+      "description": "Fix build and compilation errors with minimal changes",
+      "template": "{file:commands/build-fix.md}\n\n$ARGUMENTS"
+    },
+    "verify": {
+      "description": "Run verification loop (build, analyze, test, security)",
+      "template": "{file:commands/verify.md}\n\n$ARGUMENTS"
+    },
+    "refactor-clean": {
+      "description": "Remove dead code and consolidate duplicates",
+      "template": "{file:commands/refactor-clean.md}\n\n$ARGUMENTS"
+    }
+  },
+  "permission": {
+    "mcp_*": "ask"
+  }
+}
