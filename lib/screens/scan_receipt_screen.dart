@@ -781,7 +781,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
         if (_rawOcrText.isNotEmpty)
           Material(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
             clipBehavior: Clip.antiAlias,
             shape: RoundedRectangleBorder(
               side: BorderSide(color: Colors.grey[200]!),
