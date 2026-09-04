@@ -69,18 +69,6 @@ class _MyAppState extends State<MyApp> {
   void _handleWidgetClick(Uri? uri) {
     if (uri == null || uri.scheme != 'expensetracker') return;
 
-    if (uri.host == 'widget' && uri.queryParameters['action'] == 'page') {
-      final page = uri.queryParameters['value'] ?? '0';
-      HomeWidget.saveWidgetData('recent_page', page).then((_) {
-        HomeWidget.updateWidget(
-          name: 'QuickRecentWidget',
-          androidName: 'QuickRecentWidget',
-          iOSName: 'QuickRecentWidget',
-        );
-      });
-      return;
-    }
-
     if (uri.host == 'add') {
       if (navigatorKey.currentState == null) {
         pendingWidgetUri = uri;
@@ -116,18 +104,25 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ExpenseProvider(hiveService: hs)),
-        ChangeNotifierProvider(create: (ctx) => AnalysisProvider(expenseProvider: ctx.read<ExpenseProvider>())),
+        ChangeNotifierProvider(
+          create:
+              (ctx) => AnalysisProvider(
+                expenseProvider: ctx.read<ExpenseProvider>(),
+              ),
+        ),
         ChangeNotifierProvider(create: (_) => PlanProvider(hiveService: hs)),
-        ChangeNotifierProvider(create: (ctx) {
-          final bp = BudgetProvider(hiveService: hs);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final ep = ctx.read<ExpenseProvider>();
-            bp.linkToExpenseProvider(ep);
-          });
-          return bp;
-        }),
-        ChangeNotifierProvider(create: (_) => SettingsProvider(hiveService: hs)),
-        ChangeNotifierProvider(create: (_) => WidgetProvider(hiveService: hs)..initialSync()),
+        ChangeNotifierProvider(
+          create: (ctx) => BudgetProvider(
+            hiveService: hs,
+            expenseProvider: ctx.read<ExpenseProvider>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(hiveService: hs),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WidgetProvider(hiveService: hs)..initialSync(),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
@@ -140,16 +135,16 @@ class _MyAppState extends State<MyApp> {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('id', 'ID'),
-          Locale('en', 'US'),
-        ],
+        supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
         locale: const Locale('id', 'ID'),
         home: Builder(
           builder: (context) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) {
-                final sp = Provider.of<SettingsProvider>(context, listen: false);
+                final sp = Provider.of<SettingsProvider>(
+                  context,
+                  listen: false,
+                );
                 sp.rescheduleAll();
               }
             });

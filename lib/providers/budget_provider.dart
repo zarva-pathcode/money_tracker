@@ -3,7 +3,50 @@ import '../models/budget_item.dart';
 import '../models/expense.dart';
 import '../services/hive_service.dart';
 import '../services/notification_service.dart';
+import '../utils/period_helper.dart';
 import 'expense_provider.dart';
+
+class CategoryAllowanceInfo {
+  final String category;
+  final double limitAmount;
+  final double dailyAllowance;
+  final double spentToday;
+  final double remainingToday;
+  final String granularity;
+
+  CategoryAllowanceInfo({
+    required this.category,
+    required this.limitAmount,
+    required this.dailyAllowance,
+    required this.spentToday,
+    required this.remainingToday,
+    this.granularity = 'monthly',
+  });
+
+  double get progress => dailyAllowance > 0 ? (spentToday / dailyAllowance).clamp(0.0, 1.0) : 0.0;
+  bool get isOver => spentToday > dailyAllowance;
+}
+
+class SmartDailyBudgetInfo {
+  final double globalDailyAllowance;
+  final double globalSpentToday;
+  final double globalRemainingToday;
+  final int remainingDays;
+  final int totalDaysInPeriod;
+  final List<CategoryAllowanceInfo> categories;
+
+  SmartDailyBudgetInfo({
+    required this.globalDailyAllowance,
+    required this.globalSpentToday,
+    required this.globalRemainingToday,
+    required this.remainingDays,
+    required this.totalDaysInPeriod,
+    required this.categories,
+  });
+
+  double get progress => globalDailyAllowance > 0 ? (globalSpentToday / globalDailyAllowance).clamp(0.0, 1.0) : 0.0;
+  bool get isOver => globalSpentToday > globalDailyAllowance;
+}
 
 class BudgetProvider with ChangeNotifier {
   final HiveService _hiveService;
@@ -36,14 +79,86 @@ class BudgetProvider with ChangeNotifier {
     return _getCategorySpending(exps, category, now.month, now.year);
   }
 
-  BudgetProvider({required HiveService hiveService})
-      : _hiveService = hiveService {
-    _loadBudgets();
+  SmartDailyBudgetInfo getSmartDailyBudgetInfo(int payDay) {
+    final now = DateTime.now();
+    final start = PeriodHelper.getPeriodStart(payDay, now: now);
+    final end = PeriodHelper.getPeriodEnd(payDay, now: now);
+
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+
+    final totalDaysInPeriod = end.difference(start).inDays + 1;
+    final remainingDays = end.difference(todayStart).inDays + 1;
+    final safeRemainingDays = remainingDays < 1 ? 1 : remainingDays;
+
+    final expenses = _expenseProvider?.allExpenses ?? [];
+
+    double globalSpentBeforeToday = 0;
+    double globalSpentToday = 0;
+
+    List<CategoryAllowanceInfo> categoryInfos = [];
+
+    for (final budget in _budgets) {
+      double catSpentBeforeToday = 0;
+      double catSpentToday = 0;
+
+      for (final e in expenses) {
+        if (e.type != 'expense') continue;
+        if (e.category != budget.category) continue;
+
+        if (e.date.isAfter(start.subtract(const Duration(seconds: 1))) && e.date.isBefore(todayStart)) {
+          catSpentBeforeToday += e.amount;
+        } else if (!e.date.isBefore(todayStart) && !e.date.isAfter(todayEnd)) {
+          catSpentToday += e.amount;
+        }
+      }
+
+      final catRemainingBudget = (budget.limitAmount - catSpentBeforeToday).clamp(0.0, double.infinity);
+      
+      double catAllowance = catRemainingBudget / safeRemainingDays;
+      if (budget.granularity == 'weekly') {
+        catAllowance = catRemainingBudget / (safeRemainingDays / 7.0);
+      } else if (budget.granularity == 'monthly') {
+        catAllowance = catRemainingBudget;
+      }
+      
+      final catRemainingToday = catAllowance - catSpentToday;
+
+      categoryInfos.add(CategoryAllowanceInfo(
+        category: budget.category,
+        limitAmount: budget.limitAmount,
+        dailyAllowance: catAllowance,
+        spentToday: catSpentToday,
+        remainingToday: catRemainingToday,
+        granularity: budget.granularity,
+      ));
+
+      globalSpentBeforeToday += catSpentBeforeToday;
+      globalSpentToday += catSpentToday;
+    }
+
+    final globalLimit = totalBudget;
+    final globalRemainingBudget = (globalLimit - globalSpentBeforeToday).clamp(0.0, double.infinity);
+    final globalDailyAllowance = globalLimit > 0 ? globalRemainingBudget / safeRemainingDays : 0.0;
+    final globalRemainingToday = globalDailyAllowance - globalSpentToday;
+
+    return SmartDailyBudgetInfo(
+      globalDailyAllowance: globalDailyAllowance,
+      globalSpentToday: globalSpentToday,
+      globalRemainingToday: globalRemainingToday,
+      remainingDays: safeRemainingDays,
+      totalDaysInPeriod: totalDaysInPeriod,
+      categories: categoryInfos,
+    );
   }
 
-  void linkToExpenseProvider(ExpenseProvider provider) {
-    _expenseProvider = provider;
-    provider.addListener(checkAndNotify);
+  BudgetProvider({
+    required HiveService hiveService,
+    required ExpenseProvider expenseProvider,
+  }) : _hiveService = hiveService {
+    _expenseProvider = expenseProvider;
+    expenseProvider.addListener(checkAndNotify);
+    _loadBudgets();
   }
 
   void _loadBudgets() {
@@ -67,6 +182,8 @@ class BudgetProvider with ChangeNotifier {
   }
 
   void checkAndNotify() {
+    notifyListeners(); // UI harus update dulu sebelum cek alert
+
     final enabled = _hiveService.getSetting('budget_alerts_enabled', true);
     if (!enabled) return;
 

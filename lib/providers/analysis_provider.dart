@@ -55,13 +55,19 @@ class AnalysisProvider with ChangeNotifier {
 
   double getPeriodIncome(int payDay) {
     return _all
-        .where((e) => e.type == 'income' && PeriodHelper.isInPeriod(e.date, payDay))
+        .where((e) =>
+            e.type == 'income' &&
+            e.category != 'Tabungan' &&
+            PeriodHelper.isInPeriod(e.date, payDay))
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
   double getPeriodExpenses(int payDay) {
     return _all
-        .where((e) => e.type == 'expense' && PeriodHelper.isInPeriod(e.date, payDay))
+        .where((e) =>
+            e.type == 'expense' &&
+            e.category != 'Tabungan' &&
+            PeriodHelper.isInPeriod(e.date, payDay))
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 

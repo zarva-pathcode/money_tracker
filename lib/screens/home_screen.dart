@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -17,8 +18,8 @@ import '../providers/expense_provider.dart';
 import '../providers/plan_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/animated_tap.dart';
+import '../widgets/today_budget_card.dart';
 import '../services/notification_service.dart';
-import '../utils/financial_health.dart';
 import '../utils/period_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -76,17 +77,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   // 2. Hero Card — di luar SliverAppBar agar shadow tidak ter-clip
                   SliverToBoxAdapter(
                     child: Padding(
-                      // Padding atas tipis, bawah cukup untuk shadow (20px)
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                       child: _buildHeroCard(context, provider, planProvider, settings),
                     ),
                   ),
 
-                  // 2b. Financial Health Scorecard
-                  SliverToBoxAdapter(
+                  // 2b. Smart Daily Budget Allowance Card
+                  const SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                      child: _buildHealthScorecard(context),
+                      padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
+                      child: TodayBudgetCard(),
                     ),
                   ),
 
@@ -393,7 +393,9 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomSection,
         ],
       ),
-    );
+    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+     .scaleXY(begin: 1.0, end: 1.015, duration: 2500.ms, curve: Curves.easeInOut)
+     .shimmer(duration: 2500.ms, color: Colors.white.withValues(alpha: 0.15));
   }
 
   Widget _rowItem({
@@ -430,126 +432,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHealthScorecard(BuildContext context) {
-    final analysisProvider = context.read<AnalysisProvider>();
-    final allTimeIncome = analysisProvider.allTimeIncome;
-    final allTimeExpenses = analysisProvider.allTimeExpenses;
-    final totalSavings = analysisProvider.totalSavingsAllTime;
-    final incomeMap = analysisProvider.getMonthlyIncomeTotals(DateTime.now().year);
-    final monthlyIncomes = List.generate(12, (i) {
-      return incomeMap[i + 1] ?? 0.0;
-    });
-
-    // Hitung budget hit rate dari expenseProvider langsung
-    final budgetHitRate = 0;
-    final totalBudgets = 0;
-
-    final health = calculateFinancialHealth(
-      totalIncome: allTimeIncome,
-      totalExpenses: allTimeExpenses,
-      totalSavings: totalSavings,
-      budgetsHit: budgetHitRate,
-      totalBudgets: totalBudgets,
-      monthlyIncomes: monthlyIncomes,
-    );
-
-    final gradeColors = {
-      'A': const Color(0xFF2ECC71),
-      'B': const Color(0xFF27AE60),
-      'C': const Color(0xFFF39C12),
-      'D': const Color(0xFFE67E22),
-      'E': const Color(0xFFE74C3C),
-    };
-    final color = gradeColors[health.grade] ?? Colors.grey;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withOpacity(0.08), color.withOpacity(0.02)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              boxShadow: [
-                BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2)),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                health.grade,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Skor Keuangan',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        health.label,
-                        style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      '${health.score}/100',
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        health.advice,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -747,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ...expenses.map((expense) {
                 final after = runningBalances[expense.id] ?? 0.0;
                 return _buildExpenseCard(context, expense, provider, after, hideAmount);
-              }).toList(),
+              }),
             ],
           );
         }, childCount: sortedKeys.length),

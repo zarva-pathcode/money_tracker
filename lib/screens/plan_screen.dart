@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,7 @@ class PlanScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
+      initialIndex: 1,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: NestedScrollView(
@@ -147,15 +149,15 @@ class PlanScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).primaryColor.withOpacity(0.3),
+                                color: Theme.of(context).primaryColor.withOpacity(0.3),
                                 blurRadius: 15,
                                 offset: const Offset(0, 8),
                               ),
                             ],
                           ),
                           child: Column(
+
+
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
@@ -225,7 +227,7 @@ class PlanScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
+                        ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
                       ),
                       SliverPadding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -235,7 +237,10 @@ class PlanScreen extends StatelessWidget {
                             index,
                           ) {
                             final plan = plans[index];
-                            return _buildPlanCard(context, plan);
+                            return _buildPlanCard(context, plan)
+                                .animate(delay: (index * 50).ms)
+                                .fadeIn(duration: 400.ms, curve: Curves.easeOut)
+                                .slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad);
                           }, childCount: plans.length),
                         ),
                       ),

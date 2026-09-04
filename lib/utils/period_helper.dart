@@ -13,7 +13,8 @@ class PeriodHelper {
   static DateTime getPeriodEnd(int payDay, {DateTime? now}) {
     final start = getPeriodStart(payDay, now: now);
     final nextPayDay = _clampDay(start.year, start.month + 1, payDay);
-    return nextPayDay.subtract(const Duration(days: 1));
+    return DateTime(nextPayDay.year, nextPayDay.month, nextPayDay.day, 23, 59, 59)
+        .subtract(const Duration(days: 1));
   }
 
   static String formatPeriodRange(int payDay, {DateTime? now}) {
@@ -28,7 +29,10 @@ class PeriodHelper {
     now ??= DateTime.now();
     final start = getPeriodStart(payDay, now: now);
     final end = getPeriodEnd(payDay, now: now);
-    return !date.isBefore(start) && !date.isAfter(end);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final startOnly = DateTime(start.year, start.month, start.day);
+    final endOnly = DateTime(end.year, end.month, end.day);
+    return !dateOnly.isBefore(startOnly) && !dateOnly.isAfter(endOnly);
   }
 
   static DateTime _clampDay(int year, int month, int day) {

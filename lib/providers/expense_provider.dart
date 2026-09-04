@@ -322,11 +322,15 @@ class ExpenseProvider with ChangeNotifier {
   double checkShortfall(double amount, {int payDay = 1}) {
     final periodExpenses = _expenses
         .where((e) =>
-            e.type == 'expense' && PeriodHelper.isInPeriod(e.date, payDay))
+            e.type == 'expense' &&
+            e.category != 'Tabungan' &&
+            PeriodHelper.isInPeriod(e.date, payDay))
         .fold(0.0, (sum, e) => sum + e.amount);
     final periodIncome = _expenses
         .where((e) =>
-            e.type == 'income' && PeriodHelper.isInPeriod(e.date, payDay))
+            e.type == 'income' &&
+            e.category != 'Tabungan' &&
+            PeriodHelper.isInPeriod(e.date, payDay))
         .fold(0.0, (sum, e) => sum + e.amount);
     final available = periodIncome - periodExpenses;
     if (amount > available) return amount - available;
