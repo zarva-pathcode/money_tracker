@@ -8,15 +8,23 @@ class ReceiptParser {
   static final _keywordVariants = <String, List<String>>{
     'TOTAL': ['TOTAL', 'TOTA1', 'TOTAI', 'T0TAL', 'TOTAl'],
     'GRAND TOTAL': ['GRAND TOTAL', 'GRAND T0TAL', 'GRAND TOTA1'],
+    'GRAND': ['GRAND', 'GRAND'],
     'TOTAL BAYAR': ['TOTAL BAYAR', 'TOTAL BAYA', 'TOTAL BAYAR', 'T0TAL BAYAR'],
+    'TOTAL HARGA': ['TOTAL HARGA', 'TOTAL HARGA', 'T0TAL HARGA'],
+    'TOTAL BELANJA': ['TOTAL BELANJA', 'TOTAL BELANJA', 'T0TAL BELANJA'],
+    'JUMLAH': ['JUMLAH', 'JUMLAH', 'JUML4H'],
+    'BAYAR': ['BAYAR', 'BAYAR', 'B4YAR'],
+    'KEMBALI': ['KEMBALI', 'KEMBAL1', 'K3MBALI'],
+    'NET TOTAL': ['NET TOTAL', 'NET T0TAL', 'N3T TOTAL'],
+    'NETTO': ['NETTO', 'NETT0'],
+    'AMOUNT': ['AMOUNT', 'AM0UNT', 'AMOUNT'],
     'CASH': ['CASH', 'CASH', 'CA5H', 'C4511'],
     'TUNAI': ['TUNAI', 'TUNA1', 'TUNAI'],
     'DEBIT': ['DEBIT', 'DEB1T', 'DEB1T', 'DE8IT'],
     'KREDIT': ['KREDIT', 'KRED1T'],
     'QRIS': ['QRIS', 'QR1S'],
     'VISA': ['VISA', 'V1SA', 'VI5A'],
-    'NETTO': ['NETTO', 'NETT0'],
-    'AMOUNT': ['AMOUNT', 'AM0UNT', 'AMOUNT'],
+    'CHARGE': ['CHARGE', 'CHARG3', 'CHARGE'],
     'SUBTOTAL': ['SUBTOTAL', 'SUBT0TAL', 'SUB T0TAL'],
   };
 
@@ -51,8 +59,8 @@ class ReceiptParser {
         if (_fuzzyContains(line, 'SUBTOTAL') ||
             _fuzzyContains(line, 'SUB TOTAL')) continue;
 
-        // Cek baris ini, lalu max 3 baris ke bawah
-        for (int j = 0; j <= 3 && i + j < normalized.length; j++) {
+        // Cek baris ini, lalu max 5 baris ke bawah (expand window)
+        for (int j = 0; j <= 5 && i + j < normalized.length; j++) {
           final target = normalized[i + j];
           if (target.isEmpty) continue;
           final prices = _extractPrices(target);
@@ -104,10 +112,17 @@ class ReceiptParser {
   static String _normalizeLine(String line) {
     String s = line.toUpperCase().trim();
 
-    // Koreksi OCR typo: sub O/O → 0, I/l → 1, S → 5, B → 8 di konteks angka
-    s = s.replaceAllMapped(RegExp(r'[OQ]'), (m) => '0');
-    s = s.replaceAllMapped(RegExp(r'[Il]'), (m) => '1');
-    s = s.replaceAllMapped(RegExp(r'[B]'), (m) => '8');
+    // Koreksi OCR typo context-aware: O→0, I→1, B→8 HANYA jika diapit digit
+    // (mis. "0R15.000" → "0R15.000" ok, "INDOMARET" → tetap "INDOMARET")
+    s = s.replaceAllMapped(
+      RegExp(r'(?<=\d)[OQ](?=\d)'), (m) => '0',
+    );
+    s = s.replaceAllMapped(
+      RegExp(r'(?<=\d)[Il](?=\d)'), (m) => '1',
+    );
+    s = s.replaceAllMapped(
+      RegExp(r'(?<=\d)[B](?=\d)'), (m) => '8',
+    );
 
     // Bersihkan prefix RP/IDR
     s = s.replaceAll(RegExp(r'\b(?:RP|IDR)\.?\s*'), '');
@@ -121,11 +136,19 @@ class ReceiptParser {
   static List<double> _extractPrices(String line) {
     final result = <double>[];
 
-    // Format: <digit>{,.\d}* — tangkap semua calon nominal
-    final matches = RegExp(r'\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?|\d+').allMatches(line);
+    // Tangkap semua calon nominal: 1.000,00 / 15000 / 15rb / 15.000
+    final matches = RegExp(
+      r'\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?|\d+',
+    ).allMatches(line);
 
     for (final m in matches) {
       final raw = m.group(0)!;
+
+      // Exclude: barcode >13 digit, timestamp (mengandung ':'), quantity <3 digit tanpa prefix Rp
+      if (raw.length > 13) continue;
+      if (raw.contains(':')) continue;
+      if (raw.length < 3 && !line.contains('Rp')) continue;
+
       final parsed = _parsePrice(raw);
       if (parsed != null && _isValidPrice(parsed)) {
         result.add(parsed);
@@ -141,19 +164,27 @@ class ReceiptParser {
     // Buang separator di ujung
     s = s.replaceAll(RegExp(r'^[.,]+|[.,]+$'), '');
 
-    // Deteksi format desimal: 15.000,00 atau 15,000.00
-    // 3 digit terakhir dengan pemisah → desimal
-    if (s.length > 3) {
-      final sep = s[s.length - 3];
-      if ((sep == '.' || sep == ',') &&
-          RegExp(r'^\d$').hasMatch(s[s.length - 1]) &&
-          RegExp(r'^\d$').hasMatch(s[s.length - 2])) {
-        s = s.substring(0, s.length - 3);
-      }
-    }
+    // Deteksi format berdasarkan posisi separator TERAKHIR:
+    // - "15.000,00" → last sep ',' → Indonesian: ribuan '.', desimal ','
+    // - "15,000.00" → last sep '.' → International: ribuan ',', desimal '.'
+    final lastDot = s.lastIndexOf('.');
+    final lastComma = s.lastIndexOf(',');
+    final hasDecimal = (lastDot > lastComma && lastDot != -1) ||
+        (lastComma > lastDot && lastComma != -1);
+    final sepChar = lastDot > lastComma ? '.' : ',';
 
-    // Buang semua separator ribuan (titik/koma)
-    s = s.replaceAll(RegExp(r'[.,]'), '');
+    if (hasDecimal) {
+      final parts = s.split(sepChar);
+      if (parts.length == 2 && parts[1].length <= 2) {
+        // Desimal: buang semua ribuan, ganti desimal jadi '.'
+        final intPart = parts[0].replaceAll(RegExp(r'[.,]'), '');
+        final decPart = parts[1];
+        s = '$intPart.$decPart';
+      }
+    } else {
+      // Tidak ada separator → angka bulat
+      s = s.replaceAll(RegExp(r'[.,]'), '');
+    }
 
     return double.tryParse(s);
   }

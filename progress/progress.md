@@ -26,6 +26,14 @@
   - `lib/providers/analysis_provider.dart` — `getPeriodIncome` & `getPeriodExpenses` konsisten exclude `Tabungan` → hero card Pemasukan/Pengeluaran periode akurat.
   - `dart analyze` clean (0 error baru).
 
+- **OCR Phase 1 — Receipt Parser Fix**: `lib/utils/receipt_parser.dart` (167→196 baris):
+  - **1.1** Tambah 8 keyword anchor: `GRAND`, `TOTAL HARGA`, `TOTAL BELANJA`, `JUMLAH`, `BAYAR`, `KEMBALI`, `NET TOTAL`, `CHARGE` → `docs/plan-ocr-improvement.md`
+  - **1.2** Expand window 3→5 baris setelah keyword ditemukan
+  - **1.3** Context-aware `_normalizeLine()`: O→0, I→1, B→8 HANYA jika diapit digit → `INDOMARET` tidak jadi `0N0MARET`
+  - **1.4** `_extractPrices()` exclude barcode >13 digit, timestamp (`:`), quantity <3 digit tanpa `Rp`
+  - **1.5** `_parsePrice()` deteksi format berdasarkan separator TERAKHIR (`15.000,00` vs `15,000.00`) → akurat Indonesian & international
+  - `dart analyze` clean (0 error, 1 info pre-existing)
+
 ## Recently Completed (2026-08-20)
 
 - **Notification fix (timezone)**: Rewrite `NotificationService` — 3-tier timezone fallback (IANA → system name → offset-based). Cancel reminder tanpa affect budget alerts (`cancelReminder()` ID base 100 vs `showBudgetAlert()` ID base 200). `rescheduleAll()` sekarang hanya cancel reminders, bukan `cancelAll()`. Detail logging `[NOTIF]` untuk debugging. **✅ Verified on device** — notif muncul di tray sesuai jadwal.
@@ -108,9 +116,10 @@
 
 ## Next Steps
 
-1. Test notifikasi end-to-end setelah fix timezone
-2. Implementasi OCR improvement (Phase 1: parser fix)
-3. E2E testing untuk period-based balance dan overspend
+1. ~~Test notifikasi end-to-end setelah fix timezone~~ ✅ Verified on device
+2. OCR improvement Phase 2: preprocessing (upscaling, noise reduction, white border, combined pass)
+3. OCR improvement Phase 3: UI/UX inline editing (amount edit, confidence badge, gunakan teks ini)
+4. E2E testing untuk period-based balance dan overspend
 
 ## Critical Context
 
@@ -173,3 +182,4 @@
 | 2026-09-04 | Overspend Fix | Fix false-positive: period end midnight, exclude Tabungan dari checkShortfall & getPeriodIncome/Expenses | ✅ Done |
 | 2026-09-04 | Settings Animasi | Tambah import flutter_animate, per-section fadeIn+slideY delay 80ms (0→400ms) sesuai gaya Report | ✅ Done |
 | 2026-09-04 | Notif Verify | Notif verified on device — muncul di tray sesuai jadwal, timezone fallback bekerja | ✅ Done |
+| 2026-09-04 | OCR Phase 1 | ReceiptParser: 8 keyword anchor, context-aware normalize, extractPrices filter, parsePrice last-sep format | ✅ Done |
