@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:money_tracker/screens/monthly_report_screen.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,8 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           // 1. Section Preferensi
-          _buildSectionHeader("Preferensi"),
+          _buildSectionHeader("Preferensi")
+              .animate().fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
@@ -95,7 +97,8 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 2. Section Widget
-          _buildSectionHeader("Kustomisasi Widget"),
+          _buildSectionHeader("Kustomisasi Widget")
+              .animate(delay: 80.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
@@ -110,7 +113,8 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 3. Section Data
-          _buildSectionHeader("Manajemen Data"),
+          _buildSectionHeader("Manajemen Data")
+              .animate(delay: 160.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
@@ -133,7 +137,8 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          _buildSectionHeader("Tentang & Legalitas"),
+          _buildSectionHeader("Tentang & Legalitas")
+              .animate(delay: 240.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
@@ -148,7 +153,8 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 3. Section Danger Zone
-          _buildSectionHeader("Zona Berbahaya"),
+          _buildSectionHeader("Zona Berbahaya")
+              .animate(delay: 320.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
           _buildSettingsContainer([
             _buildSettingTile(
               context,
@@ -177,7 +183,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
+          ).animate(delay: 400.ms).fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
         ],
       ),
     );
