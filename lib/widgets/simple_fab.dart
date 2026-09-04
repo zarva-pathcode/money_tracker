@@ -84,8 +84,8 @@ class _SimpleFabState extends State<SimpleFab>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Container(
-                  color: Colors.black.withOpacity(
-                    0.3,
+                  color: Colors.black.withValues(
+                    alpha: 0.3,
                   ), // Warna gelap full screen
                 ),
               ),
@@ -116,7 +116,8 @@ class _SimpleFabState extends State<SimpleFab>
                     curve: Interval(
                       startInterval.clamp(0.0, 1.0),
                       endInterval.clamp(0.0, 1.0),
-                      curve: Curves.easeOutBack,
+                      // easeOut — tanpa bounce
+                      curve: Curves.easeOut,
                     ),
                   );
 
@@ -127,7 +128,7 @@ class _SimpleFabState extends State<SimpleFab>
                 ), // Jarak antara menu terakhir dengan FAB Utama
               ],
 
-              // B. FAB UTAMA
+              // B. FAB UTAMA — tanpa bounce animation, hanya rotation halus
               FloatingActionButton(
                 onPressed: _toggle,
                 backgroundColor: Theme.of(context).primaryColor,

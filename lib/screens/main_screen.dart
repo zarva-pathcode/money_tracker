@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:money_tracker/models/expense.dart';
 import 'package:money_tracker/providers/expense_provider.dart';
 import 'package:money_tracker/providers/plan_provider.dart';
 import 'package:money_tracker/providers/settings_provider.dart';
@@ -18,11 +16,8 @@ import 'package:money_tracker/services/speech_service.dart';
 import 'package:money_tracker/services/transaction_parser_service.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
-import '../services/overspend_service.dart';
 import '../services/voice_transaction_service.dart';
-import '../widgets/animated_tap.dart';
 import '../widgets/fade_indexed_stack.dart';
-import '../widgets/overspend_bottom_sheet.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -95,8 +90,12 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Sembunyikan FAB + navbar saat keyboard terbuka agar layar penuh
+    // untuk konten (mis. hasil pencarian), tanpa balok putih melayang.
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           FadeIndexedStack(index: _currentIndex, children: _screens),
@@ -105,7 +104,9 @@ class _MainScreenState extends State<MainScreen>
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: GestureDetector(
+      floatingActionButton: keyboardVisible
+          ? null
+          : GestureDetector(
         onTap: () => _showAddTransactionBottomSheet(context),
         onLongPressStart: (details) {
           _dragStartY = details.globalPosition.dy;
@@ -141,50 +142,38 @@ class _MainScreenState extends State<MainScreen>
           _cancelRecording();
         },
         child: FloatingActionButton(
-              heroTag: 'main_add_fab',
-              onPressed: null,
-              backgroundColor:
-                  _isRecording ? Colors.red : Theme.of(context).primaryColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child:
-                  _isRecording
-                      ? Icon(Icons.stop, color: Colors.white, size: 24)
-                      : const FaIcon(
-                        FontAwesomeIcons.plus,
-                        size: 24,
-                        color: Colors.white,
-                      ),
-            )
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scaleXY(
-              begin: 1.0,
-              end: 1.08,
-              duration: 1200.ms,
-              curve: Curves.easeInOut,
-            ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: Colors.white,
-        elevation: 20,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(FontAwesomeIcons.house, 'Home', 0),
-              _buildNavItem(FontAwesomeIcons.chartPie, 'Report', 1),
-              const SizedBox(width: 48),
-              _buildNavItem(FontAwesomeIcons.piggyBank, 'Plan', 2),
-              _buildNavItem(FontAwesomeIcons.gears, 'Settings', 3),
-            ],
-          ),
+          heroTag: 'main_add_fab',
+          onPressed: null,
+          backgroundColor:
+              _isRecording ? Colors.red : Theme.of(context).primaryColor,
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          child: _isRecording
+              ? const Icon(Icons.stop, color: Colors.white, size: 24)
+              : const FaIcon(FontAwesomeIcons.plus, size: 24, color: Colors.white),
         ),
       ),
+      bottomNavigationBar: keyboardVisible
+          ? null
+          : BottomAppBar(
+              shape: const CircularNotchedRectangle(),
+              notchMargin: 8.0,
+              color: Colors.white,
+              elevation: 20,
+              child: SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(FontAwesomeIcons.house, 'Home', 0),
+                    _buildNavItem(FontAwesomeIcons.chartPie, 'Report', 1),
+                    const SizedBox(width: 48),
+                    _buildNavItem(FontAwesomeIcons.piggyBank, 'Plan', 2),
+                    _buildNavItem(FontAwesomeIcons.gears, 'Settings', 3),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 

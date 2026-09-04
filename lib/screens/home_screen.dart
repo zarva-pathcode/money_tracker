@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:money_tracker/models/chart_data.dart';
 import 'package:money_tracker/models/expense.dart';
 import 'package:money_tracker/screens/edit_expense_screen.dart';
 import 'package:money_tracker/utils/constants.dart';
-import 'package:money_tracker/widgets/category_breakdown.dart';
-import 'package:money_tracker/widgets/expense_chart.dart';
 import 'package:money_tracker/widgets/filter_bottom_sheet.dart';
 import 'package:money_tracker/widgets/month_filter_selector.dart';
-import 'package:money_tracker/widgets/month_picker_button.dart';
 import 'package:provider/provider.dart';
 import '../providers/analysis_provider.dart';
 import '../providers/expense_provider.dart';
@@ -20,7 +17,6 @@ import '../providers/settings_provider.dart';
 import '../widgets/animated_tap.dart';
 import '../widgets/today_budget_card.dart';
 import '../services/notification_service.dart';
-import '../utils/period_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,29 +27,65 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _showKekayaanMode = false;
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
+  final GlobalKey _searchBarKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _searchFocusNode.addListener(_onSearchFocusChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService.requestPermissions();
     });
   }
 
+  /// Auto-center viewport ke search bar dengan SATU animasi mulus.
+  /// Offset dihitung presisi via [RenderAbstractViewport.getOffsetToReveal]
+  /// dikurangi tinggi header sticky — tanpa jumpTo/animasi ganda pemicu glitch.
+  void _onSearchFocusChange() {
+    if (!_searchFocusNode.hasFocus) return;
+    // Tunda hingga keyboard + spacer selesai layout agar geometry valid.
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted || !_scrollController.hasClients) return;
+      final targetCtx = _searchBarKey.currentContext;
+      if (targetCtx == null || !targetCtx.mounted) return;
+      final renderObject = targetCtx.findRenderObject();
+      if (renderObject == null) return;
+      const stickyHeaderHeight = 116.0; // AppBar 56 + filter sticky 60
+      final revealed = RenderAbstractViewport.of(
+        renderObject,
+      ).getOffsetToReveal(renderObject, 0.0);
+      final max = _scrollController.position.maxScrollExtent;
+      final target = (revealed.offset - stickyHeaderHeight).clamp(0.0, max);
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.removeListener(_onSearchFocusChange);
+    _searchFocusNode.dispose();
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Stack(
-        children: [
+    // Tanpa Scaffold ganda — keyboard insets dikelola satu pintu oleh
+    // Scaffold di MainScreen agar tidak terjadi perhitungan ganda.
+    return Stack(
+      children: [
           Consumer3<ExpenseProvider, PlanProvider, SettingsProvider>(
             builder: (context, provider, planProvider, settings, child) {
-              final hasActiveFilter =
-                  provider.selectedCategory != 'Semua Kategori' ||
-                  provider.selectedMonthFilter != MonthFilter.all ||
-                  provider.startDate != null;
-
               return CustomScrollView(
+                controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   // 1. AppBar simpel (hanya judul saat collapsed)
@@ -160,15 +192,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   // 4. Search Bar
                   SliverToBoxAdapter(
                     child: Padding(
+                      key: _searchBarKey,
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                       child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        // Scroll otomatis bawaan Flutter saat fokus: tempatkan
+                        // search bar 130px dari atas (di bawah AppBar 56 +
+                        // filter sticky 60) dalam 1 transisi mulus sinkron
+                        // dengan naiknya keyboard — tanpa animasi manual ganda.
+                        scrollPadding: const EdgeInsets.only(
+                          top: 130.0,
+                          bottom: 20.0,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Cari transaksi...',
                           prefixIcon: const Icon(Icons.search_rounded, size: 20),
                           suffixIcon: provider.searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear_rounded, size: 18),
-                                  onPressed: () => provider.setSearchQuery(''),
+                                  tooltip: 'Batalkan pencarian',
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    provider.setSearchQuery('');
+                                    _searchFocusNode.unfocus();
+                                  },
                                 )
                               : null,
                           filled: true,
@@ -192,14 +240,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   // 5. List Transaksi
                   _buildGroupedExpenseList(context, provider),
 
+                  // 6. Spacer dinamis setinggi keyboard — menambah ruang
+                  // scroll saat keyboard terbuka walau item sedikit/kosong,
+                  // sehingga search bar selalu bisa digeser ke atas.
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                  ),
+
                   // Padding bawah untuk FAB
                 ],
               );
             },
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildHeroCard(
@@ -505,8 +561,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ..sort((a, b) => DateTime.parse(b).compareTo(DateTime.parse(a)));
 
     // 2. Build UI List
+    // Padding bawah 100 agar item terakhir tidak tertutup navbar/FAB.
+    // Saat keyboard terbuka navbar/FAB disembunyikan (main_screen),
+    // jadi padding dikecilkan agar tidak ada ruang kosong besar.
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, keyboardVisible ? 20 : 100),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final dateKey = sortedKeys[index];

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:money_tracker/models/chart_data.dart';
 import 'package:money_tracker/utils/constants.dart';
 
+import 'package:money_tracker/widgets/category_detail_bottom_sheet.dart';
 import 'package:money_tracker/widgets/expense_chart.dart';
 import 'package:money_tracker/widgets/month_picker_button.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,6 @@ class MonthlyReportScreen extends StatefulWidget {
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   bool _showIncome = false;
   int _selectedYear = DateTime.now().year;
-  final Set<String> _expandedCategories = {};
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +107,32 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         : _prepareChartData(analysisProvider);
     final totalAmount =
         isIncome ? analysisProvider.filteredIncome : expenseProvider.totalExpenses;
-    final subtitle = isIncome ? "Pemasukan per Kategori" : "Pengeluaran per Kategori";
+
+    final incomeTotal = analysisProvider.filteredIncome;
+    final expenseTotal = expenseProvider.totalExpenses;
+    final netFlow = incomeTotal - expenseTotal;
+    final periodLabel = analysisProvider.currentMonthYear;
+
+    // Kategori terbesar untuk highlight di bawah chart.
+    final highlightTotals = isIncome
+        ? analysisProvider.getIncomeCategoryTotals()
+        : analysisProvider.getCategoryTotals();
+    String? topCategory;
+    double topCategoryAmount = 0;
+    highlightTotals.forEach((name, amount) {
+      if (amount > topCategoryAmount) {
+        topCategoryAmount = amount;
+        topCategory = name;
+      }
+    });
+    final topPercent =
+        totalAmount > 0 ? topCategoryAmount / totalAmount : 0.0;
+
+    final currency = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -115,11 +140,63 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // A. Grafik Donut & Breakdown
+          // 1. Header + pemilih bulan
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Analisis Bulanan",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      periodLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              MonthPickerButton(
+                selectedMonth: expenseProvider.selectedMonthFilter,
+                onMonthChanged: (month) => expenseProvider.setMonthFilter(month),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // 2. Segmented switcher Pengeluaran / Pemasukan
+          _buildModeSegment(context),
+          const SizedBox(height: 16),
+          // 3. Kartu hero arus kas bulanan
+          _buildCashFlowHero(
+            incomeTotal: incomeTotal,
+            expenseTotal: expenseTotal,
+            netFlow: netFlow,
+            currency: currency,
+          )
+              .animate()
+              .fadeIn(duration: 400.ms, curve: Curves.easeOut)
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                duration: 400.ms,
+                curve: Curves.easeOutQuad,
+              ),
+          const SizedBox(height: 16),
+          // 4. Kartu donut + highlight kategori terbesar
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.06),
@@ -132,61 +209,339 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Analisis",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _buildTypeToggle(context),
-                    const SizedBox(width: 8),
-                    MonthPickerButton(
-                      selectedMonth: expenseProvider.selectedMonthFilter,
-                      onMonthChanged: (month) => expenseProvider.setMonthFilter(month),
-                    ),
-                  ],
+                Text(
+                  isIncome ? "Distribusi Pemasukan" : "Distribusi Pengeluaran",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black87,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 8),
                 SizedBox(
-                  height: 280,
+                  height: 260,
                   child: ExpenseChart(
                     totalAmount: totalAmount,
                     chartData: chartData,
-                    period: analysisProvider.currentMonthYear,
+                    period: periodLabel,
                   ),
                 ),
-                const SizedBox(height: 24),
-                _buildTimeHeatmap(context, analysisProvider),
-                const SizedBox(height: 32),
-                Divider(color: Colors.grey[100], thickness: 1.5),
-                const SizedBox(height: 24),
-                isIncome
-                    ? _buildIncomeCategoryBreakdown(context, expenseProvider)
-                    : _buildUnifiedCategoryAnalysis(context, expenseProvider, budgetProvider),
+                if (topCategory != null) ...[
+                  const SizedBox(height: 16),
+                  _buildTopCategoryPill(
+                    categoryName: topCategory!,
+                    amount: topCategoryAmount,
+                    percent: topPercent,
+                    currency: currency,
+                  ),
+                ],
               ],
             ),
-          ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
+          )
+              .animate()
+              .fadeIn(
+                delay: 100.ms,
+                duration: 400.ms,
+                curve: Curves.easeOut,
+              )
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                delay: 100.ms,
+                duration: 400.ms,
+                curve: Curves.easeOutQuad,
+              ),
+          const SizedBox(height: 20),
+          // 5. Judul rincian kategori
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Rincian Kategori",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                "${highlightTotals.length} kategori",
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          isIncome
+              ? _buildIncomeCategoryBreakdown(context, expenseProvider)
+              : _buildUnifiedCategoryAnalysis(context, expenseProvider, budgetProvider),
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  /// Segmented pill switcher Pengeluaran / Pemasukan.
+  Widget _buildModeSegment(BuildContext context) {
+    final isIncome = _showIncome;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          _buildModeSegmentItem(
+            context,
+            selected: !isIncome,
+            icon: FontAwesomeIcons.arrowUp,
+            label: 'Pengeluaran',
+            activeColor: Colors.red[700]!,
+            onTap: () => setState(() => _showIncome = false),
+          ),
+          _buildModeSegmentItem(
+            context,
+            selected: isIncome,
+            icon: FontAwesomeIcons.arrowDown,
+            label: 'Pemasukan',
+            activeColor: Colors.green[700]!,
+            onTap: () => setState(() => _showIncome = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeSegmentItem(
+    BuildContext context, {
+    required bool selected,
+    required FaIconData icon,
+    required String label,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow:
+                selected
+                    ? [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(
+                icon,
+                size: 13,
+                color: selected ? activeColor : Colors.grey[500],
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.black87 : Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Kartu hero ringkasan arus kas: pemasukan, pengeluaran, dan sisa bersih.
+  Widget _buildCashFlowHero({
+    required double incomeTotal,
+    required double expenseTotal,
+    required double netFlow,
+    required NumberFormat currency,
+  }) {
+    final isSurplus = netFlow >= 0;
+    final rate = incomeTotal > 0 ? netFlow / incomeTotal : 0.0;
+    final badgeColor = isSurplus ? Colors.green[700]! : Colors.red[700]!;
+    final badgeBg = isSurplus ? Colors.green[50]! : Colors.red[50]!;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildFlowItem(
+                  icon: FontAwesomeIcons.arrowDown,
+                  label: 'Pemasukan',
+                  value: '+ ${currency.format(incomeTotal)}',
+                  color: Colors.green[700]!,
+                ),
+              ),
+              Container(width: 1, height: 44, color: Colors.grey[200]),
+              Expanded(
+                child: _buildFlowItem(
+                  icon: FontAwesomeIcons.arrowUp,
+                  label: 'Pengeluaran',
+                  value: '− ${currency.format(expenseTotal)}',
+                  color: Colors.red[700]!,
+                ),
+              ),
+            ],
+          ),
+          Divider(color: Colors.grey[100], thickness: 1.5, height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Arus Kas Bersih',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isSurplus
+                      ? 'Surplus ${(rate * 100).toStringAsFixed(0)}%'
+                      : 'Defisit',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: badgeColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              currency.format(netFlow),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+                color: isSurplus ? Colors.black87 : Colors.red[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowItem({
+    required FaIconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: FaIcon(icon, size: 14, color: color),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  /// Pill highlight kategori terbesar bulan ini di bawah chart.
+  Widget _buildTopCategoryPill({
+    required String categoryName,
+    required double amount,
+    required double percent,
+    required NumberFormat currency,
+  }) {
+    final style = Constants.getCategoryStyle(categoryName);
+    final color = style['color'] as Color;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          FaIcon(FontAwesomeIcons.trophy, size: 16, color: Colors.amber[700]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Terbesar bulan ini',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$categoryName • ${(percent * 100).toStringAsFixed(0)}%',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            currency.format(amount),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -225,39 +580,6 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
     'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
   ];
-
-  Widget _buildTypeToggle(BuildContext context) {
-    final isIncome = _showIncome;
-    return GestureDetector(
-      onTap: () => setState(() => _showIncome = !_showIncome),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isIncome ? Colors.green : Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FaIcon(
-              isIncome ? FontAwesomeIcons.arrowDown : FontAwesomeIcons.arrowUp,
-              color: Colors.white,
-              size: 14,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              isIncome ? 'In' : 'Out',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ==========================================
   // TAB 2: TAHUNAN (Tren & Riwayat)
@@ -349,22 +671,25 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
   Widget _buildYearPicker(BuildContext context) {
     final now = DateTime.now().year;
+    final isCurrentYear = _selectedYear == now;
+    final primary = Theme.of(context).primaryColor;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Tombol tahun sebelumnya
           IconButton(
             icon: const Icon(Icons.chevron_left_rounded),
             onPressed: _selectedYear > 2020
@@ -373,23 +698,56 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             style: IconButton.styleFrom(
               backgroundColor: Colors.grey[100],
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          GestureDetector(
-            onTap: () => setState(() => _selectedYear = now),
-            child: Text(
-              '$_selectedYear',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  'Tahun Laporan',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$_selectedYear',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    color: Colors.black87,
+                  ),
+                ),
+                // Tombol cepat kembali ke tahun berjalan
+                if (!isCurrentYear) ...[
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () => setState(() => _selectedYear = now),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Tahun Ini',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(width: 16),
+          // Tombol tahun berikutnya
           IconButton(
             icon: const Icon(Icons.chevron_right_rounded),
             onPressed: _selectedYear < now
@@ -398,7 +756,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             style: IconButton.styleFrom(
               backgroundColor: Colors.grey[100],
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -409,71 +767,135 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
   Widget _buildYoYComparison(BuildContext context, double expenseChange, double incomeChange) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: _buildChangeBadge(
-              'Pengeluaran',
-              expenseChange,
-              Icons.trending_up,
-              Colors.red,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Pertumbuhan Tahunan',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'vs ${_selectedYear - 1}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
           ),
-          Container(width: 1, height: 40, color: Colors.grey[200]),
-          Expanded(
-            child: _buildChangeBadge(
-              'Pemasukan',
-              incomeChange,
-              Icons.trending_up,
-              Colors.green,
-            ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _buildChangeBadge(
+                  'Pengeluaran',
+                  expenseChange,
+                  // Naik = buruk untuk pengeluaran
+                  invertMeaning: true,
+                ),
+              ),
+              Container(width: 1, height: 52, color: Colors.grey[200]),
+              Expanded(
+                child: _buildChangeBadge(
+                  'Pemasukan',
+                  incomeChange,
+                  // Naik = baik untuk pemasukan
+                  invertMeaning: false,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildChangeBadge(String label, double change, IconData icon, Color color) {
+  /// Badge tren YoY: warna mengikuti makna (naik belum tentu baik).
+  Widget _buildChangeBadge(
+    String label,
+    double change, {
+    required bool invertMeaning,
+  }) {
     final isUp = change > 0;
     final isDown = change < 0;
+    // Untuk pengeluaran: naik = merah (buruk). Untuk pemasukan sebaliknya.
+    final isGood = invertMeaning ? isDown : isUp;
+    final isBad = invertMeaning ? isUp : isDown;
+    final trendColor =
+        isGood
+            ? Colors.green[700]!
+            : (isBad ? Colors.red[700]! : Colors.grey[500]!);
+    final trendBg =
+        isGood
+            ? Colors.green[50]!
+            : (isBad ? Colors.red[50]! : Colors.grey[100]!);
     return Column(
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isUp ? Icons.arrow_upward : (isDown ? Icons.arrow_downward : Icons.remove),
-              size: 16,
-              color: isUp ? Colors.red : (isDown ? Colors.green : Colors.grey),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${change.abs().toStringAsFixed(1)}%',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isUp ? Colors.red : (isDown ? Colors.green : Colors.grey),
-              ),
-            ),
-          ],
-        ),
         Text(
-          'vs ${_selectedYear - 1}',
-          style: TextStyle(fontSize: 10, color: Colors.grey[400]),
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: trendBg,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isUp
+                    ? Icons.trending_up_rounded
+                    : (isDown
+                        ? Icons.trending_down_rounded
+                        : Icons.remove_rounded),
+                size: 16,
+                color: trendColor,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${change.abs().toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: trendColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -518,119 +940,37 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     return chartData;
   }
 
-  Widget _buildTimeHeatmap(BuildContext context, AnalysisProvider analysis) {
-    final heatmap = analysis.getTimeHeatmap();
-    final maxVal = analysis.maxHeatmapValue;
-    final totalAll = heatmap.values.fold<double>(
-      0, (s, day) => s + day.values.fold<double>(0, (ss, v) => ss + v),
-    );
-    if (totalAll == 0) return const SizedBox();
-
-    final currency = NumberFormat.currency(
-      locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0,
-    );
-
+  /// Kartu empty state saat kategori bulan ini masih kosong.
+  Widget _buildEmptyCategoryCard({
+    required String message,
+    required FaIconData icon,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[100]!),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Heatmap Waktu', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 4),
-          Text('Pola pengeluaran berdasarkan hari & waktu',
-            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Table(
-              border: TableBorder.all(color: Colors.grey[200]!, width: 0.5),
-              columnWidths: const {
-                0: FlexColumnWidth(1.2),
-                1: FlexColumnWidth(1),
-                2: FlexColumnWidth(1),
-                3: FlexColumnWidth(1),
-                4: FlexColumnWidth(1),
-              },
-              children: [
-                TableRow(
-                  decoration: BoxDecoration(color: Colors.grey[50]),
-                  children: [
-                    _hc('', true),
-                    _hc('Pagi', true),
-                    _hc('Siang', true),
-                    _hc('Sore', true),
-                    _hc('Malam', true),
-                  ],
-                ),
-                for (final day in analysis.heatmapDayLabels) ...[
-                  TableRow(
-                    children: [
-                      _hc(day, false),
-                      for (final slot in analysis.heatmapTimeSlotLabels)
-                        _heatmapCell(heatmap[day]?[slot] ?? 0, maxVal, currency),
-                    ],
-                  ),
-                ],
-              ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              shape: BoxShape.circle,
             ),
+            child: FaIcon(icon, size: 24, color: Colors.grey[400]),
           ),
           const SizedBox(height: 12),
-          // Legend
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _legendDot(Colors.green[200]!, 'Ringan'),
-              const SizedBox(width: 8),
-              _legendDot(Colors.orange[300]!, 'Sedang'),
-              const SizedBox(width: 8),
-              _legendDot(Colors.red[400]!, 'Berat'),
-            ],
+          Text(
+            message,
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
-    );
-  }
-
-  Widget _hc(String text, bool isHeader) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: isHeader ? 10 : 11,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.w600,
-          color: isHeader ? Colors.grey[700] : Colors.grey[800],
-        ),
-      ),
-    );
-  }
-
-  Widget _heatmapCell(double value, double maxVal, NumberFormat currency) {
-    final intensity = maxVal > 0 ? (value / maxVal).clamp(0.0, 1.0) : 0.0;
-    final color = Color.lerp(Colors.green[200]!, Colors.red[400]!, intensity)!;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.3 + intensity * 0.5)),
-      alignment: Alignment.center,
-      child: value > 0
-          ? Text(
-              currency.format(value).replaceAll('Rp ', ''),
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                color: intensity > 0.5 ? Colors.white : Colors.black87,
-              ),
-            )
-          : Text('-', style: TextStyle(fontSize: 9, color: Colors.grey[400])),
     );
   }
 
@@ -643,14 +983,9 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     final totalAmount = analysisProvider.filteredIncome;
 
     if (categoryTotals.isEmpty) {
-      return SizedBox(
-        height: 60,
-        child: Center(
-          child: Text(
-            'Belum ada pemasukan bulan ini',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ),
+      return _buildEmptyCategoryCard(
+        message: 'Belum ada pemasukan bulan ini',
+        icon: FontAwesomeIcons.wallet,
       );
     }
 
@@ -663,9 +998,6 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       symbol: 'Rp',
       decimalDigits: 0,
     );
-    final txCurrency = NumberFormat.currency(
-      locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0,
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,7 +1007,6 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           final categoryName = entry.key;
           final amount = entry.value;
           final percent = totalAmount > 0 ? amount / totalAmount : 0.0;
-          final isExpanded = _expandedCategories.contains(categoryName);
 
           final style = Constants.getCategoryStyle(categoryName);
           final color = style['color'] as Color;
@@ -686,129 +1017,103 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
               .toList()
             ..sort((a, b) => b.date.compareTo(a.date));
 
-          return Column(
+          return GestureDetector(
             key: ValueKey(categoryName),
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isExpanded) {
-                      _expandedCategories.remove(categoryName);
-                    } else {
-                      _expandedCategories.add(categoryName);
-                    }
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
+            onTap: () {
+              // Drill-down: tampilkan seluruh transaksi kategori ini
+              // dalam bottom sheet detail.
+              CategoryDetailBottomSheet.show(
+                context,
+                categoryName: categoryName,
+                transactions: catTransactions,
+                type: 'income',
+                periodLabel: analysisProvider.currentMonthYear,
+                categoryTotal: amount,
+                grandTotal: totalAmount,
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[100]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Center(child: FaIcon(icon, color: color, size: 16)),
+                        child: Center(
+                          child: FaIcon(icon, color: color, size: 19),
+                        ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  currencyFormatter.format(amount),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              categoryName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: LinearProgressIndicator(
-                                value: percent,
-                                backgroundColor: Colors.grey[100],
-                                color: color,
-                                minHeight: 6,
+                            const SizedBox(height: 2),
+                            Text(
+                              currencyFormatter.format(amount),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      AnimatedRotation(
-                        turns: isExpanded ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.grey[400],
-                          size: 20,
-                        ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey[400],
+                        size: 22,
                       ),
                     ],
                   ),
-                ),
-              ),
-              AnimatedCrossFade(
-                firstChild: const SizedBox(width: double.infinity),
-                secondChild: Padding(
-                  padding: const EdgeInsets.only(left: 60, bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: catTransactions.take(5).map((tx) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(tx.title,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                  ),
-                                  Text(
-                                    '${tx.date.day}/${tx.date.month}',
-                                    style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              txCurrency.format(tx.amount),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: percent,
+                      backgroundColor: Colors.grey[100],
+                      color: color,
+                      minHeight: 7,
+                    ),
                   ),
-                ),
-                crossFadeState: isExpanded
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 200),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${(percent * 100).toStringAsFixed(1)}% dari total pemasukan',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         }).toList(),
       ],
@@ -833,15 +1138,16 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     final hasData = netData.any((v) => v != 0);
 
     return Container(
-      height: 280,
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      height: 290,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -850,19 +1156,21 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Grafik Tahunan",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            "Arus Kas per Bulan",
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 4),
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              _legendDot(Colors.green, 'Pemasukan'),
-              const SizedBox(width: 16),
-              _legendDot(Colors.red, 'Pengeluaran'),
-              if (hasData) ...[
-                const SizedBox(width: 16),
-                _legendDot(Colors.indigo, 'Proyeksi'),
-              ],
+              _legendPill(Colors.green[600]!, 'Pemasukan'),
+              _legendPill(Colors.red[500]!, 'Pengeluaran'),
+              if (hasData) _legendPill(Colors.indigo, 'Proyeksi'),
             ],
           ),
           const SizedBox(height: 12),
@@ -889,19 +1197,19 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                   dataSource: chartData,
                   xValueMapper: (_YearlyChartData d, _) => d.month,
                   yValueMapper: (_YearlyChartData d, _) => d.income,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                  color: Colors.green[400],
-                  spacing: 0.2,
-                  width: 0.3,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  color: Colors.green[500],
+                  spacing: 0.25,
+                  width: 0.35,
                 ),
                 ColumnSeries<_YearlyChartData, String>(
                   dataSource: chartData,
                   xValueMapper: (_YearlyChartData d, _) => d.month,
                   yValueMapper: (_YearlyChartData d, _) => d.expense,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                  color: Theme.of(context).primaryColor,
-                  spacing: 0.2,
-                  width: 0.3,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  color: Colors.red[400],
+                  spacing: 0.25,
+                  width: 0.35,
                 ),
                 if (hasData)
                   SplineSeries<_ForecastData, String>(
@@ -932,14 +1240,33 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     );
   }
 
-  Widget _legendDot(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-      ],
+  /// Legenda berbentuk pill untuk kartu grafik.
+  Widget _legendPill(Color color, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -954,16 +1281,18 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       );
     }).toList();
 
+    final primary = Theme.of(context).primaryColor;
     return Container(
-      height: 260,
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      height: 270,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -972,15 +1301,25 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Arus Kas — Net & Kumulatif',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            'Tren Kas Kumulatif',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 4),
-          Row(
+          const SizedBox(height: 2),
+          Text(
+            'Pertumbuhan saldo bersih dari bulan ke bulan',
+            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              _legendDot(Colors.teal, 'Net'),
-              const SizedBox(width: 16),
-              _legendDot(Colors.indigo, 'Kumulatif'),
+              _legendPill(Colors.teal[600]!, 'Net bulanan'),
+              _legendPill(primary, 'Kumulatif'),
             ],
           ),
           const SizedBox(height: 8),
@@ -1002,23 +1341,34 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                   dataSource: cashData,
                   xValueMapper: (d, _) => d.month,
                   yValueMapper: (d, _) => d.net,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
                   color: Colors.teal,
-                  spacing: 0.3,
-                  width: 0.5,
+                  spacing: 0.35,
+                  width: 0.45,
                   pointColorMapper: (d, _) => d.net >= 0 ? Colors.teal[400] : Colors.red[300],
                 ),
-                SplineSeries<_CashFlowData, String>(
+                SplineAreaSeries<_CashFlowData, String>(
                   dataSource: cashData,
                   xValueMapper: (d, _) => d.month,
                   yValueMapper: (d, _) => d.cumulative,
-                  color: Colors.indigo,
-                  width: 2,
-                  dashArray: [6, 3],
-                  markerSettings: const MarkerSettings(
+                  color: primary,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      primary.withValues(alpha: 0.35),
+                      primary.withValues(alpha: 0.03),
+                    ],
+                  ),
+                  borderColor: primary,
+                  borderWidth: 2.5,
+                  markerSettings: MarkerSettings(
                     isVisible: true,
-                    color: Colors.indigo,
-                    width: 3,
+                    color: Colors.white,
+                    borderColor: primary,
+                    borderWidth: 2,
+                    width: 8,
+                    height: 8,
                   ),
                 ),
               ],
@@ -1095,10 +1445,11 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -1107,22 +1458,44 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 20),
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(
+            title,
+            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+          ),
           const SizedBox(height: 4),
           Text(
             currencyFormat.format(value),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+              color: Colors.black87,
+            ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ],
         ],
@@ -1172,21 +1545,27 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
               isSaving = expense < prevExpense;
             }
 
+            final isSurplusMonth = saving >= 0;
+            final statusColor =
+                isSurplusMonth ? Colors.teal[700]! : Colors.orange[800]!;
+            final statusBg =
+                isSurplusMonth ? Colors.teal[50]! : Colors.orange[50]!;
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[100]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: Colors.grey.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: InkWell(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 onTap: () {
                   final monthExpenses = provider.allExpenses
                       .where((e) =>
@@ -1201,87 +1580,120 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          Constants.months[month - 1].substring(0, 3).toUpperCase(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 13,
+                      Row(
+                        children: [
+                          Container(
+                            width: 52,
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .primaryColor
+                                  .withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              Constants.months[month - 1].substring(0, 3).toUpperCase(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Theme.of(context).primaryColor,
+                                fontSize: 13,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Out: ${compactFormat.format(expense)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: Colors.red,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Out: ${compactFormat.format(expense)}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13,
+                                        color: Colors.red[700],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'In: ${compactFormat.format(income)}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13,
+                                        color: Colors.green[700],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'In: ${compactFormat.format(income)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: Colors.green,
-                                  ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusBg,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            isSurplusMonth
+                                                ? Icons.savings_rounded
+                                                : Icons.warning_rounded,
+                                            size: 11,
+                                            color: statusColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isSurplusMonth
+                                                ? 'Surplus ${compactFormat.format(saving)}'
+                                                : 'Defisit ${compactFormat.format(saving.abs())}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: statusColor,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (month > 1) ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        isHigher
+                                            ? Icons.trending_up_rounded
+                                            : (isSaving
+                                                ? Icons.trending_down_rounded
+                                                : Icons.remove_rounded),
+                                        size: 14,
+                                        color: isHigher
+                                            ? Colors.red[400]
+                                            : (isSaving
+                                                ? Colors.green[600]
+                                                : Colors.grey[400]),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                Icon(
-                                  saving >= 0 ? Icons.savings_rounded : Icons.warning_rounded,
-                                  size: 12,
-                                  color: saving >= 0 ? Colors.teal : Colors.orange,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  saving >= 0
-                                      ? 'Surplus ${compactFormat.format(saving)}'
-                                      : 'Defisit ${compactFormat.format(saving.abs())}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: saving >= 0 ? Colors.teal : Colors.orange,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (month > 1) ...[
-                                  const SizedBox(width: 8),
-                                  Icon(
-                                    isHigher
-                                        ? Icons.trending_up
-                                        : (isSaving ? Icons.trending_down : Icons.remove),
-                                    size: 12,
-                                    color: isHigher
-                                        ? Colors.red
-                                        : (isSaving ? Colors.green : Colors.grey),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.grey[400],
+                            size: 22,
+                          ),
+                        ],
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
                     ],
                   ),
                 ),
@@ -1303,7 +1715,12 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     final budgets = budgetProvider.budgets;
     final totalAmount = expenseProvider.totalExpenses;
 
-    if (categoryTotals.isEmpty) return const SizedBox();
+    if (categoryTotals.isEmpty) {
+      return _buildEmptyCategoryCard(
+        message: 'Belum ada pengeluaran bulan ini',
+        icon: FontAwesomeIcons.basketShopping,
+      );
+    }
 
     final sortedEntries =
         categoryTotals.entries.toList()
@@ -1315,10 +1732,6 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       decimalDigits: 0,
     );
 
-    final txCurrency = NumberFormat.currency(
-      locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0,
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1326,7 +1739,6 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         ...sortedEntries.map((entry) {
           final categoryName = entry.key;
           final spentAmount = entry.value;
-          final isExpanded = _expandedCategories.contains(categoryName);
 
           // Cari apakah ada budget untuk kategori ini
           final budget = budgets.cast<dynamic>().firstWhere(
@@ -1367,129 +1779,109 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
               .toList()
             ..sort((a, b) => b.date.compareTo(a.date));
 
-          return Column(
+          final percentCaption =
+              budget != null
+                  ? '${(progress * 100).toStringAsFixed(0)}% dari anggaran'
+                  : '${(progress * 100).toStringAsFixed(1)}% dari total pengeluaran';
+
+          return GestureDetector(
             key: ValueKey(categoryName),
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isExpanded) {
-                      _expandedCategories.remove(categoryName);
-                    } else {
-                      _expandedCategories.add(categoryName);
-                    }
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
+            onTap: () {
+              // Drill-down: tampilkan seluruh transaksi kategori ini
+              // dalam bottom sheet detail.
+              CategoryDetailBottomSheet.show(
+                context,
+                categoryName: categoryName,
+                transactions: catTransactions,
+                type: 'expense',
+                periodLabel: analysisProvider.currentMonthYear,
+                categoryTotal: spentAmount,
+                grandTotal: totalAmount,
+                budgetLimit: budget?.limitAmount as double?,
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[100]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Center(child: FaIcon(icon, color: color, size: 16)),
+                        child: Center(
+                          child: FaIcon(icon, color: color, size: 19),
+                        ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  label,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              categoryName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                backgroundColor: Colors.grey[100],
-                                color: budget != null ? progressColor : color,
-                                minHeight: 6,
+                            const SizedBox(height: 2),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      AnimatedRotation(
-                        turns: isExpanded ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.grey[400],
-                          size: 20,
-                        ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey[400],
+                        size: 22,
                       ),
                     ],
                   ),
-                ),
-              ),
-              AnimatedCrossFade(
-                firstChild: const SizedBox(width: double.infinity),
-                secondChild: Padding(
-                  padding: const EdgeInsets.only(left: 60, bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: catTransactions.take(5).map((tx) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(tx.title,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                  ),
-                                  Text(
-                                    '${tx.date.day}/${tx.date.month}',
-                                    style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              txCurrency.format(tx.amount),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.red[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.grey[100],
+                      color: budget != null ? progressColor : color,
+                      minHeight: 7,
+                    ),
                   ),
-                ),
-                crossFadeState: isExpanded
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 200),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      percentCaption,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         }).toList(),
       ],

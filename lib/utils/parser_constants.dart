@@ -44,7 +44,7 @@ class ParserConstants {
   static final List<String> sortedKeywords =
       keywordCategory.keys.toList()
         ..sort((a, b) => b.length.compareTo(a.length));
-
+  
   static final List<RegExp> incomePatterns = [
     RegExp(r'^(?:gaji|bonus|honor|upah|cair|dikasih|diberi|thr)\b'),
     RegExp(r'^(?:nerima|terima|dapat)\s+(?:gaji|bonus|uang|dana|duit)\b'),
