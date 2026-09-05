@@ -296,12 +296,12 @@ class BudgetTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: (categoryData['color'] as Color).withValues(alpha: 0.15),
+                    color: (categoryData.color).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
 child: FaIcon(
-                    categoryData['icon'],
-                    color: categoryData['color'] as Color,
+                    categoryData.icon,
+                    color: categoryData.color,
                     size: 22,
                   ),
                 ),

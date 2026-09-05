@@ -19,7 +19,7 @@ class RecentWidgetProvider {
         final style = Constants.getCategoryStyle(e.category);
         return {
           'emoji': Constants.getCategoryEmoji(e.category),
-          'color': Constants.colorHex(style['color'] as Color),
+          'color': Constants.colorHex(style.color),
           'title': e.title.isNotEmpty ? e.title : e.category,
           'amount': Formatters.formatNumber(e.amount.toInt()),
         };

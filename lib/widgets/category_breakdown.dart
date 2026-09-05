@@ -55,8 +55,8 @@ class CategoryBreakdown extends StatelessWidget {
           final amount = entry.value;
           final percentage = totalAmount == 0 ? 0.0 : (amount / totalAmount);
           final style = Constants.getCategoryStyle(categoryName);
-          final color = style['color'] as Color;
-          final icon = style['icon'];
+          final color = style.color;
+          final icon = style.icon;
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 16.0),

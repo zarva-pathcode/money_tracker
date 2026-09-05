@@ -79,7 +79,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
     }
     final categoryChartData = categoryTotals.entries.map((entry) {
       final style = Constants.getCategoryStyle(entry.key);
-      return ChartData(entry.key, entry.value, style['color']);
+      return ChartData(entry.key, entry.value, style.color);
     }).toList();
     // Kategori terbesar untuk pill highlight di bawah chart.
     String? topCategory;
@@ -536,7 +536,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
           final e = entry.value;
           final isLast = entry.key == list.length - 1;
           final style = Constants.getCategoryStyle(e.category);
-          final catColor = style['color'] as Color;
+          final catColor = style.color;
           return Column(
             children: [
               Padding(
@@ -551,7 +551,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Center(
-                        child: FaIcon(style['icon'], color: catColor, size: 17),
+                        child: FaIcon(style.icon, color: catColor, size: 17),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -676,7 +676,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
     required NumberFormat currency,
   }) {
     final style = Constants.getCategoryStyle(categoryName);
-    final color = style['color'] as Color;
+    final color = style.color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -732,7 +732,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
     return Column(
       children: sorted.map((e) {
         final style = Constants.getCategoryStyle(e.key);
-        final catColor = style['color'] as Color;
+        final catColor = style.color;
         final percent = total > 0 ? e.value / total : 0.0;
         final catTransactions = activeTransactions
             .where((tx) => tx.category == e.key)
@@ -772,7 +772,7 @@ class _MonthlyReportDetailScreenState extends State<MonthlyReportDetailScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Center(
-                        child: FaIcon(style['icon'], color: catColor, size: 19),
+                        child: FaIcon(style.icon, color: catColor, size: 19),
                       ),
                     ),
                     const SizedBox(width: 14),

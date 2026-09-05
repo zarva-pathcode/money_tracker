@@ -1,71 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+class CategoryStyle {
+  const CategoryStyle({required this.icon, required this.color});
+  final FaIconData icon;
+  final Color color;
+}
+
 class Constants {
   // Menggunakan 'static' agar bisa dipanggil langsung tanpa membuat instance kelas
-  static Map<String, dynamic> getCategoryStyle(String category) {
+  static CategoryStyle getCategoryStyle(String category) {
     switch (category) {
       case 'Makanan':
-        return {
-          'icon': FontAwesomeIcons.utensils,
-          'color': const Color(0xFFFF8A65), // Coral Orange
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.utensils,
+          color: Color(0xFFFF8A65), // Coral Orange
+        );
       case 'Transportasi':
-        return {
-          'icon': FontAwesomeIcons.car,
-          'color': const Color(0xFF42A5F5), // Soft Blue
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.car,
+          color: Color(0xFF42A5F5), // Soft Blue
+        );
       case 'Belanja':
-        return {
-          'icon': FontAwesomeIcons.bagShopping,
-          'color': const Color(0xFFAB47BC), // Lilac Purple
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.bagShopping,
+          color: Color(0xFFAB47BC), // Lilac Purple
+        );
       case 'Hiburan':
-        return {
-          'icon': FontAwesomeIcons.film,
-          'color': const Color(0xFFEC407A), // Raspberry Pink
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.film,
+          color: Color(0xFFEC407A), // Raspberry Pink
+        );
       case 'Tagihan':
-        return {
-          'icon': FontAwesomeIcons.fileInvoiceDollar,
-          'color': const Color(0xFF26A69A), // Teal Green
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.fileInvoiceDollar,
+          color: Color(0xFF26A69A), // Teal Green
+        );
       case 'Kesehatan':
-        return {
-          'icon': FontAwesomeIcons.stethoscope,
-          'color': const Color(0xFFEF5350), // Soft Red
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.stethoscope,
+          color: Color(0xFFEF5350), // Soft Red
+        );
       case 'Tabungan':
-        return {
-          'icon': FontAwesomeIcons.piggyBank,
-          'color': const Color(0xFFFFB74D), // Amber Orange
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.piggyBank,
+          color: Color(0xFFFFB74D), // Amber Orange
+        );
       case 'Lainnya':
-        return {
-          'icon': FontAwesomeIcons.ellipsis,
-          'color': const Color(0xFF78909C), // Blue Grey
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.ellipsis,
+          color: Color(0xFF78909C), // Blue Grey
+        );
       // Kategori Pemasukan
       case 'Gaji':
-        return {
-          'icon': FontAwesomeIcons.moneyBillWave,
-          'color': const Color(0xFF43A047), // Green
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.moneyBillWave,
+          color: Color(0xFF43A047), // Green
+        );
       case 'Bonus':
-        return {
-          'icon': FontAwesomeIcons.gift,
-          'color': const Color(0xFF81C784), // Light Green
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.gift,
+          color: Color(0xFF81C784), // Light Green
+        );
       case 'Investasi':
-        return {
-          'icon': FontAwesomeIcons.chartLine,
-          'color': const Color(0xFF00897B), // Teal
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.chartLine,
+          color: Color(0xFF00897B), // Teal
+        );
       default:
-        return {
-          'icon': FontAwesomeIcons.layerGroup,
-          'color': const Color(0xFFBDBDBD), // Grey
-        };
+        return const CategoryStyle(
+          icon: FontAwesomeIcons.layerGroup,
+          color: Color(0xFFBDBDBD), // Grey
+        );
     }
   }
 

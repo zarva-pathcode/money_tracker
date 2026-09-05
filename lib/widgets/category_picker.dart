@@ -50,8 +50,8 @@ class CategoryPicker extends StatelessWidget {
   Widget _buildItem(String category) {
     final isSelected = selectedCategory == category;
     final style = Constants.getCategoryStyle(category);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
 
     return GestureDetector(
       onTap: () => onCategoryChanged(category),

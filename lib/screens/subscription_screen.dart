@@ -103,8 +103,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Widget _buildSubItem(SubscriptionInfo sub, NumberFormat currency, ExpenseProvider provider) {
     final style = Constants.getCategoryStyle(sub.category);
-    final color = style['color'] as Color? ?? Colors.grey;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

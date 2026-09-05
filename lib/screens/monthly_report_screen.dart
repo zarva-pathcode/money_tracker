@@ -503,7 +503,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     required NumberFormat currency,
   }) {
     final style = Constants.getCategoryStyle(categoryName);
-    final color = style['color'] as Color;
+    final color = style.color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -908,7 +908,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
     categoryData.forEach((category, amount) {
       if (amount > 0) {
-        final color = Constants.getCategoryStyle(category)['color'] as Color;
+        final color = Constants.getCategoryStyle(category).color;
         chartData.add(
           ChartData(category, amount, color),
         );
@@ -927,7 +927,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
     categoryData.forEach((category, amount) {
       if (amount > 0) {
-        final color = Constants.getCategoryStyle(category)['color'] as Color;
+        final color = Constants.getCategoryStyle(category).color;
         chartData.add(
           ChartData(category, amount, color),
         );
@@ -1009,8 +1009,8 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           final percent = totalAmount > 0 ? amount / totalAmount : 0.0;
 
           final style = Constants.getCategoryStyle(categoryName);
-          final color = style['color'] as Color;
-          final icon = style['icon'];
+          final color = style.color;
+          final icon = style.icon;
 
           final catTransactions = expenseProvider.expenses
               .where((e) => e.category == categoryName && e.type == 'income')
@@ -1770,8 +1770,8 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           }
 
           final style = Constants.getCategoryStyle(categoryName);
-          final color = style['color'] as Color;
-          final icon = style['icon'];
+          final color = style.color;
+          final icon = style.icon;
 
           // Transaksi dalam kategori ini
           final catTransactions = expenseProvider.expenses

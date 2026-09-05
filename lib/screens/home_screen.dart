@@ -808,8 +808,8 @@ class _HomeScreenState extends State<HomeScreen> {
     bool hideAmount,
   ) {
     final style = Constants.getCategoryStyle(expense.category);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12), // Jarak antar kartu
@@ -968,8 +968,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ).format(expense.date);
 
     final style = Constants.getCategoryStyle(expense.category);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
 
     showModalBottomSheet(
       context: context,

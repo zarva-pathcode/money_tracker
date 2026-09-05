@@ -5,9 +5,9 @@
 
 ## Current State
 
-- **Branch:** main
+- **Branch:** dev
 - **Last Updated:** 2026-09-05
-- **Build Status:** ✅ dart analyze clean (no errors)
+- **Build Status:** ✅ dart analyze 0 error (9 warnings + 87 info pre-existing)
 - **App Status:** Functional — all core features working
 
 ## In Progress
@@ -227,3 +227,6 @@
 | 2026-09-04 | Bottom Sheet Revamp | Pilih transaksi jadi 4 kartu full-width (subtitle + badge Otomatis + staggered); filter jadi kartu sort grid 2x2 berikon + range Rp auto-format + shortcut <50rb/50-200rb/>200rb + Terapkan berikon | ✅ Done |
 | 2026-09-04 | Scan Flow + Revamp | Alur langsung modal→kamera→hasil (initialImagePath, tanpa klik ganda); hero total+merchant, Gunakan & Lanjut full-width, accordion OCR, panduan awal, guard context.mounted | ✅ Done |
 | 2026-09-04 | Scan Nav Bugfix | _startScanFlow pakai State.context (bukan context modal yang unmount) agar push hasil selalu jalan; initState set _image+_isProcessing langsung tanpa kedip | ✅ Done |
+| 2026-09-05 | CategoryStyle Typed | Refactor `Constants.getCategoryStyle` dari `Map<String,dynamic>` ke class `CategoryStyle(icon: FaIconData, color: Color)`; batch replace `['color'/'icon']` → `.color/.icon` di 16 file; revert replace salah di onboarding (`Map<String,String>`) & subscription (`style.color? ??`); `dart analyze` 0 error | ✅ Done |
+| 2026-09-05 | Revamp Settings & Reminder | Tulis ulang `ReminderSettingsScreen` (banner pastel, empty state, tile list, sheet hero time picker, dialog hapus) + `SettingsScreen` Fase2 (hero wallet, preferensi, widget preview, kartu format JSON/CSV/PDF, preset periode Tgl 1/25/28 + ListWheelScrollView) | ✅ Done |
+| 2026-09-05 | Fix Icon & Overflow | Icon dompet hero Money Tracker tidak center → tambah `alignment: Alignment.center`; bottom sheet periode/impor/ekspor/widget overflow (tanpa `isScrollControlled`, capped 56% layar) → tambah `isScrollControlled: true` + `ConstrainedBox(maxHeight 85%)` + `SingleChildScrollView`; wheel periode 180→150px; `dart analyze` 0 error | ✅ Done |

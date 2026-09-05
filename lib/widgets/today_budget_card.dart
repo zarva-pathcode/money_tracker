@@ -528,8 +528,8 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCatOver = item.isOver;
     final style = Constants.getCategoryStyle(item.category);
-    final catColor = style['color'] as Color;
-    final catIcon = style['icon'] as FaIconData;
+    final catColor = style.color;
+    final catIcon = style.icon;
 
     String targetLabel = 'Target Harian';
     String unit = '/hr';

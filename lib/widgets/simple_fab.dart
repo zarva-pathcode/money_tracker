@@ -155,8 +155,8 @@ class _SimpleFabState extends State<SimpleFab>
     Animation<double> animation,
   ) {
     final style = Constants.getCategoryStyle(categoryName);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
 
     return ScaleTransition(
       scale: animation,

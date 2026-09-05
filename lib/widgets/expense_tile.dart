@@ -22,8 +22,8 @@ class ExpenseTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: categoryStyle['color'],
-        child: FaIcon(categoryStyle['icon'], color: Colors.white, size: 16),
+        backgroundColor: categoryStyle.color,
+        child: FaIcon(categoryStyle.icon, color: Colors.white, size: 16),
       ),
       title: Text(
         expense.title,

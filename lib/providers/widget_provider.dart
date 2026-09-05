@@ -35,7 +35,7 @@ class WidgetProvider with ChangeNotifier {
       for (int i = 0; i < 3; i++) {
         final cat = favoriteCategories[i];
         final style = Constants.getCategoryStyle(cat);
-        final color = style['color'] as Color;
+        final color = style.color;
         final suffix = (i + 1).toString();
 
         await HomeWidget.saveWidgetData('fav_cat_$suffix', cat);

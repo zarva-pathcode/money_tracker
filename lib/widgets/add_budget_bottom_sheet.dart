@@ -329,7 +329,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                         final cName = _expenseCategories[index];
                         final cStyle = Constants.getCategoryStyle(cName);
                         final isSelected = _selectedCategory == cName;
-                        final baseColor = cStyle['color'] as Color;
+                        final baseColor = cStyle.color;
                         
                         return Material(
                           color: Colors.transparent,
@@ -351,7 +351,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  FaIcon(cStyle['icon'], color: baseColor, size: 14),
+                                  FaIcon(cStyle.icon, color: baseColor, size: 14),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(

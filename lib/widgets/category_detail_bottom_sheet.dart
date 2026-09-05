@@ -57,8 +57,8 @@ class CategoryDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Constants.getCategoryStyle(categoryName);
-    final color = style['color'] as Color;
-    final icon = style['icon'];
+    final color = style.color;
+    final icon = style.icon;
     final isExpense = type == 'expense';
 
     final currency = NumberFormat.currency(
