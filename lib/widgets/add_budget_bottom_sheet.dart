@@ -27,7 +27,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   double _threshold = 80.0;
   String _granularity = 'monthly'; // 'daily', 'weekly', 'monthly'
   int _cursorPosition = 0;
-  bool _showCustomKeyboard = true;
+  bool _showCustomKeyboard = true; // default terbuka di awal
 
   final List<String> _expenseCategories = Constants.expenseCategories;
 
@@ -46,6 +46,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
       _amountController.text = Formatters.formatNumberInput(displayAmount.toInt().toString());
     } else {
       _amountController.text = '';
+      _selectedCategory = _expenseCategories.isNotEmpty ? _expenseCategories.first : null;
     }
     
     _amountFocusNode.addListener(() {
@@ -72,6 +73,9 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   }
 
   void _onKeyPressed(String value) {
+    if (!_amountFocusNode.hasFocus) {
+      FocusScope.of(context).requestFocus(_amountFocusNode);
+    }
     final String formattedText = _amountController.text;
     final String currentText = formattedText.replaceAll('.', '');
     
@@ -102,6 +106,9 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
   }
 
   void _onBackspace() {
+    if (!_amountFocusNode.hasFocus) {
+      FocusScope.of(context).requestFocus(_amountFocusNode);
+    }
     final String formattedText = _amountController.text;
     final String currentText = formattedText.replaceAll('.', '');
     
@@ -164,14 +171,14 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
     final rawInput = Formatters.parseFormattedNumber(_amountController.text);
     if (rawInput <= 0 || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih kategori dan masukkan limit yang valid')),
+        const SnackBar(content: Text('Pilih kategori dan atur jumlah nominal lebih dari 0')),
       );
       return;
     }
 
     double finalLimit = rawInput;
     if (_granularity == 'daily') {
-      finalLimit = rawInput * 30;
+      finalLimit = rawInput * 30; // approx
     } else if (_granularity == 'weekly') {
       finalLimit = rawInput * 4.2857; // ~30/7
     }
@@ -201,6 +208,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
 
   Widget _buildGranularityChip(String value, String label) {
     final isSelected = _granularity == value;
+    final primaryColor = Theme.of(context).primaryColor;
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -212,10 +220,10 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF16A34A) : Colors.grey[100],
+            color: isSelected ? primaryColor : Colors.grey[100],
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? const Color(0xFF16A34A) : Colors.grey[300]!,
+              color: isSelected ? primaryColor : Colors.grey[300]!,
             ),
           ),
           child: Center(
@@ -223,10 +231,34 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected ? Colors.white : Colors.grey[700],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThresholdShortcut(double value) {
+    final isSelected = _threshold == value;
+    return GestureDetector(
+      onTap: () => setState(() => _threshold = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!),
+        ),
+        child: Text(
+          '${value.toInt()}%',
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[700],
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
           ),
         ),
       ),
@@ -238,33 +270,30 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Handle Bar & Header
           const SizedBox(height: 12),
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
           ),
-          
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.budgetToEdit != null ? 'Edit Anggaran' : 'Tambah Anggaran',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  widget.budgetToEdit != null ? 'Edit Anggaran' : 'Tambah Anggaran Baru',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.black87, size: 20),
+                  icon: const Icon(Icons.close, color: Colors.black87, size: 22),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -273,68 +302,86 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
             ),
           ),
           
-          const Divider(height: 1, thickness: 0.5),
-
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // --- KATEGORI HORIZONTAL CHIPS ---
                   Text(
-                    'Kategori Anggaran', 
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 14,
-                      color: Colors.grey[800]
-                    )
+                    'Kategori', 
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey[600])
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    hint: const Text('Pilih kategori...'),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16), 
-                        borderSide: BorderSide(color: Colors.grey[200]!)
+                  SizedBox(
+                    height: 90,
+                    child: GridView.builder(
+                      scrollDirection: Axis.horizontal,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.35,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16), 
-                        borderSide: BorderSide(color: Colors.grey[200]!)
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      itemCount: _expenseCategories.length,
+                      itemBuilder: (context, index) {
+                        final cName = _expenseCategories[index];
+                        final cStyle = Constants.getCategoryStyle(cName);
+                        final isSelected = _selectedCategory == cName;
+                        final baseColor = cStyle['color'] as Color;
+                        
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() => _selectedCategory = cName);
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected ? baseColor.withValues(alpha: 0.15) : Colors.grey[50],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? baseColor : Colors.grey[200]!,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FaIcon(cStyle['icon'], color: baseColor, size: 14),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      cName,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                        color: isSelected ? Colors.black87 : Colors.grey[700],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    items: _expenseCategories.map((String cName) {
-                      final cStyle = Constants.getCategoryStyle(cName);
-                      return DropdownMenuItem<String>(
-                        value: cName,
-                        child: Row(
-                          children: [
-                            FaIcon(cStyle['icon'] as FaIconData, color: cStyle['color'] as Color, size: 20),
-                            const SizedBox(width: 12),
-                            Text(cName, style: const TextStyle(fontSize: 15)),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedCategory = val;
-                      });
-                    },
                   ),
-                  const SizedBox(height: 20),
+
+                  const SizedBox(height: 28),
+
+                  // --- TIPE TARGET (GRANULARITAS) ---
                   Text(
-                    'Tipe Target Anggaran', 
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 14,
-                      color: Colors.grey[800]
-                    )
+                    'Periode Anggaran', 
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey[600])
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       _buildGranularityChip('daily', 'Harian'),
@@ -344,23 +391,22 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       _buildGranularityChip('monthly', 'Bulanan'),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  
+                  const SizedBox(height: 28),
+
+                  // --- INPUT NOMINAL HERO ---
                   Text(
                     _granularity == 'daily'
-                        ? 'Target Uang per Hari'
-                        : (_granularity == 'weekly' ? 'Target Uang per Minggu' : 'Limit Uang Bulanan'), 
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 14,
-                      color: Colors.grey[800]
-                    )
+                        ? 'Nominal per Hari'
+                        : (_granularity == 'weekly' ? 'Nominal per Minggu' : 'Nominal Anggaran Bulanan'), 
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey[600])
                   ),
                   const SizedBox(height: 12),
                   ModernInputField(
                     controller: _amountController,
                     focusNode: _amountFocusNode,
                     hintText: "0",
-                    icon: Icons.account_balance_wallet_rounded,
+                    icon: Icons.account_balance_wallet,
                     readOnly: true,
                     prefixText: "Rp ",
                     onTap: () {
@@ -372,6 +418,8 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       SystemChannels.textInput.invokeMethod('TextInput.hide');
                     },
                   ),
+                  
+                  // -- PREVIEW TOTAL BULANAN (JIKA HARIAN/MINGGUAN) --
                   Builder(
                     builder: (context) {
                       final rawInput = Formatters.parseFormattedNumber(_amountController.text);
@@ -380,35 +428,31 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       String textPreview = '';
                       if (_granularity == 'daily') {
                         final estMonthly = rawInput * 30;
-                        textPreview = 'Estimasi Limit Bulanan: ~${Formatters.formatRupiah(estMonthly)} (asumsi 30 hari)';
+                        textPreview = 'Batas pengeluaran sebulan menjadi ~${Formatters.formatRupiah(estMonthly)}';
                       } else if (_granularity == 'weekly') {
                         final estMonthly = rawInput * 4.2857;
-                        textPreview = 'Estimasi Limit Bulanan: ~${Formatters.formatRupiah(estMonthly)} (~4.3 minggu)';
+                        textPreview = 'Batas pengeluaran sebulan menjadi ~${Formatters.formatRupiah(estMonthly)}';
                       } else {
                         final dailyEst = rawInput / 30;
-                        textPreview = 'Batas harian dasar: ~${Formatters.formatRupiah(dailyEst)} / hari';
+                        textPreview = 'Setara pengeluaran ~${Formatters.formatRupiah(dailyEst)} / hari';
                       }
 
                       return Container(
                         margin: const EdgeInsets.only(top: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                          border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
                         ),
                         child: Row(
                           children: [
-                            const FaIcon(FontAwesomeIcons.lightbulb, size: 14, color: Color(0xFF16A34A)),
+                            FaIcon(FontAwesomeIcons.circleInfo, size: 14, color: Theme.of(context).primaryColor),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 textPreview,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF15803D),
-                                ),
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).primaryColor),
                               ),
                             ),
                           ],
@@ -416,43 +460,58 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Ambang Peringatan', 
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 14,
-                      color: Colors.grey[800]
-                    )
-                  ),
-                  const SizedBox(height: 8),
+
+                  const SizedBox(height: 28),
+
+                  // --- THRESHOLD SLIDER & SHORTCUTS ---
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Slider(
-                          value: _threshold,
-                          min: 50,
-                          max: 100,
-                          divisions: 10,
-                          label: '${_threshold.toInt()}%',
-                          onChanged: (val) => setState(() => _threshold = val),
-                        ),
+                      Text(
+                        'Peringatan Mendekati Limit', 
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey[600])
                       ),
-                      SizedBox(
-                        width: 48,
-                        child: Text(
-                          '${_threshold.toInt()}%',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
+                      Text(
+                        '${_threshold.toInt()}%',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor),
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text(
-                      'Notifikasi akan dikirim saat pengeluaran mencapai ${_threshold.toInt()}%, 100%, dan 120%',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildThresholdShortcut(70.0),
+                      _buildThresholdShortcut(80.0),
+                      _buildThresholdShortcut(90.0),
+                      _buildThresholdShortcut(100.0),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: _threshold,
+                    min: 50,
+                    max: 100,
+                    divisions: 10,
+                    activeColor: Theme.of(context).primaryColor,
+                    inactiveColor: Colors.grey[200],
+                    onChanged: (val) => setState(() => _threshold = val),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- BUTTON SIMPAN (VISIBLE CTA) ---
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Simpan Anggaran', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -460,6 +519,7 @@ class _AddBudgetBottomSheetState extends State<AddBudgetBottomSheet> {
             ),
           ),
            
+          // Numeric Keyboard Widget
           if (_showCustomKeyboard) ...[
             const Divider(height: 1, thickness: 0.5),
             Container(
