@@ -6,7 +6,7 @@
 ## Current State
 
 - **Branch:** main
-- **Last Updated:** 2026-09-04
+- **Last Updated:** 2026-09-05
 - **Build Status:** ✅ dart analyze clean (no errors)
 - **App Status:** Functional — all core features working
 
@@ -217,6 +217,9 @@
 | 2026-09-04 | Detail Toggle Overflow | Pisah judul + toggle distribusi kategori jadi 2 baris + toggle full-width Expanded 50:50; atasi RenderFlex overflow 42px | ✅ Done |
 | 2026-09-04 | Detail Donut Unify | Ganti donut polos dengan ExpenseChart + kartu distribusi + pill kategori terbesar (identik Tab Bulanan); hapus _buildCategoryDonut & _DetailChartData | ✅ Done |
 | 2026-09-04 | ListTile Invisible Fix | Bungkus SwitchListTile & ListTile di add_expense, reminder_settings, settings, dan expense_tile dengan Material(color: Colors.transparent, clipBehavior: Clip.antiAlias) agar error ink splash invisible saat ditaruh di dalam Container putih teratasi | ✅ Done |
+| 2026-09-05 | Revamp PlanScreen (Goals & Budget) | Hero card modern, segmented tab controller (Anggaran default), empty state responsif, budget & goal card design alignment, shortcut quick chips di AddFund/Withdraw sheet. | ✅ Done |
+| 2026-09-05 | Fix Import/Export JSON | Mengganti string parsing manual dengan jsonDecode/jsonEncode dari dart:convert untuk parsing aman. | ✅ Done |
+| 2026-09-05 | Batch Import & Loading UX | Implementasi addAllExpenses ke HiveService & ExpenseProvider untuk 1 kali eksekusi I/O. Loading dialog ditambahkan ke SettingsScreen saat proses import CSV/JSON. | ✅ Done |
 | 2026-09-04 | Home Revamp | AppBar sapaan dinamis + badge transaksi, hero pill switcher + hapus infinite anim, sticky bar shadow, kartu transaksi border, sheet opsi (nominal +/−, kartu Sebelum➔Sesudah, tombol Edit/Hapus berdampingan); hapus _buildMonthBadges + withOpacity → analyze bersih | ✅ Done |
 | 2026-09-04 | Jatah Revamp | Kartu putih + ikon glow + sub-status + hero angka 24px + progress 8px + footer ikon kalender + pill Rincian; sheet jadi geser (ringkasan Terpakai/Jatah/Sisa + tile kategori + progres mini + badge sisa/over + animasi staggered) | ✅ Done |
 | 2026-09-04 | Jatah Overflow Fix | Header Row kartu: judul dibungkus Expanded + ellipsis + gap badge; atasi RenderFlex overflow 12px | ✅ Done |
