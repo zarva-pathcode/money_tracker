@@ -299,7 +299,7 @@ class BudgetTab extends StatelessWidget {
                     color: (categoryData['color'] as Color).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: FaIcon(
+child: FaIcon(
                     categoryData['icon'],
                     color: categoryData['color'] as Color,
                     size: 22,

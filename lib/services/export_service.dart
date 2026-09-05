@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +24,7 @@ class ExportService {
 
       // Convert expenses to JSON
       final jsonData = expenses.map((expense) => expense.toMap()).toList();
-      final jsonString = _formatJson(jsonData);
+      final jsonString = const JsonEncoder.withIndent('  ').convert(jsonData);
 
       await file.writeAsString(jsonString);
       return file.path;
@@ -91,39 +92,6 @@ class ExportService {
     return 'pengeluaran_$timestamp.$extension';
   }
 
-  // Format JSON agar rapi
-  static String _formatJson(List<Map<String, dynamic>> jsonData) {
-    final buffer = StringBuffer();
-    buffer.write('[\n');
-
-    for (int i = 0; i < jsonData.length; i++) {
-      final expense = jsonData[i];
-      buffer.write('  {\n');
-
-      final keys = expense.keys.toList();
-      for (int j = 0; j < keys.length; j++) {
-        final key = keys[j];
-        final value = expense[key];
-        final isLast = j == keys.length - 1;
-
-        if (value is DateTime) {
-          buffer.write('    "$key": "${value.toIso8601String()}"');
-        } else if (value is String) {
-          buffer.write('    "$key": "$value"');
-        } else {
-          buffer.write('    "$key": $value');
-        }
-
-        buffer.write(isLast ? '\n' : ',\n');
-      }
-
-      buffer.write(i == jsonData.length - 1 ? '  }\n' : '  },\n');
-    }
-
-    buffer.write(']');
-    return buffer.toString();
-  }
-
   // Request storage permission
   static Future<bool> _requestStoragePermission() async {
     try {
@@ -151,7 +119,7 @@ class ExportService {
     }
   }
 
-  // Method untuk mendapatkan semua file export
+  // Method untuk mend semua file export
   static Future<List<File>> getExportFiles() async {
     try {
       final exportDir = await _getOrCreateExportDirectory();

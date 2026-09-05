@@ -1,0 +1,2690 @@
+[
+  {
+    "id": "0b22c6d6-0971-4b2a-8b6d-6b06870aa55f",
+    "title": "Penarikan: Pribadi",
+    "amount": 49000.0,
+    "date": "2026-08-01T13:13:47.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "0d5d3d7c-ba93-45d2-bc2b-7ad10af4e0f4",
+    "title": "Penarikan: Pribadi",
+    "amount": 4000.0,
+    "date": "2026-08-10T01:10:21.060",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "1066fd4a-9b67-4d09-b81e-1cf28ab88725",
+    "title": "Penarikan: Pribadi",
+    "amount": 17816.62104139037,
+    "date": "2026-08-02T13:15:02.904",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "15b28d8d-3a7b-454a-a1ef-31456bafa163",
+    "title": "Penarikan: Ke jogja",
+    "amount": 195000.0,
+    "date": "2026-07-11T17:44:04.612",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "1777138328068",
+    "title": "",
+    "amount": 500000.0,
+    "date": "2026-04-26T00:32:01.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1777138377072",
+    "title": "paylater",
+    "amount": 91000.0,
+    "date": "2026-04-26T00:32:27.957",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1777164663473",
+    "title": "",
+    "amount": 100000.0,
+    "date": "2026-04-26T07:50:57.232",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1777166139795",
+    "title": "naskun",
+    "amount": 9000.0,
+    "date": "2026-04-26T08:15:25.455",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777166165216",
+    "title": "bamer baput",
+    "amount": 9000.0,
+    "date": "2026-04-26T08:15:42.581",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1777166179055",
+    "title": "cakwe ",
+    "amount": 10000.0,
+    "date": "2026-04-26T08:16:10.388",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777166251794",
+    "title": "bakso 3 mie",
+    "amount": 28000.0,
+    "date": "2026-04-26T08:17:23.676",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777166840328",
+    "title": "nescafe+skm gula aren",
+    "amount": 23000.0,
+    "date": "2026-04-26T08:27:01.774",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1777291818988",
+    "title": "dryfood",
+    "amount": 18500.0,
+    "date": "2026-04-27T19:09:50.110",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1777390123848",
+    "title": "gacoan",
+    "amount": 43000.0,
+    "date": "2026-04-28T22:28:20.665",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1777417618113",
+    "title": "aqua",
+    "amount": 6000.0,
+    "date": "2026-04-28T06:06:40.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777417642817",
+    "title": "aqua",
+    "amount": 6800.0,
+    "date": "2026-04-28T06:07:13.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777457501046",
+    "title": "cermin foto",
+    "amount": 83000.0,
+    "date": "2026-04-29T17:11:16.729",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1777457515974",
+    "title": "canvas paint",
+    "amount": 36000.0,
+    "date": "2026-04-29T17:11:45.373",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1777458453987",
+    "title": "dipinjem",
+    "amount": 50000.0,
+    "date": "2026-04-29T17:27:05.370",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1777474106463",
+    "title": "pulsa",
+    "amount": 21000.0,
+    "date": "2026-04-29T21:48:12.826",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1777524217323",
+    "title": "bakso",
+    "amount": 12000.0,
+    "date": "2026-04-30T11:43:24.813",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777572647539",
+    "title": "",
+    "amount": 153000.0,
+    "date": "2026-05-01T01:10:24.856",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1777572821463",
+    "title": "date",
+    "amount": 65000.0,
+    "date": "2026-05-01T01:13:19.014",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1777572854366",
+    "title": "bensin",
+    "amount": 25000.0,
+    "date": "2026-05-01T01:14:01.466",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1777710452139",
+    "title": "mie",
+    "amount": 6000.0,
+    "date": "2026-05-01T15:27:22.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777710469879",
+    "title": "aqua",
+    "amount": 6000.0,
+    "date": "2026-05-01T15:27:34.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777793668406",
+    "title": "bakso",
+    "amount": 13000.0,
+    "date": "2026-05-03T14:34:12.498",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777793698007",
+    "title": "",
+    "amount": 1000000.0,
+    "date": "2026-05-03T14:34:32.555",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1777812748559",
+    "title": "mendoan",
+    "amount": 5000.0,
+    "date": "2026-05-03T19:52:20.249",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777812758973",
+    "title": "bensin",
+    "amount": 50000.0,
+    "date": "2026-05-03T19:52:30.557",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1777812767781",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-05-03T19:52:41.033",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777812921785",
+    "title": "belanja rita",
+    "amount": 204700.0,
+    "date": "2026-05-03T19:54:47.938",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1777813126552",
+    "title": "aqua",
+    "amount": 5000.0,
+    "date": "2026-05-03T19:58:41.184",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1777908891483",
+    "title": "cukur ",
+    "amount": 45000.0,
+    "date": "2026-05-04T22:34:27.197",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1777958679697",
+    "title": "telor",
+    "amount": 24500.0,
+    "date": "2026-05-04T12:24:18.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1777997632769",
+    "title": "date",
+    "amount": 120000.0,
+    "date": "2026-05-05T23:13:38.534",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1777997657825",
+    "title": "minuman",
+    "amount": 12000.0,
+    "date": "2026-05-05T23:13:56.442",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1778127107099",
+    "title": "hair vit",
+    "amount": 42000.0,
+    "date": "2026-05-07T11:11:36.425",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1778386832113",
+    "title": "",
+    "amount": 48000.0,
+    "date": "2026-05-09T11:20:13.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1778386867150",
+    "title": "nasgor",
+    "amount": 14000.0,
+    "date": "2026-05-09T11:20:48.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1778386890340",
+    "title": "ngopi",
+    "amount": 17000.0,
+    "date": "2026-05-08T11:21:17.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1778386929734",
+    "title": "minum",
+    "amount": 5000.0,
+    "date": "2026-05-09T11:22:04.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1778386958244",
+    "title": "bensin",
+    "amount": 50000.0,
+    "date": "2026-05-09T11:22:34.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1778387029258",
+    "title": "sarapan",
+    "amount": 25000.0,
+    "date": "2026-05-10T11:23:28.954",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1778475599683",
+    "title": "singer jait",
+    "amount": 10000.0,
+    "date": "2026-05-11T11:59:41.903",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1778475628783",
+    "title": "telor",
+    "amount": 24500.0,
+    "date": "2026-05-10T12:00:07.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1778648221462",
+    "title": "tiktok shop",
+    "amount": 100000.0,
+    "date": "2026-05-13T11:56:52.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1778666330597",
+    "title": "date",
+    "amount": 50000.0,
+    "date": "2026-05-11T16:59:33.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1778750107949",
+    "title": "bensin",
+    "amount": 50000.0,
+    "date": "2026-05-14T16:14:40.001",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1778755801205",
+    "title": "sabun",
+    "amount": 13000.0,
+    "date": "2026-05-14T17:49:50.550",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1779304219508",
+    "title": "rita",
+    "amount": 103000.0,
+    "date": "2026-05-20T02:10:17.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1779304257281",
+    "title": "sempol",
+    "amount": 5000.0,
+    "date": "2026-05-18T02:10:52.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1779304284274",
+    "title": "kwetiau",
+    "amount": 14000.0,
+    "date": "2026-05-18T02:11:22.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1779304305464",
+    "title": "aqua",
+    "amount": 6500.0,
+    "date": "2026-05-18T02:11:43.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1779304331487",
+    "title": "telor",
+    "amount": 24500.0,
+    "date": "2026-05-19T02:12:10.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1779304364587",
+    "title": "headset",
+    "amount": 150000.0,
+    "date": "2026-05-18T02:12:55.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1779304467594",
+    "title": "bensin",
+    "amount": 50000.0,
+    "date": "2026-05-17T02:14:19.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1779304516252",
+    "title": "date",
+    "amount": 36000.0,
+    "date": "2026-05-17T02:15:11.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1779304538513",
+    "title": "date makan",
+    "amount": 59000.0,
+    "date": "2026-05-17T02:15:50.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1780548592501_0",
+    "title": "",
+    "amount": 1500000.0,
+    "date": "2026-06-01T14:13:57.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1780556684638_0",
+    "title": "lapuerto",
+    "amount": 200000.0,
+    "date": "2026-06-03T14:13:49.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1780556724122_0",
+    "title": "air, biskuat,susu",
+    "amount": 23000.0,
+    "date": "2026-06-03T14:14:06.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1780556750141_0",
+    "title": "Bensin",
+    "amount": 50000.0,
+    "date": "2026-06-03T14:13:43.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1780556877260_0",
+    "title": "Aqua",
+    "amount": 12000.0,
+    "date": "2026-06-03T14:14:11.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1780557188954_0",
+    "title": "Batagor, takoyaki",
+    "amount": 20000.0,
+    "date": "2026-06-02T14:13:37.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1780590057704_0",
+    "title": "paylater",
+    "amount": 100000.0,
+    "date": "2026-06-01T23:21:15.000",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1780672763279_0",
+    "title": "Bakso, air mineral",
+    "amount": 20000.0,
+    "date": "2026-06-05T22:19:23.279",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1780672784825_0",
+    "title": "Belanja",
+    "amount": 240000.0,
+    "date": "2026-06-05T22:19:44.825",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1780743985136_0",
+    "title": "Untuk ke Jogja ",
+    "amount": 50000.0,
+    "date": "2026-06-06T18:06:25.136",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1780744089982_0",
+    "title": "",
+    "amount": 50000.0,
+    "date": "2026-06-06T18:08:09.982",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1780770444500_0",
+    "title": "Kopi, nasi padang",
+    "amount": 37000.0,
+    "date": "2026-06-06T01:28:25.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1780770470320_0",
+    "title": "Aqua",
+    "amount": 5000.0,
+    "date": "2026-06-06T01:28:19.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1780821837174_0",
+    "title": "",
+    "amount": 100000.0,
+    "date": "2026-06-07T15:43:57.174",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1780821931137_0",
+    "title": "",
+    "amount": 280000.0,
+    "date": "2026-06-07T15:45:31.137",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1780822007025_0",
+    "title": "",
+    "amount": 10000.0,
+    "date": "2026-06-07T15:46:47.025",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1780835882230_0",
+    "title": "Nasi padang",
+    "amount": 10000.0,
+    "date": "2026-06-07T19:38:02.230",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1780835882230_1",
+    "title": "Aqua",
+    "amount": 6000.0,
+    "date": "2026-06-07T19:38:02.230",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1780925490706_0",
+    "title": "Bensin",
+    "amount": 50000.0,
+    "date": "2026-06-08T20:31:30.706",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1781023512467_0",
+    "title": "TF joki",
+    "amount": 100000.0,
+    "date": "2026-06-09T23:45:12.467",
+    "category": "Lainnya",
+    "type": "income"
+  },
+  {
+    "id": "1781023512467_1",
+    "title": "Dikichi ayam",
+    "amount": 36000.0,
+    "date": "2026-06-09T23:45:12.467",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781023952782_0",
+    "title": "Aqua 1 liter sama es krim 2 ",
+    "amount": 28000.0,
+    "date": "2026-06-09T23:52:32.782",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781063721476_0",
+    "title": "Sedekah",
+    "amount": 50000.0,
+    "date": "2026-06-10T10:55:21.476",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1781083655217_0",
+    "title": "Aqua botol",
+    "amount": 7000.0,
+    "date": "2026-06-10T16:27:35.217",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781114144485_0",
+    "title": "Soto 2 porsi",
+    "amount": 36000.0,
+    "date": "2026-06-11T00:55:44.485",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781114162457_0",
+    "title": "Cafe calf",
+    "amount": 51000.0,
+    "date": "2026-06-11T00:56:02.457",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781194876205_0",
+    "title": "Kopi kenangan",
+    "amount": 25000.0,
+    "date": "2026-06-11T23:21:16.205",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781194876205_1",
+    "title": "makan malem",
+    "amount": 9500.0,
+    "date": "2026-06-11T23:21:16.205",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781194876205_2",
+    "title": "Air",
+    "amount": 5500.0,
+    "date": "2026-06-11T23:21:16.205",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781242733185_0",
+    "title": "Bakso",
+    "amount": 10000.0,
+    "date": "2026-06-12T12:38:53.185",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781293264542_0",
+    "title": "Langganan maxstream",
+    "amount": 67000.0,
+    "date": "2026-06-13T02:41:04.542",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1781437814432_0",
+    "title": "Masuk",
+    "amount": 50000.0,
+    "date": "2026-06-14T18:50:14.432",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1781442187721_0",
+    "title": "Masuk",
+    "amount": 150000.0,
+    "date": "2026-06-14T20:03:07.721",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1781449209421_0",
+    "title": "Kopi kenangan",
+    "amount": 29000.0,
+    "date": "2026-06-14T22:00:09.421",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781449223010_0",
+    "title": "Ban motor",
+    "amount": 6000.0,
+    "date": "2026-06-14T22:00:23.010",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1781501419547_0",
+    "title": "Sabun muka",
+    "amount": 27000.0,
+    "date": "2026-06-15T12:30:19.547",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1781548691725_0",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-06-15T23:31:17.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1781548734126_0",
+    "title": "Gorengan",
+    "amount": 20000.0,
+    "date": "2026-06-15T23:31:40.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781548734126_1",
+    "title": "Sunlight",
+    "amount": 10000.0,
+    "date": "2026-06-15T23:31:57.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1781627319409_0",
+    "title": "kwetiau",
+    "amount": 14000.0,
+    "date": "2026-06-16T23:28:39.409",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627367542_0",
+    "title": "Dikichi",
+    "amount": 15000.0,
+    "date": "2026-06-16T23:29:27.542",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627389680_0",
+    "title": "Dimsum",
+    "amount": 12000.0,
+    "date": "2026-06-16T23:29:49.680",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627403128_0",
+    "title": "Cappucino cincau",
+    "amount": 12000.0,
+    "date": "2026-06-16T23:30:03.128",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627440689_0",
+    "title": "sempol",
+    "amount": 10000.0,
+    "date": "2026-06-16T23:30:40.689",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627440689_1",
+    "title": "Gorengan",
+    "amount": 5000.0,
+    "date": "2026-06-16T23:30:40.689",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627578316_0",
+    "title": "Es krim",
+    "amount": 18000.0,
+    "date": "2026-06-16T23:32:58.316",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781627578316_1",
+    "title": "Air mineral",
+    "amount": 5000.0,
+    "date": "2026-06-16T23:32:58.316",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781729841578_1",
+    "title": "telor 1kg",
+    "amount": 24500.0,
+    "date": "2026-06-17T03:57:44.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1781729916028_0",
+    "title": "Nasi kuning",
+    "amount": 8000.0,
+    "date": "2026-06-17T03:58:40.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781783115156_0",
+    "title": "mendoan",
+    "amount": 5000.0,
+    "date": "2026-06-18T18:45:15.156",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781900395117",
+    "title": "bakso",
+    "amount": 10000.0,
+    "date": "2026-06-19T03:19:47.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781957440016_0",
+    "title": "Ngopi warung kebon",
+    "amount": 25000.0,
+    "date": "2026-06-20T19:10:40.016",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781971345342_0",
+    "title": "Sabun cemilan",
+    "amount": 20000.0,
+    "date": "2026-06-20T23:02:25.342",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1781971353688_0",
+    "title": "Roti bakar",
+    "amount": 16000.0,
+    "date": "2026-06-20T23:02:33.688",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1781971366075_0",
+    "title": "Makanan kucing",
+    "amount": 18500.0,
+    "date": "2026-06-20T23:02:46.075",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1781971406189_0",
+    "title": "Belanja rendang",
+    "amount": 10000.0,
+    "date": "2026-06-20T23:03:26.189",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1781972556808_0",
+    "title": "Mie gacoan",
+    "amount": 30000.0,
+    "date": "2026-06-20T23:22:36.808",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782048072393_0",
+    "title": "Mampir pawon",
+    "amount": 19500.0,
+    "date": "2026-06-21T20:21:12.393",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782048097634_0",
+    "title": "Martabak",
+    "amount": 63000.0,
+    "date": "2026-06-21T20:21:37.634",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782048167903_0",
+    "title": "Belanja alfamart",
+    "amount": 43000.0,
+    "date": "2026-06-21T20:22:47.903",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1782048180996_0",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-06-21T20:23:00.996",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1782112639803_0",
+    "title": "Go-pay",
+    "amount": 10000.0,
+    "date": "2026-06-22T14:17:19.803",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1782136185489_0",
+    "title": "joki",
+    "amount": 20000.0,
+    "date": "2026-06-22T20:49:45.489",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1782210084726_0",
+    "title": "Telur minyak gelas",
+    "amount": 29500.0,
+    "date": "2026-06-23T17:21:24.726",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1782293537002_0",
+    "title": "Nasi bungkus",
+    "amount": 11000.0,
+    "date": "2026-06-24T16:32:17.002",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782450510819",
+    "title": "ngopi",
+    "amount": 31000.0,
+    "date": "2026-06-25T12:08:24.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782456271723",
+    "title": "soto",
+    "amount": 36000.0,
+    "date": "2026-06-25T13:44:09.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782456327270",
+    "title": "Dimsum",
+    "amount": 15000.0,
+    "date": "2026-06-25T13:45:17.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782456341712",
+    "title": "gacoan",
+    "amount": 21000.0,
+    "date": "2026-06-25T13:45:38.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782456386486",
+    "title": "lamongan",
+    "amount": 24000.0,
+    "date": "2026-06-25T13:45:57.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1782456409269_0",
+    "title": "joki",
+    "amount": 250000.0,
+    "date": "2026-06-26T13:46:49.269",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1782492342076",
+    "title": "joki",
+    "amount": 150000.0,
+    "date": "2026-06-26T23:45:33.244",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1782492482268_0",
+    "title": "Sabun mandi",
+    "amount": 22000.0,
+    "date": "2026-06-26T23:48:02.268",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1782492539911_0",
+    "title": "Kentang minuman",
+    "amount": 17000.0,
+    "date": "2026-06-26T23:48:59.911",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782492715161_0",
+    "title": "Makanan kucing",
+    "amount": 12000.0,
+    "date": "2026-06-26T23:51:55.161",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1782493566432_0",
+    "title": "Pengeluaran",
+    "amount": 220000.0,
+    "date": "2026-06-27T00:06:06.432",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1782570023306",
+    "title": "Kopi kenangan",
+    "amount": 25000.0,
+    "date": "2026-06-27T21:20:12.793",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782570033979",
+    "title": "",
+    "amount": 78000.0,
+    "date": "2026-06-27T21:20:26.075",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1782570063515",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-06-27T21:20:51.026",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1782576612401_0",
+    "title": "Sunscreen",
+    "amount": 37000.0,
+    "date": "2026-06-27T23:10:12.401",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1782750317479_0",
+    "title": "joki",
+    "amount": 138000.0,
+    "date": "2026-06-29T23:25:17.479",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1782750339846_0",
+    "title": "Nasi goreng",
+    "amount": 30000.0,
+    "date": "2026-06-29T23:25:39.846",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782794810250_0",
+    "title": "joki",
+    "amount": 52000.0,
+    "date": "2026-06-30T11:46:50.250",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1782928810168_0",
+    "title": "cukur ",
+    "amount": 45000.0,
+    "date": "2026-07-02T01:00:10.168",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1782928824122_0",
+    "title": "jajan",
+    "amount": 10000.0,
+    "date": "2026-07-02T01:00:24.122",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1782928856227_0",
+    "title": "Masuk",
+    "amount": 1500000.0,
+    "date": "2026-07-02T01:00:56.227",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1783001217534_0",
+    "title": "",
+    "amount": 100000.0,
+    "date": "2026-07-02T21:06:57.534",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1783001246506_0",
+    "title": "makan siang ",
+    "amount": 20000.0,
+    "date": "2026-07-02T21:07:26.506",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783108167610_0",
+    "title": "bensin",
+    "amount": 25000.0,
+    "date": "2026-07-03T03:38:11.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1783108192008_0",
+    "title": "Pengeluaran",
+    "amount": 2500.0,
+    "date": "2026-07-03T03:38:20.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1783108203504_0",
+    "title": "Gorengan",
+    "amount": 15000.0,
+    "date": "2026-07-03T03:38:25.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783197325721_0",
+    "title": "Jilid",
+    "amount": 24000.0,
+    "date": "2026-07-04T03:35:38.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1783197353528_0",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-07-04T03:35:58.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1783197370204_0",
+    "title": "Foto box",
+    "amount": 35000.0,
+    "date": "2026-07-04T03:36:14.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783197389726_0",
+    "title": "Es krim",
+    "amount": 12000.0,
+    "date": "2026-07-04T03:36:36.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783197436104_0",
+    "title": "Snack",
+    "amount": 10000.0,
+    "date": "2026-07-04T03:37:20.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783197544271_0",
+    "title": "Arasta",
+    "amount": 144000.0,
+    "date": "2026-07-04T03:39:09.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783197580724_0",
+    "title": "Air mineral 2 botol",
+    "amount": 7500.0,
+    "date": "2026-07-04T03:39:46.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783320958158",
+    "title": "chessecake",
+    "amount": 44000.0,
+    "date": "2026-07-04T13:55:51.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783351101688",
+    "title": "klamud",
+    "amount": 9000.0,
+    "date": "2026-07-06T22:18:10.074",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783500582307",
+    "title": "jajan alfa",
+    "amount": 50000.0,
+    "date": "2026-07-07T15:49:25.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1783500630677",
+    "title": "nasgor date",
+    "amount": 28000.0,
+    "date": "2026-07-07T15:50:11.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1783500667683",
+    "title": "bensin",
+    "amount": 30000.0,
+    "date": "2026-07-07T15:51:03.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1783631260433",
+    "title": "kursi",
+    "amount": 35000.0,
+    "date": "2026-07-09T04:07:26.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1783631278735",
+    "title": "Gorengan",
+    "amount": 10000.0,
+    "date": "2026-07-09T04:07:46.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783631295561",
+    "title": "",
+    "amount": 40000.0,
+    "date": "2026-07-09T04:08:22.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1783631343321",
+    "title": "",
+    "amount": 50000.0,
+    "date": "2026-07-10T04:08:46.004",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1783687146918",
+    "title": "telor",
+    "amount": 22000.0,
+    "date": "2026-07-10T19:38:55.839",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1783687172036",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-07-10T19:39:24.841",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783766644702",
+    "title": "pashmina livi",
+    "amount": 195000.0,
+    "date": "2026-07-11T17:43:31.749",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1783850060085",
+    "title": "bakso",
+    "amount": 15000.0,
+    "date": "2026-07-12T16:54:14.414",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783856483810",
+    "title": "pulsa mamah",
+    "amount": 18000.0,
+    "date": "2026-07-12T18:41:13.895",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1783953159863",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-07-13T21:32:33.065",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1783967399758",
+    "title": "Tiket Konser",
+    "amount": 214000.0,
+    "date": "2026-07-14T01:29:21.842",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784005537853",
+    "title": "stiker",
+    "amount": 15000.0,
+    "date": "2026-07-14T12:05:26.473",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1784016326540",
+    "title": "",
+    "amount": 89000.0,
+    "date": "2026-07-14T15:05:18.531",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1784061754395",
+    "title": "Tas Lipi",
+    "amount": 225000.0,
+    "date": "2026-07-15T03:42:14.273",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784061978566",
+    "title": "stiker",
+    "amount": 15000.0,
+    "date": "2026-07-15T03:46:02.370",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784062479617",
+    "title": "admin",
+    "amount": 12000.0,
+    "date": "2026-07-15T03:54:24.087",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784103044135",
+    "title": "bakso",
+    "amount": 12000.0,
+    "date": "2026-07-15T15:10:34.470",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784121508632",
+    "title": "telor+mie",
+    "amount": 36000.0,
+    "date": "2026-07-15T20:18:18.106",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1784121533370",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-07-15T20:18:42.154",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784121542081",
+    "title": "milkmax",
+    "amount": 16000.0,
+    "date": "2026-07-15T20:18:55.679",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784121593684",
+    "title": "capcin",
+    "amount": 15000.0,
+    "date": "2026-07-07T20:19:31.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784124398702",
+    "title": "speaker",
+    "amount": 114000.0,
+    "date": "2026-07-15T21:06:10.274",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784361067512",
+    "title": "kopken",
+    "amount": 44000.0,
+    "date": "2026-07-18T14:51:17.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784393171575",
+    "title": "kopken",
+    "amount": 50000.0,
+    "date": "2026-07-18T23:46:09.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784393191035",
+    "title": "cikuro",
+    "amount": 42000.0,
+    "date": "2026-07-18T23:46:20.748",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784393206176",
+    "title": "cilor papeda",
+    "amount": 20000.0,
+    "date": "2026-07-18T23:46:33.729",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784393235267",
+    "title": "bakso malang",
+    "amount": 20000.0,
+    "date": "2026-07-18T23:46:48.054",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784393324583",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-07-18T23:48:36.517",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1784394101981",
+    "title": "pulsa mamah",
+    "amount": 54000.0,
+    "date": "2026-07-18T00:01:37.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784395422263",
+    "title": "tolak angin",
+    "amount": 12000.0,
+    "date": "2026-07-18T00:23:36.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1784395616948",
+    "title": "parkir",
+    "amount": 2000.0,
+    "date": "2026-07-19T00:26:40.617",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784479963989",
+    "title": "kopken",
+    "amount": 50000.0,
+    "date": "2026-07-19T23:52:41.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784479972095",
+    "title": "nasgor",
+    "amount": 14000.0,
+    "date": "2026-07-19T23:52:46.150",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784479992447",
+    "title": "reimburse",
+    "amount": 37500.0,
+    "date": "2026-07-18T23:55:45.000",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1784480131556",
+    "title": "reimburse",
+    "amount": 100000.0,
+    "date": "2026-07-18T23:55:37.000",
+    "category": "Bonus",
+    "type": "income"
+  },
+  {
+    "id": "1784572664190",
+    "title": "jedai lipi",
+    "amount": 34500.0,
+    "date": "2026-07-21T01:37:16.699",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1784623990163",
+    "title": "capcin",
+    "amount": 12000.0,
+    "date": "2026-07-21T15:52:46.446",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784632795884",
+    "title": "bakso",
+    "amount": 12000.0,
+    "date": "2026-07-21T18:19:50.439",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784738353316",
+    "title": "nongkrong kopi",
+    "amount": 40000.0,
+    "date": "2026-07-22T23:38:51.413",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784799223906",
+    "title": "nanas",
+    "amount": 20000.0,
+    "date": "2026-07-23T16:33:36.349",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988064347",
+    "title": "jajanin lipi",
+    "amount": 27000.0,
+    "date": "2026-07-24T21:01:02.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988108652",
+    "title": "jajan maklor",
+    "amount": 18000.0,
+    "date": "2026-07-24T21:01:27.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988131579",
+    "title": "tolak angin",
+    "amount": 9000.0,
+    "date": "2026-07-25T21:01:57.744",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988166744",
+    "title": "lipi jajan ",
+    "amount": 18000.0,
+    "date": "2026-07-25T21:02:13.321",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988182858",
+    "title": "burger",
+    "amount": 10000.0,
+    "date": "2026-07-25T21:02:50.428",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784988201933",
+    "title": "Arasta",
+    "amount": 25000.0,
+    "date": "2026-07-25T21:03:11.779",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1784989837528",
+    "title": "om anto",
+    "amount": 15000.0,
+    "date": "2026-07-25T21:30:26.627",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785082921378",
+    "title": "bensin",
+    "amount": 75000.0,
+    "date": "2026-07-26T23:21:46.351",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1785123579594",
+    "title": "telor",
+    "amount": 24000.0,
+    "date": "2026-07-27T10:39:32.922",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1785242626761",
+    "title": "ketoprak",
+    "amount": 14000.0,
+    "date": "2026-07-28T19:43:38.095",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785336825376",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-07-29T21:53:40.099",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785416072900",
+    "title": "cukur ",
+    "amount": 45000.0,
+    "date": "2026-07-30T19:54:24.755",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1785416086306",
+    "title": "mi ayam",
+    "amount": 13000.0,
+    "date": "2026-07-30T19:54:40.352",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785416096113",
+    "title": "somay",
+    "amount": 8000.0,
+    "date": "2026-07-30T19:54:48.446",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785416105138",
+    "title": "teh desa",
+    "amount": 3000.0,
+    "date": "2026-07-30T19:54:57.902",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785520323291",
+    "title": "",
+    "amount": 330000.0,
+    "date": "2026-07-30T00:51:50.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1785520342920",
+    "title": "gacoan",
+    "amount": 52000.0,
+    "date": "2026-07-31T00:55:35.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785520367922",
+    "title": "kopken",
+    "amount": 66000.0,
+    "date": "2026-07-31T00:55:28.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785520402577",
+    "title": "stop kontak",
+    "amount": 20500.0,
+    "date": "2026-07-31T00:55:42.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1785520481529",
+    "title": "admin",
+    "amount": 6500.0,
+    "date": "2026-07-31T00:54:20.000",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "1785520519954",
+    "title": "teh desa",
+    "amount": 3000.0,
+    "date": "2026-07-31T00:55:11.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785523359987",
+    "title": "cham cham",
+    "amount": 70000.0,
+    "date": "2026-08-01T01:42:32.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785650850504",
+    "title": "paylater",
+    "amount": 232000.0,
+    "date": "2026-07-31T13:07:07.000",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1785651175076",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-08-01T13:12:48.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1785651216217",
+    "title": "nona manis",
+    "amount": 49000.0,
+    "date": "2026-08-01T13:13:25.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785651276194",
+    "title": "rokok momo",
+    "amount": 37500.0,
+    "date": "2026-08-02T13:14:18.916",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1785651303195",
+    "title": "donat",
+    "amount": 18000.0,
+    "date": "2026-08-02T13:14:45.212",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785651457732",
+    "title": "minum pantai",
+    "amount": 25000.0,
+    "date": "2026-08-01T13:17:25.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785651630392",
+    "title": "",
+    "amount": 614000.0,
+    "date": "2026-08-01T13:20:28.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1785683469486",
+    "title": "mie, sabun, sampo dll",
+    "amount": 193000.0,
+    "date": "2026-08-02T22:10:26.341",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1785683497731_0",
+    "title": "Wedang ronde",
+    "amount": 20000.0,
+    "date": "2026-08-02T22:11:37.731",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1785683517687_0",
+    "title": "Tahu gejrot",
+    "amount": 5000.0,
+    "date": "2026-08-02T22:11:57.687",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785892288096",
+    "title": "ngopi",
+    "amount": 28000.0,
+    "date": "2026-08-04T08:11:23.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785897248665",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-08-04T09:34:01.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1785922938500",
+    "title": "maksi",
+    "amount": 10000.0,
+    "date": "2026-08-05T16:42:11.913",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1785999536043",
+    "title": "bioskop",
+    "amount": 101000.0,
+    "date": "2026-08-06T13:58:34.541",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1786199572780",
+    "title": "teh desa",
+    "amount": 3000.0,
+    "date": "2026-08-07T21:32:45.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786199594548",
+    "title": "mekdi",
+    "amount": 113000.0,
+    "date": "2026-08-08T21:32:54.971",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1786199720758",
+    "title": "minuman",
+    "amount": 10500.0,
+    "date": "2026-08-08T21:34:35.163",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786199768158",
+    "title": "nasgor",
+    "amount": 15000.0,
+    "date": "2026-08-07T21:35:55.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786199784464",
+    "title": "Gorengan",
+    "amount": 5000.0,
+    "date": "2026-08-07T21:36:22.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786224124337",
+    "title": "sedekah subuh",
+    "amount": 50000.0,
+    "date": "2026-08-09T04:21:49.953",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1786267530280",
+    "title": "bakso",
+    "amount": 10000.0,
+    "date": "2026-08-09T16:25:14.537",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786267545976",
+    "title": "telor",
+    "amount": 30900.0,
+    "date": "2026-08-09T16:25:34.793",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1786298890484",
+    "title": "Es krim",
+    "amount": 20000.0,
+    "date": "2026-08-09T01:08:06.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1786298907703",
+    "title": "sempol + air",
+    "amount": 14000.0,
+    "date": "2026-08-09T01:10:18.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1786554434301",
+    "title": "date birthday ",
+    "amount": 152000.0,
+    "date": "2026-08-12T00:07:00.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1786554459280",
+    "title": "",
+    "amount": 200000.0,
+    "date": "2026-08-12T00:07:35.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1786640127527",
+    "title": "kotak kado",
+    "amount": 36500.0,
+    "date": "2026-08-10T23:54:46.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1786640152269",
+    "title": "kotak kado",
+    "amount": 44500.0,
+    "date": "2026-08-10T23:55:51.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1786640185700",
+    "title": "bensin",
+    "amount": 30000.0,
+    "date": "2026-08-11T23:56:17.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1786640239542",
+    "title": "bayar sulap",
+    "amount": 50000.0,
+    "date": "2026-08-13T23:57:11.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1786641112385",
+    "title": "photobox",
+    "amount": 35000.0,
+    "date": "2026-08-13T00:11:37.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1786641251879",
+    "title": "",
+    "amount": 200000.0,
+    "date": "2026-08-12T00:14:03.000",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1786700849944",
+    "title": "naspad",
+    "amount": 12000.0,
+    "date": "2026-08-13T16:47:27.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786700890985",
+    "title": "cuci motor",
+    "amount": 15000.0,
+    "date": "2026-08-14T16:47:42.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1786708149580",
+    "title": "naspad+gorengan",
+    "amount": 17000.0,
+    "date": "2026-08-14T18:48:57.131",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1786965973413",
+    "title": "telor",
+    "amount": 23000.0,
+    "date": "2026-08-17T18:26:03.250",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1786966008674",
+    "title": "tahu+sawi",
+    "amount": 21000.0,
+    "date": "2026-08-17T18:26:30.642",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787125781867",
+    "title": "kopi",
+    "amount": 10000.0,
+    "date": "2026-08-19T14:49:36.619",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787125800233",
+    "title": "gunting kuku",
+    "amount": 20000.0,
+    "date": "2026-08-19T14:49:45.223",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1787126018977",
+    "title": "pulsa",
+    "amount": 50000.0,
+    "date": "2026-08-19T14:53:28.475",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1787126032493",
+    "title": "",
+    "amount": 800000.0,
+    "date": "2026-08-19T14:53:47.077",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1787202196951",
+    "title": "jajan",
+    "amount": 38000.0,
+    "date": "2026-08-19T12:03:14.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787241069170",
+    "title": "kopi",
+    "amount": 45000.0,
+    "date": "2026-08-20T22:50:57.340",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1787241091188",
+    "title": "bensin",
+    "amount": 70000.0,
+    "date": "2026-08-20T22:51:24.264",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1787308859688",
+    "title": "bakso+esteh",
+    "amount": 13000.0,
+    "date": "2026-08-21T17:40:42.806",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787334808740",
+    "title": "burger",
+    "amount": 20000.0,
+    "date": "2026-08-21T00:53:24.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787334827965",
+    "title": "jajanin lipi",
+    "amount": 14000.0,
+    "date": "2026-08-21T00:53:34.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787456504662",
+    "title": "date",
+    "amount": 90500.0,
+    "date": "2026-08-22T10:41:41.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787456534157",
+    "title": "Mie gacoan",
+    "amount": 53000.0,
+    "date": "2026-08-22T10:42:06.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787456580998",
+    "title": "kiranti",
+    "amount": 16000.0,
+    "date": "2026-08-22T10:42:52.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787539909188",
+    "title": "makan ",
+    "amount": 22500.0,
+    "date": "2026-08-24T09:51:38.457",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787670918480",
+    "title": "telor+mie",
+    "amount": 33000.0,
+    "date": "2026-08-25T22:15:10.394",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1787670927209",
+    "title": "mi ayam",
+    "amount": 12000.0,
+    "date": "2026-08-25T22:15:20.819",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787671698469",
+    "title": "bensin",
+    "amount": 29000.0,
+    "date": "2026-08-25T22:28:11.020",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1787671722294",
+    "title": "neni",
+    "amount": 7000.0,
+    "date": "2026-08-25T22:28:36.656",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787750146459",
+    "title": "pulsa",
+    "amount": 50000.0,
+    "date": "2026-08-26T20:15:23.436",
+    "category": "Tagihan",
+    "type": "expense"
+  },
+  {
+    "id": "1787950893891",
+    "title": "rotbak",
+    "amount": 14000.0,
+    "date": "2026-08-28T04:01:23.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787950908948",
+    "title": "kopi",
+    "amount": 10000.0,
+    "date": "2026-08-28T04:01:47.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1787950944138",
+    "title": "obat lipi",
+    "amount": 23500.0,
+    "date": "2026-08-28T04:02:19.000",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "1787951042927",
+    "title": "date lipi",
+    "amount": 46000.0,
+    "date": "2026-08-27T04:04:14.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788031517202",
+    "title": "",
+    "amount": 485000.0,
+    "date": "2026-08-30T02:25:13.682",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1788086286192",
+    "title": "buryam lipi",
+    "amount": 30000.0,
+    "date": "2026-09-01T01:13:14.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788086299534",
+    "title": "cilok lipi",
+    "amount": 10000.0,
+    "date": "2026-09-01T01:13:24.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788086318489",
+    "title": "Dimsum",
+    "amount": 5000.0,
+    "date": "2026-09-01T01:13:33.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788158663837",
+    "title": "",
+    "amount": 15000.0,
+    "date": "2026-08-31T13:44:21.100",
+    "category": "Gaji",
+    "type": "income"
+  },
+  {
+    "id": "1788158675508",
+    "title": "nasgor",
+    "amount": 14000.0,
+    "date": "2026-09-01T01:13:05.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286112088",
+    "title": "kopken",
+    "amount": 38000.0,
+    "date": "2026-09-01T01:08:18.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286169308",
+    "title": "mi ayam",
+    "amount": 26000.0,
+    "date": "2026-09-01T01:09:25.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286218648",
+    "title": "bensin",
+    "amount": 65000.0,
+    "date": "2026-09-01T01:10:17.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1788286233006",
+    "title": "somay",
+    "amount": 10000.0,
+    "date": "2026-09-01T01:10:26.000",
+    "category": "Hiburan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286272167",
+    "title": "telor",
+    "amount": 24000.0,
+    "date": "2026-09-01T01:11:05.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286326723",
+    "title": "kopi beans",
+    "amount": 10000.0,
+    "date": "2026-09-01T01:12:05.000",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788286342953",
+    "title": "one push vape",
+    "amount": 8000.0,
+    "date": "2026-09-01T01:12:15.000",
+    "category": "Belanja",
+    "type": "expense"
+  },
+  {
+    "id": "1788286578243",
+    "title": "isi angin",
+    "amount": 6000.0,
+    "date": "2026-09-01T01:16:11.000",
+    "category": "Transportasi",
+    "type": "expense"
+  },
+  {
+    "id": "1788437207639",
+    "title": "sembako",
+    "amount": 20000.0,
+    "date": "2026-09-03T19:06:37.985",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788438162080",
+    "title": "bakso 3 mie",
+    "amount": 29000.0,
+    "date": "2026-09-03T19:21:50.893",
+    "category": "Makanan",
+    "type": "expense"
+  },
+  {
+    "id": "1788523273541",
+    "title": "pulsa mamah",
+    "amount": 15000.0,
+    "date": "2026-09-04T19:01:03.981",
+    "category": "Lainnya",
+    "type": "expense"
+  },
+  {
+    "id": "179c8174-c7f9-4b30-8852-beaeb0173de0",
+    "title": "Penarikan: Ke jogja",
+    "amount": 12000.0,
+    "date": "2026-07-21T15:53:10.054",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "1a7ffcc5-88ea-4ca2-b85a-007c96863ddd",
+    "title": "Penarikan: Ke jogja",
+    "amount": 50000.0,
+    "date": "2026-07-16T01:54:28.462",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "1c8d62cf-752e-4efe-96a2-feb9587d2876",
+    "title": "Tabungan: Pribadi",
+    "amount": 30000.0,
+    "date": "2026-06-29T23:24:30.725",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "1fe94356-3565-4b67-b52c-51634e029d9a",
+    "title": "Tabungan: Pribadi",
+    "amount": 100000.0,
+    "date": "2026-07-05T03:56:51.329",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "20c04862-4ea1-4869-8191-0b1a7d40a02f",
+    "title": "Tabungan: Pribadi",
+    "amount": 280000.0,
+    "date": "2026-06-07T15:45:54.129",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "247d2cce-daef-4a43-8b6b-c5987e802b14",
+    "title": "Tabungan: Pribadi",
+    "amount": 10000.0,
+    "date": "2026-09-04T19:00:48.094",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "2b777fd3-8e35-4d02-8d12-a8c63c8c2a0f",
+    "title": "Penarikan: Pribadi",
+    "amount": 214000.0,
+    "date": "2026-07-14T01:29:59.641",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "33da6b67-05c9-481b-b850-98882d8078d4",
+    "title": "Tabungan: Ke jogja",
+    "amount": 50000.0,
+    "date": "2026-06-06T18:05:45.880",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "37aabcce-139b-4dcc-bf8a-f7d84ec173ca",
+    "title": "Penarikan: Ke jogja",
+    "amount": 254.6929980689326,
+    "date": "2026-08-02T13:17:37.549",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "3ead9eb8-c2f6-4709-9cf6-60693dfda956",
+    "title": "Penarikan: Ke jogja",
+    "amount": 10500.0,
+    "date": "2026-08-08T21:35:20.548",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "45d65c84-57eb-4b8b-8a01-a2087047ba8f",
+    "title": "Penarikan: Pribadi",
+    "amount": 5000.0,
+    "date": "2026-08-08T21:36:24.272",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "476fa7fe-7e59-4130-832a-0db6ee9faa12",
+    "title": "Penarikan: Pribadi",
+    "amount": 10000.0,
+    "date": "2026-08-10T01:08:27.537",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "4b937c8b-8779-4d25-a9b5-37d8865de720",
+    "title": "Penarikan: Ke jogja",
+    "amount": 37500.0,
+    "date": "2026-08-02T13:14:36.041",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "4bbdbdd0-d15c-4f13-8eb2-d03232eabe8b",
+    "title": "Penarikan: Pribadi",
+    "amount": 114000.0,
+    "date": "2026-07-15T21:06:38.584",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "4df55140-c969-4a9e-aac8-14c575bb13a1",
+    "title": "Penarikan: Pribadi",
+    "amount": 24745.30700193107,
+    "date": "2026-08-02T13:17:37.395",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "50c1bc4d-afb0-4213-b598-ebbf676d2931",
+    "title": "Penarikan: Pribadi",
+    "amount": 10000.0,
+    "date": "2026-08-09T16:25:30.088",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "55b468f0-ba55-46aa-a132-3ad29513b2e4",
+    "title": "Penarikan: Ke jogja",
+    "amount": 34500.0,
+    "date": "2026-07-21T01:37:44.069",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "6a219c57-28ad-4740-9f68-103bf3e82ad0",
+    "title": "Penarikan: Pribadi",
+    "amount": 50000.0,
+    "date": "2026-08-09T04:22:04.140",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "6c0f444a-96b5-42c4-950b-9754a644ad2b",
+    "title": "Tabungan: Pribadi",
+    "amount": 20000.0,
+    "date": "2026-06-07T15:47:01.417",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "724d87a0-e43a-4737-96ff-f9f565d28589",
+    "title": "Penarikan: Pribadi",
+    "amount": 2000.0,
+    "date": "2026-07-19T00:26:56.815",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "77969eb5-346f-433c-8b0b-2860d1b80df8",
+    "title": "Tabungan: Pribadi",
+    "amount": 100000.0,
+    "date": "2026-08-02T13:21:16.000",
+    "category": "Tabungan",
+    "type": "expense"
+  },
+  {
+    "id": "86f3ba5c-74fd-47a0-8cd8-2ef4aa85555e",
+    "title": "Penarikan: Ke jogja",
+    "amount": 17836.0,
+    "date": "2026-07-31T13:11:13.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "8c40dfff-4afc-4cd5-aede-4c0498119748",
+    "title": "Penarikan: Pribadi",
+    "amount": 152000.0,
+    "date": "2026-08-13T00:07:14.091",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "93060f69-5471-4876-991e-72505fe0e155",
+    "title": "Penarikan: Pribadi",
+    "amount": 14999.999999999767,
+    "date": "2026-08-08T21:36:07.963",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "afcbd607-8eff-480c-9d65-e71c54cdcaa3",
+    "title": "Penarikan: Pribadi",
+    "amount": 65000.0,
+    "date": "2026-08-01T13:13:02.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "d2e34391-fe16-4311-b33f-d449846b02b7",
+    "title": "Penarikan: Pribadi",
+    "amount": 166164.0,
+    "date": "2026-07-31T13:11:07.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "d7f9af39-a3ed-4cb1-8fcf-c830ef297105",
+    "title": "Penarikan: Pribadi",
+    "amount": 4515.0,
+    "date": "2026-07-31T13:11:19.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "db69889b-73ba-4857-bfbd-58fcd7fb438c",
+    "title": "Penarikan: Ke jogja",
+    "amount": 183.37895860963144,
+    "date": "2026-08-02T13:15:03.068",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "e09e6a91-2e69-4e91-ab82-c403bc3a28e3",
+    "title": "Penarikan: Ke jogja",
+    "amount": 168.0973787254955,
+    "date": "2026-08-08T21:33:14.369",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "e8653a8c-75ef-4c89-9fa0-b2e6fc0fd194",
+    "title": "Penarikan: Pribadi",
+    "amount": 225000.0,
+    "date": "2026-07-15T03:42:34.274",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "eaa33e18-c78d-4527-bb63-1638d3784d4c",
+    "title": "Penarikan: Ke jogja",
+    "amount": 485.0,
+    "date": "2026-07-31T13:11:26.000",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "f494cadb-63ee-4eda-a27d-ff1a8ccd0d21",
+    "title": "Penarikan: Pribadi",
+    "amount": 30900.0,
+    "date": "2026-08-09T16:25:45.806",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "f8d4dbf6-2c47-447c-b3fc-fa4cc0b5b279",
+    "title": "Penarikan: Pribadi",
+    "amount": 23831.902621274505,
+    "date": "2026-08-08T21:33:14.175",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "fea00ff5-3bbc-40e4-a8a4-0d16581a355d",
+    "title": "Penarikan: Pribadi",
+    "amount": 20000.0,
+    "date": "2026-08-10T01:08:10.313",
+    "category": "Tabungan",
+    "type": "income"
+  },
+  {
+    "id": "ffc7df8a-fd73-4322-a12a-2d0f54571da6",
+    "title": "Tabungan: Pribadi",
+    "amount": 200000.0,
+    "date": "2026-08-30T02:24:25.156",
+    "category": "Tabungan",
+    "type": "expense"
+  }
+]

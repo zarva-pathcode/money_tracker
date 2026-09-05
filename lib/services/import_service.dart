@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/expense.dart';
@@ -24,19 +25,10 @@ class ImportService {
       final expenses = <Expense>[];
 
       try {
-        final cleanedContent = content.replaceAll('[', '').replaceAll(']', '');
-        final expenseStrings = cleanedContent.split('},');
-
-        for (var expStr in expenseStrings) {
-          if (expStr.trim().isNotEmpty) {
-            var cleanStr = expStr.trim();
-            if (!cleanStr.endsWith('}')) cleanStr += '}';
-            if (!cleanStr.startsWith('{')) cleanStr = '{$cleanStr';
-
-            final map = _parseSimpleJson(cleanStr);
-            if (map.isNotEmpty) {
-              expenses.add(Expense.fromMap(map));
-            }
+        final List<dynamic> jsonList = jsonDecode(content);
+        for (final item in jsonList) {
+          if (item is Map<String, dynamic>) {
+            expenses.add(Expense.fromMap(item));
           }
         }
       } catch (e) {
@@ -91,37 +83,5 @@ class ImportService {
     } catch (e) {
       throw Exception('Gagal mengimpor: $e');
     }
-  }
-
-  static Map<String, dynamic> _parseSimpleJson(String jsonString) {
-    final Map<String, dynamic> result = {};
-
-    try {
-      final cleanStr = jsonString.replaceAll('{', '').replaceAll('}', '');
-      final pairs = cleanStr.split(',');
-
-      for (var pair in pairs) {
-        final keyValue = pair.split(':');
-        if (keyValue.length == 2) {
-          var key = keyValue[0].trim().replaceAll('"', '').replaceAll("'", "");
-          var value = keyValue[1]
-              .trim()
-              .replaceAll('"', '')
-              .replaceAll("'", "");
-
-          if (key == 'amount') {
-            result[key] = double.tryParse(value) ?? 0;
-          } else if (key == 'date') {
-            result[key] = DateTime.parse(value);
-          } else {
-            result[key] = value;
-          }
-        }
-      }
-    } catch (e) {
-      print('Error parsing JSON: $e');
-    }
-
-    return result;
   }
 }

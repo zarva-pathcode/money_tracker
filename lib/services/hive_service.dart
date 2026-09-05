@@ -75,6 +75,16 @@ class HiveService {
     await box.put(expense.id, expense);
   }
 
+  Future<void> addAllExpenses(List<Expense> expenses) async {
+    if (expenses.isEmpty) return;
+    final box = getExpenseBox();
+    final map = <String, Expense>{};
+    for (final e in expenses) {
+      map[e.id] = e;
+    }
+    await box.putAll(map);
+  }
+
   Future<void> updateExpense(Expense expense) async {
     final box = getExpenseBox();
     await box.put(expense.id, expense);

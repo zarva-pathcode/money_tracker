@@ -289,6 +289,24 @@ class ExpenseProvider with ChangeNotifier {
     loadExpenses();
   }
 
+  Future<void> addAllExpenses(List<Expense> expenses) async {
+    if (expenses.isEmpty) return;
+    final resolved = expenses
+        .map(
+          (e) => Expense(
+            id: e.id,
+            title: _resolveTitle(e.title),
+            amount: e.amount,
+            date: e.date,
+            category: e.category,
+            type: e.type,
+          ),
+        )
+        .toList();
+    await _hiveService.addAllExpenses(resolved);
+    loadExpenses();
+  }
+
   Future<void> addSavingsAllocation({
     required double amount,
     required String planTitle,

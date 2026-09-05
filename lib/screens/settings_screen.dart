@@ -639,23 +639,79 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _showLoadingDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 24),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Mohon tunggu sampai proses selesai.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _importFromJson(BuildContext context, ExpenseProvider provider) async {
     try {
       final imported = await ImportService.importFromJson();
       if (imported.isEmpty) {
-        _showErrorDialog(context, 'Gagal Impor', 'Tidak ada data valid.');
+        if (context.mounted) {
+          _showErrorDialog(context, 'Gagal Impor', 'Tidak ada data valid.');
+        }
         return;
       }
-      for (var expense in imported) {
-        await provider.addExpense(expense);
+      
+      if (context.mounted) {
+        _showLoadingDialog(context, "Mengimpor Data...");
       }
-      _showSuccessDialog(
-        context,
-        'Berhasil Impor',
-        '${imported.length} transaksi ditambahkan.',
-      );
+
+      await provider.addAllExpenses(imported);
+      
+      if (context.mounted) {
+        Navigator.pop(context); // Tutup dialog loading
+        _showSuccessDialog(
+          context,
+          'Berhasil Impor',
+          '${imported.length} transaksi ditambahkan.',
+        );
+      }
     } catch (e) {
-      _showErrorDialog(context, 'Gagal Impor', e.toString());
+      if (context.mounted) {
+        // Tutup dialog loading jika sedang terbuka
+        Navigator.of(context, rootNavigator: true).popUntil((route) {
+          return route.settings.name != null || route.isFirst; // Hack sederhana, sebisa mungkin kembali
+        });
+        _showErrorDialog(context, 'Gagal Impor', e.toString());
+      }
     }
   }
 
@@ -663,19 +719,31 @@ class SettingsScreen extends StatelessWidget {
     try {
       final imported = await ImportService.importFromCsv();
       if (imported.isEmpty) {
-        _showErrorDialog(context, 'Gagal Impor', 'Tidak ada data valid.');
+        if (context.mounted) {
+          _showErrorDialog(context, 'Gagal Impor', 'Tidak ada data valid.');
+        }
         return;
       }
-      for (var expense in imported) {
-        await provider.addExpense(expense);
+
+      if (context.mounted) {
+        _showLoadingDialog(context, "Mengimpor Data Csv...");
       }
-      _showSuccessDialog(
-        context,
-        'Berhasil Impor',
-        '${imported.length} transaksi ditambahkan.',
-      );
+
+      await provider.addAllExpenses(imported);
+
+      if (context.mounted) {
+        Navigator.pop(context); // Tutup dialog loading
+        _showSuccessDialog(
+          context,
+          'Berhasil Impor',
+          '${imported.length} transaksi ditambahkan.',
+        );
+      }
     } catch (e) {
-      _showErrorDialog(context, 'Gagal Impor', e.toString());
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        _showErrorDialog(context, 'Gagal Impor', e.toString());
+      }
     }
   }
 
